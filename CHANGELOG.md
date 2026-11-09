@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0
+
+- Multi-color plates keep the prime tower's area free. The tower is reserved when the prime tower is enabled and the plate prints with two or more filaments (different filament slots or color painting), at its position on that plate, with its brim and an estimated depth.
+- Fill works on projects whose settings list no plates.
+
 ## 0.6.0
 
 - New **Fill plate with copies** button: arranges the plate, then adds copies of its objects (round-robin) until no more fit, so the whole bed is used.

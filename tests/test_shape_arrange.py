@@ -212,7 +212,7 @@ def box3(x0, y0, z0, x1, y1, z1):
     return [(x, y, z + z0) for x, y, z in v], f
 
 
-def simple_project(path: Path, objects: list, items: list, settings: dict):
+def simple_project(path: Path, objects: list, items: list, settings: dict, model_settings: str = ""):
     """Plain 3MF: objects = [mesh], items = [(object index, transform string)]."""
     ns = 'xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"'
     res = "".join(mesh_xml(i + 1, m) for i, m in enumerate(objects))
@@ -220,6 +220,8 @@ def simple_project(path: Path, objects: list, items: list, settings: dict):
     with zipfile.ZipFile(path, "w") as z:
         z.writestr("3D/3dmodel.model", f'<model unit="millimeter" {ns}><resources>{res}</resources><build>{build}</build></model>')
         z.writestr("Metadata/project_settings.config", json.dumps(settings))
+        if model_settings:
+            z.writestr("Metadata/model_settings.config", model_settings)
 
 
 def projections(path: Path, bed: float, res=0.05):
@@ -311,6 +313,63 @@ def test_fill_plate_adds_registered_copies_without_overlap():
         assert (np.sum(masks, axis=0) > 1).sum() == 0, "copies overlap"
 
 
+TOWER = {"printable_area": ["0x0", "100x0", "100x100", "0x100"], "enable_prime_tower": "1",
+         "wipe_tower_x": ["60"], "wipe_tower_y": ["60"], "prime_tower_width": "30",
+         "prime_tower_brim_width": "3", "filament_prime_volume": ["45", "45"], "layer_height": "0.2"}
+
+
+def filament_settings(*slots):
+    objs = "".join(f'<object id="{i + 1}"><metadata key="name" value="o{i + 1}"/>'
+                   f'<metadata key="extruder" value="{e}"/></object>' for i, e in enumerate(slots))
+    return f'<?xml version="1.0" encoding="UTF-8"?>\n<config>{objs}</config>'
+
+
+def tower_overlap(path: Path) -> int:
+    """Cells (0.25 mm) where any part sits on the reserved tower area incl. brim."""
+    res, x0, x1 = 0.25, 60 - 3, 60 + 30 + 3
+    hits = 0
+    for m, lo, hi in projections(path, 100.0, res):
+        if lo[1] >= 100:  # overflow row
+            continue
+        hits += int(m[int(x0 / res):int(x1 / res), int(x0 / res):int(x1 / res)].sum())
+    return hits
+
+
+def test_prime_tower_is_kept_free_with_two_filaments():
+    blocks = [(0, tf(0, 5 + 12 * (i % 8), 5 + 12 * (i // 8))) for i in range(12)] + \
+             [(1, tf(0, 5 + 12 * (i % 8), 50 + 12 * (i // 8))) for i in range(12)]
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        simple_project(src, [box(0, 0, 10, 10), box(0, 0, 10, 10)], blocks, TOWER, filament_settings(1, 2))
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=1, step=90, res=0.5, fill=True))
+        assert report["prime_tower"], report
+        assert tower_overlap(dst) == 0, "a part was placed on the prime tower"
+
+
+def test_single_filament_plate_has_no_tower():
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        simple_project(src, [box(0, 0, 10, 10)], [(0, tf(0, 5, 5))], TOWER, filament_settings(1))
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=1, step=90, res=0.5, fill=True))
+        assert not report["prime_tower"], report
+        assert tower_overlap(dst) > 0, "with one filament the tower area should be usable"
+
+
+def test_painted_part_needs_a_tower():
+    star_mesh = box(0, 0, 10, 10)
+    with tempfile.TemporaryDirectory() as d:
+        src = Path(d, "in.3mf")
+        simple_project(src, [star_mesh], [(0, tf(0, 5, 5))], TOWER, filament_settings(1))
+        with zipfile.ZipFile(src) as z:
+            files = {n: z.read(n) for n in z.namelist()}
+        files["3D/3dmodel.model"] = files["3D/3dmodel.model"].replace(b'<triangle ', b'<triangle paint_color="0C" ', 1)
+        with zipfile.ZipFile(src, "w") as z:
+            for n, b in files.items():
+                z.writestr(n, b)
+        pkg = sa.Package(src)
+        assert pkg.prime_tower(1, pkg.items()) is not None
+
+
 def test_missing_plate_is_an_error():
     with tempfile.TemporaryDirectory() as d:
         src = Path(d, "in.3mf")
@@ -330,5 +389,8 @@ if __name__ == "__main__":
     test_overhangs_block_space_at_every_height()
     test_by_object_sequence_keeps_extruder_clearance()
     test_fill_plate_adds_registered_copies_without_overlap()
+    test_prime_tower_is_kept_free_with_two_filaments()
+    test_single_filament_plate_has_no_tower()
+    test_painted_part_needs_a_tower()
     test_missing_plate_is_an_error()
     print("ok")

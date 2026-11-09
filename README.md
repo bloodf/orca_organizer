@@ -28,6 +28,10 @@ It works with any model. Collisions are checked on all three axes:
   another part's overhang.
 - **Z:** parts keep their height and stay on the bed. They only move in X/Y
   and turn around the vertical axis.
+- **Prime tower:** on multi-color plates (two or more filaments, or color
+  painting) with the prime tower enabled, the tower's area is kept free,
+  brim included. Its depth is only known after slicing, so the plugin
+  reserves a conservative estimate: at least as deep as it is wide.
 - **Print by object:** when the plate prints one object at a time, the
   print head drops between finished parts. Parts are then kept at least
   the printer's extruder clearance radius apart, even if the spacing you set

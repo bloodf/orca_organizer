@@ -7,7 +7,7 @@
 # type = "script"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Irregular and concave parts interlock to fit more on the plate, or fill the whole plate with copies. Just set the spacing."
 # author = "Heitor Ramon"
-# version = "0.6.0"
+# version = "0.7.0"
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Heitor Ramon
@@ -64,6 +64,8 @@ class Item:
     parts: list = field(default_factory=list)  # [(verts_world (N,3), tris (M,3))]
     name: str = ""
     printable: bool = True
+    filaments: set = field(default_factory=set)  # 1-based filament slots its parts print with
+    painted: bool = False                        # has multi-color painting
 
 
 # ---------------------------------------------------------------- 3MF reading
@@ -130,18 +132,23 @@ class Package:
 
     def _load_settings(self) -> dict:
         """Part subtypes, object names and plate membership from Orca/Bambu metadata."""
-        out = {"subtypes": {}, "names": {}, "plates": {}, "plate_meta": {}}
+        out = {"subtypes": {}, "names": {}, "plates": {}, "plate_meta": {}, "filaments": {}}
         text = self._text("Metadata/model_settings.config")
         if not text:
             return out
         root = ET.fromstring(text)
         for obj in root.iter("object"):
             oid = obj.get("id")
-            for md in obj.findall("metadata"):
-                if md.get("key") == "name":
-                    out["names"][oid] = md.get("value", "")
+            meta = {md.get("key"): md.get("value", "") for md in obj.findall("metadata")}
+            if "name" in meta:
+                out["names"][oid] = meta["name"]
             out["subtypes"][oid] = {p.get("id"): p.get("subtype", "normal_part")
                                     for p in obj.findall("part")}
+            default = meta.get("extruder") or "1"
+            out["filaments"][oid] = {
+                p.get("id"): next((m.get("value") for m in p.findall("metadata") if m.get("key") == "extruder"),
+                                  None) or default
+                for p in obj.findall("part")} | {None: default}
         for plate in root.iter("plate"):
             meta = {m.get("key"): m.get("value") for m in plate.findall("metadata")}
             pid = int(meta.get("plater_id", len(out["plates"]) + 1))
@@ -172,6 +179,48 @@ class Package:
             value = max(float(v) for v in value) if value else 0
         return float(value)
 
+    def prime_tower(self, plate: int, items: list[Item]) -> np.ndarray | None:
+        """Prime tower footprint on `plate` as plate-local triangles (K, 3, 2), or None.
+
+        Orca only builds the tower when it is enabled and the plate prints with 2+
+        filaments (different filament slots or color painting). Its real depth is
+        only known after slicing, so this reserves a conservative estimate.
+        """
+        cfg = self.config()
+        if str(cfg.get("enable_prime_tower", "0")) not in ("1", "true"):
+            return None
+        printing = [it for it in items if it.printable and it.parts]
+        slots = set().union(*(it.filaments for it in printing)) if printing else set()
+        if len(slots) < 2 and not any(it.painted for it in printing):
+            return None
+
+        def per_plate(key):
+            v = cfg.get(key)
+            v = v if isinstance(v, list) else [v]
+            v = [x for x in v if x not in (None, "")]
+            return float(v[plate - 1] if len(v) >= plate else v[0]) if v else None
+
+        x, y = per_plate("wipe_tower_x"), per_plate("wipe_tower_y")
+        if x is None or y is None:
+            return None
+        width = float(cfg.get("prime_tower_width") or 35)
+        brim = float(cfg.get("prime_tower_brim_width") or 3)
+        # ponytail: depth estimate = purge per tool change spread over the tower width,
+        # at least square. Orca's sliced depth can differ; spacing + brim cover small misses.
+        volume = cfg.get("filament_prime_volume") or cfg.get("prime_volume") or 45
+        volume = max(float(v) for v in volume) if isinstance(volume, list) else float(volume)
+        layer = float(cfg.get("layer_height") or 0.2)
+        changes = max(1, len(slots) - 1)
+        depth = max(width, changes * volume / (layer * width))
+        corners = np.array([[x, y], [x + width, y], [x + width, y + depth], [x, y + depth]])
+        corners += np.array([[-brim, -brim], [brim, -brim], [brim, brim], [-brim, brim]])
+        angle = math.radians(float(cfg.get("wipe_tower_rotation_angle") or 0))
+        if angle:
+            c = corners.mean(0)
+            rot = np.array([[math.cos(angle), -math.sin(angle)], [math.sin(angle), math.cos(angle)]])
+            corners = (corners - c) @ rot.T + c
+        return np.array([corners[[0, 1, 2]], corners[[0, 2, 3]]])
+
     def bed(self):
         """(printable polygon, [exclude polygons]) in plate-local mm."""
         text = self._text("Metadata/project_settings.config")
@@ -199,16 +248,20 @@ class Package:
             item = Item(i, oid, _mat_from_3mf(_attr(tag, "transform")),
                         name=self.settings["names"].get(oid, f"object {oid}"),
                         printable=_attr(tag, "printable") != "0")
-            self._collect(self.main_name, oid, item.transform, item.parts, oid)
+            self._collect(self.main_name, oid, item.transform, item.parts, oid, item=item)
             out.append(item)
         return out
 
-    def _collect(self, file, oid, mat, parts, top_oid, part_id=None):
+    def _collect(self, file, oid, mat, parts, top_oid, part_id=None, item=None):
         obj = self._object(file, oid)
         mesh = obj.find(CORE + "mesh")
         if mesh is not None:
             subtype = self.settings["subtypes"].get(top_oid, {}).get(part_id or oid, "normal_part")
             if subtype == "normal_part":
+                if item is not None:
+                    slots = self.settings["filaments"].get(top_oid, {})
+                    item.filaments.add(int(slots.get(part_id or oid, slots.get(None, "1")) or 1))
+                    item.painted |= mesh.find(f".//{CORE}triangle[@paint_color]") is not None
                 v, t = _mesh_arrays(mesh)
                 if len(t):
                     vw = (np.c_[v, np.ones(len(v))] @ mat.T)[:, :3]
@@ -218,7 +271,7 @@ class Package:
         for c in [] if comps is None else comps.findall(CORE + "component"):
             sub_file = (c.get(PROD + "path") or "").lstrip("/") or file
             sub_mat = mat @ _mat_from_3mf(c.get("transform"))
-            self._collect(sub_file, c.get("objectid"), sub_mat, parts, top_oid, c.get("objectid"))
+            self._collect(sub_file, c.get("objectid"), sub_mat, parts, top_oid, c.get("objectid"), item)
 
     def write(self, out: Path, new_transforms: dict[int, np.ndarray], added=(), plate: int = 1):
         """Write a copy with new item transforms; `added` = [(object id, transform)] new instances."""
@@ -264,6 +317,8 @@ class Package:
             if re.search(rf'key="plater_id" value="{plate}"', m.group(0)):
                 end = m.end() - len("</plate>")
                 return text[:end] + "".join(entries) + "  " + text[end:]
+        if "<plate>" not in text:  # no plate list: Orca puts every item on plate 1
+            return text
         raise ValueError(f"plate {plate} not found in model_settings.config")
 
     def _replace_transforms(self, new: dict[int, np.ndarray]) -> str:
@@ -589,6 +644,9 @@ def plan_3mf(src: Path, p: Params = Params(), bed=None, progress=None):
     moving = {it.index for it in movable}
     obstacles = [_silhouette(it.parts) - origin for it in items if it.index not in moving and it.parts]
     obstacles = [t for t in obstacles if len(t)]
+    tower = pkg.prime_tower(p.plate, items)
+    if tower is not None:
+        obstacles.append(tower)
 
     def run(q: Params):
         grid_origin, blocked = _bed_grid(poly, excludes, q.res, obstacles)
@@ -616,7 +674,7 @@ def plan_3mf(src: Path, p: Params = Params(), bed=None, progress=None):
         new[it.index] = _delta(0, lo, np.array([cursor, top])) @ it.transform
         cursor += hi[0] - lo[0] + max(p.spacing, 5)
     report = {"placed": len(moves), "unplaced": [it.name for it in failed], "spacing": p.spacing,
-              "added": len(added), "plate": p.plate}
+              "added": len(added), "plate": p.plate, "prime_tower": tower is not None}
     return pkg, (new, copies), report
 
 
@@ -750,6 +808,8 @@ class _Job:
         self.result = None
         pkg.write(dst, *new, p.plate)
         text = f"Plate {p.plate}: placed {report['placed']} object(s)."
+        if report["prime_tower"]:
+            text += "\nKept the prime tower's area free."
         if report["added"]:
             text += f"\nFilled the plate with {report['added']} extra cop{'y' if report['added'] == 1 else 'ies'}."
         if report["spacing"] > p.spacing:
