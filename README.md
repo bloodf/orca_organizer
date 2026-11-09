@@ -26,8 +26,9 @@ settings and other plates are kept.
 1. In OrcaSlicer, open **File > Plugins**.
 2. Click the arrow next to **Browse plugins**, choose **Install local
    plugin**, and select `shape_arrange.py`.
-3. Tick **Activate**. On first install, OrcaSlicer installs `numpy` and
-   `pillow` for the plugin.
+3. Tick **Activate** and allow the thread permission prompt (the arranging
+   runs in the background so OrcaSlicer stays responsive). On first install,
+   OrcaSlicer installs `numpy` and `pillow` for the plugin.
 
 ## Use
 
@@ -45,7 +46,8 @@ settings and other plates are kept.
 
 A plate whose parts all fit takes a few seconds. A crowded plate that
 overflows takes about 20 seconds (18 snowflakes, 80 mm), because the finer
-retry runs too. OrcaSlicer is unresponsive while it works.
+retry runs too. The work runs in the background, so OrcaSlicer stays usable,
+and the panel shows progress.
 
 ## Command line
 
@@ -65,17 +67,25 @@ Pass `--bed 270x270` for plain 3MF files that carry no printer settings.
 
 ```sh
 uv run --python 3.12 --with numpy --with pillow python tests/test_shape_arrange.py
+uv run --python 3.12 --with numpy --with pillow python tests/test_plugin.py
 ```
 
-The test builds a two-plate Orca-style project in which two combs fit on
+`test_plugin.py` runs the plugin against a stub `orca` module and checks the
+threading: the export and the file launch happen on the UI thread, the
+nesting does not.
+
+`test_shape_arrange.py` builds a two-plate Orca-style project in which two combs fit on
 plate 2 only if their teeth interlock. It arranges the project, then checks
 that every part sits on the bed with no overlap and that plate 1 and every
 other file in the 3MF are unchanged.
 
 ## Known limits
 
-- The UI is unresponsive for a few seconds while a plate is arranged.
 - Parts are not mirrored or tilted; only rotation about Z is tried.
 - On Windows the arranged copy may open in a second OrcaSlicer window unless
   single-instance mode is on. If no launcher is found, the panel shows the
   file path to open by hand.
+
+## License
+
+GPL-3.0-or-later. See [LICENSE](LICENSE).

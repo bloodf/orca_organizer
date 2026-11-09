@@ -6,8 +6,10 @@
 # name = "Shape-Aware Arrange"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Concave parts (snowflakes, stars, combs, letters) interlock to fit more on the plate."
 # author = "Heitor Ramon"
-# version = "0.3.0"
+# version = "0.4.0"
 # ///
+# SPDX-License-Identifier: GPL-3.0-or-later
+# Copyright (C) 2026 Heitor Ramon
 """Shape-aware plate arrangement for OrcaSlicer.
 
 Orca 2.5 plugins cannot move objects, so the plugin exports a 3MF copy of the
@@ -348,7 +350,7 @@ def nest(items: list[Item], blocked: np.ndarray, p: Params, progress=None):
         center, shapes = _shapes(it, p)
         prepared.append((it, center, shapes))
     prepared.sort(key=lambda t: -int(t[2][0].raw.sum()))
-    placed, failed, bbox = _place(prepared, blocked)
+    placed, failed, bbox = _place(prepared, blocked, progress)
     if p.center and placed:
         _center_layout(placed, blocked, bbox)
     return placed, failed
@@ -379,11 +381,13 @@ def _screen(shapes: list[Shape], occ: np.ndarray, bbox) -> list[Shape]:
     return [shapes[i] for i in sorted(keep)]
 
 
-def _place(prepared, blocked):
+def _place(prepared, blocked, progress=None):
     """One greedy pass in the given order. Returns (placed, failed, bbox)."""
     occ = blocked.astype(float)
     bbox, placed, failed = None, {}, []
-    for it, center, shapes in prepared:
+    for n, (it, center, shapes) in enumerate(prepared):
+        if progress:
+            progress(n, len(prepared), f"Placing {it.name}")
         occ_f = np.fft.rfft2(occ.astype(np.float32))
         best = None
         for s in _screen(shapes, occ, bbox):
@@ -439,6 +443,13 @@ def plate_origin(plate: int, n_plates: int, bed_w: float, bed_h: float) -> np.nd
 
 def arrange_3mf(src: Path, dst: Path, p: Params = Params(), bed=None, progress=None) -> dict:
     """Arrange one plate of `src` and write the result to `dst`. Returns a report dict."""
+    pkg, new, report = plan_3mf(src, p, bed, progress)
+    pkg.write(Path(dst), new)
+    return {**report, "output": str(dst)}
+
+
+def plan_3mf(src: Path, p: Params = Params(), bed=None, progress=None):
+    """Compute the arrangement without writing. Returns (package, {item index: transform}, report)."""
     pkg = Package(src)
     poly, excludes = pkg.bed()
     poly = poly or bed or DEFAULT_BED
@@ -488,8 +499,7 @@ def arrange_3mf(src: Path, dst: Path, p: Params = Params(), bed=None, progress=N
         lo, hi = xy.min(0), xy.max(0)
         new[it.index] = _delta(0, lo, np.array([cursor, top])) @ it.transform
         cursor += hi[0] - lo[0] + max(p.spacing, 5)
-    pkg.write(Path(dst), new)
-    return {"placed": len(moves), "unplaced": [it.name for it in failed], "output": str(dst)}
+    return pkg, new, {"placed": len(moves), "unplaced": [it.name for it in failed]}
 
 
 # ---------------------------------------------------------------- Orca plugin
@@ -507,7 +517,7 @@ button:disabled{opacity:.5}#status{margin-top:12px;color:var(--orca-muted);white
 const $=id=>document.getElementById(id);
 $('go').onclick=()=>{$('go').disabled=true;$('status').textContent='Arranging…';
  orca.postMessage({action:'arrange',spacing:+$('spacing').value});};
-orca.onMessage(m=>{$('status').textContent=m.text;if(m.done)$('go').disabled=false;});
+orca.onMessage(m=>{$('status').textContent=m.text;if(m.relay)orca.postMessage({action:m.relay});if(m.done)$('go').disabled=false;});
 </script></body></html>"""
 
 
@@ -549,19 +559,72 @@ def _current_plate() -> int:
     return 1
 
 
-def _run_from_panel(panel, storage: Path, data: dict):
-    # Runs on the UI thread (dock-panel callback), which export_3mf_copy requires.
-    # ponytail: UI blocks for a few seconds while nesting; move to a worker thread if big plates hurt.
-    try:
+class _Job:
+    """One arrange run, split across threads.
+
+    UI thread:  start()  exports the project copy (export_3mf_copy is UI-thread only)
+    worker:     _work()  nests the parts; progress goes to the panel via post(),
+                         which Orca marshals to the UI thread
+    UI thread:  finish() writes the 3MF and launches it. The page relays the
+                worker's "done" back as a message, so these run on the UI thread,
+                where file and process permission prompts are allowed.
+    """
+
+    def __init__(self, panel, storage: Path):
+        self.panel, self.storage = panel, storage
+        self.busy, self.result = False, None
+
+    def post(self, **msg):
+        try:
+            self.panel.post(msg)
+        except RuntimeError:  # app is closing
+            pass
+
+    def fail(self, e: Exception):
+        import traceback
+
+        traceback.print_exc()  # lands in OrcaSlicer's python log
+        self.busy = False
+        self.post(text=f"Error: {e}", done=True)
+
+    def on_message(self, data: dict):
+        try:
+            if data.get("action") == "finish":
+                self.finish()
+            elif not self.busy:
+                self.start(data)
+        except Exception as e:  # report every failure in the panel, never crash the host
+            self.fail(e)
+
+    def start(self, data: dict):
+        import threading
+
         p = Params(plate=_current_plate(), spacing=max(0.0, float(data.get("spacing", 2))), **AUTO)
         plater = orca.host.plater()
         project = _call(plater, "project_path") or ""
         stem = Path(project).stem if project else "untitled"
-        storage.mkdir(parents=True, exist_ok=True)
-        src, dst = storage / "_source.3mf", storage / f"{stem}-arranged.3mf"
+        self.storage.mkdir(parents=True, exist_ok=True)
+        src, dst = self.storage / "_source.3mf", self.storage / f"{stem}-arranged.3mf"
         plater.export_3mf_copy(str(src))
+        self.busy = True
+        self.post(text=f"Plate {p.plate}: reading project…")
+        threading.Thread(target=self._work, args=(src, dst, p), daemon=True).start()
 
-        report = arrange_3mf(src, dst, p)
+    def _work(self, src: Path, dst: Path, p: Params):
+        try:
+            progress = lambda i, n, msg: self.post(text=f"Plate {p.plate}: {msg} ({i + 1}/{n})")
+            pkg, new, report = plan_3mf(src, p, progress=progress)
+            self.result = (pkg, new, report, dst, p)
+            self.post(text=f"Plate {p.plate}: writing…", relay="finish")
+        except Exception as e:
+            self.fail(e)
+
+    def finish(self):
+        if self.result is None:
+            return
+        pkg, new, report, dst, p = self.result
+        self.result = None
+        pkg.write(dst, new)
         text = f"Plate {p.plate}: placed {report['placed']} object(s)."
         if report["unplaced"]:
             text += f"\nDid not fit (moved above the plate): {', '.join(report['unplaced'])}"
@@ -569,12 +632,8 @@ def _run_from_panel(panel, storage: Path, data: dict):
             text += "\nOpening the arranged copy…"
         else:
             text += f"\nOpen this file: {dst}"
-        panel.post({"text": text, "done": True})
-    except Exception as e:  # report every failure in the panel, never crash the host
-        import traceback
-
-        traceback.print_exc()  # lands in OrcaSlicer's python log
-        panel.post({"text": f"Error: {e}", "done": True})
+        self.busy = False
+        self.post(text=text, done=True)
 
 
 if orca is not None:
@@ -586,18 +645,20 @@ if orca is not None:
 
         def execute(self):
             global _panel
-            storage = Path(orca.host.plugin.storage())
             if _panel is not None and _panel.is_open():
                 _panel.show()
             else:
+                job = _Job(None, Path(orca.host.plugin.storage()))
                 _panel = orca.host.ui.create_dock_panel(
                     html=PANEL_HTML, title="Shape-Aware Arrange", width=280, height=320,
-                    dock="right", on_message=lambda data: _run_from_panel(_panel, storage, data))
+                    dock="right", on_message=job.on_message)
+                job.panel = _panel
             return orca.ExecutionResult.success("Panel opened")
 
     @orca.plugin
     class ShapeArrangePlugin(orca.base):
         def register_capabilities(self):
+            orca.request_permissions(threading=True)  # nesting runs off the UI thread
             orca.register_capability(ArrangeScript)
 
 
