@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.7.1
+
+- Multi-color plates keep the prime tower's area free (two or more filaments, or color painting, with the prime tower enabled), brim included.
+- Fill works on projects whose settings list no plates.
+- Releases now publish to Orca Cloud automatically.
+
 ## 0.7.0
 
 - Multi-color plates keep the prime tower's area free. The tower is reserved when the prime tower is enabled and the plate prints with two or more filaments (different filament slots or color painting), at its position on that plate, with its brim and an estimated depth.

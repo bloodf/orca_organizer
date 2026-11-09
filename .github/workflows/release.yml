@@ -1,13 +1,28 @@
 name: Release
 
-# Push a tag matching the plugin version (e.g. v0.7.0) to create a GitHub
-# release and publish it to Orca Cloud.
+# Publish a GitHub release whose tag matches the plugin version, e.g.
+#   gh release create v0.8.0 --title "Shape-Aware Arrange v0.8.0" --notes ""
+# (or "Draft a new release" in the GitHub UI). This workflow then tests the
+# tagged code, attaches the plugin file, fills empty release notes from
+# CHANGELOG.md and publishes the version to Orca Cloud.
+#
+# Orca Cloud publishing needs no secrets: the repository is connected to the
+# plugin (Orca Cloud > Edit plugin > GitHub publishing) and this run proves
+# where it comes from with a short-lived OIDC token signed by GitHub. Orca
+# Cloud only accepts tokens from runs triggered by a published release, which
+# is why this does not run on a tag push. Re-running a successful run is safe.
 on:
-  push:
-    tags: ["v*"]
+  release:
+    types: [published]
 
 permissions:
   contents: write
+  id-token: write
+
+env:
+  TAG: ${{ github.event.release.tag_name }}
+  PLUGIN_FILE: shape_arrange_any.py
+  GH_TOKEN: ${{ github.token }}
 
 jobs:
   release:
@@ -24,35 +39,44 @@ jobs:
       - name: Check tag matches plugin version
         run: |
           version=$(sed -n 's/^# version = "\(.*\)"$/\1/p' shape_arrange.py)
-          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match plugin version $version in shape_arrange.py"
+          if [ "v$version" != "$TAG" ]; then
+            echo "::error::Release tag $TAG does not match plugin version $version in shape_arrange.py"
             exit 1
           fi
 
-      - name: Release notes from CHANGELOG.md
+      - name: Changelog section for this version
         run: |
-          awk -v v="## ${GITHUB_REF_NAME#v}" '$0 ~ "^## " {p = index($0, v) == 1; next} p' CHANGELOG.md > notes.md
+          awk -v v="## ${TAG#v}" '$0 ~ "^## " {p = index($0, v) == 1; next} p' CHANGELOG.md \
+            | sed '/./,$!d' > notes.md
           if [ ! -s notes.md ]; then
-            echo "::error::CHANGELOG.md has no '## ${GITHUB_REF_NAME#v}' section"
+            echo "::error::CHANGELOG.md has no '## ${TAG#v}' section"
             exit 1
           fi
 
-      # Orca Cloud requires an OS/arch suffix in the file name; "any" = pure Python.
-      - name: Build Orca Cloud file
-        run: mkdir -p dist && cp shape_arrange.py dist/shape_arrange_any.py
-
-      - name: Create GitHub release
-        env:
-          GH_TOKEN: ${{ github.token }}
+      - name: Attach plugin file and fill empty release notes
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/shape_arrange_any.py assets/icon.png \
-            --title "Shape-Aware Arrange $GITHUB_REF_NAME" --notes-file notes.md
+          mkdir -p dist && cp shape_arrange.py "dist/$PLUGIN_FILE"
+          gh release upload "$TAG" "dist/$PLUGIN_FILE" assets/icon.png --clobber
+          if [ -z "$(gh release view "$TAG" --json body --jq .body)" ]; then
+            gh release edit "$TAG" --notes-file notes.md
+          fi
 
-  orca-cloud:
-    needs: release
-    permissions:
-      id-token: write
-      contents: read
-    uses: ./.github/workflows/publish-orcacloud.yml
-    with:
-      tag: ${{ github.ref_name }}
+      - name: Publish to Orca Cloud
+        run: |
+          set -euo pipefail
+          oidc_token="$(curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=orcacloud" | jq -r .value)"
+          metadata="$(jq -cn --arg version "${TAG#v}" --rawfile changelog notes.md \
+            '{version: $version, changelog: ($changelog | .[0:4000])}')"
+          status="$(curl -sS -o response.json -w '%{http_code}' \
+            -H "Authorization: Bearer $oidc_token" \
+            -F "metadata=$metadata" \
+            -F "files=@dist/$PLUGIN_FILE" \
+            https://api.orcaslicer.com/api/v1/plugin-publish/releases)"
+          cat response.json
+          echo
+          if [ "$status" != "201" ]; then
+            echo "::error::Orca Cloud returned HTTP $status (401: repository not connected to the plugin; version error: tag not higher than the current plugin version)"
+            exit 1
+          fi
+          echo "Published $TAG to Orca Cloud." >> "$GITHUB_STEP_SUMMARY"

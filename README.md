@@ -119,19 +119,21 @@ other file in the 3MF are unchanged.
 ## Releasing
 
 1. Bump `version` in the metadata block of `shape_arrange.py` and add a
-   section for it to `CHANGELOG.md`.
-2. Commit, then tag and push: `git tag v0.5.0 && git push origin v0.5.0`.
-3. The Release workflow runs the tests, checks that the tag matches the
-   plugin version, creates a GitHub release with `shape_arrange_any.py`
-   attached (Orca Cloud requires an OS/arch suffix in the file name; `any`
-   means pure Python), and publishes that file to Orca Cloud with the
-   release notes as the changelog.
+   section for it to `CHANGELOG.md`. Commit and push.
+2. Publish a GitHub release whose tag matches the version:
+   `gh release create v0.8.0 --title "Shape-Aware Arrange v0.8.0" --notes ""`
+   (or **Draft a new release** in the GitHub UI).
+3. The Release workflow tests the tagged code, checks the tag against the
+   plugin version, attaches `shape_arrange_any.py` (Orca Cloud requires an
+   OS/arch suffix in the file name; `any` means pure Python), fills empty
+   release notes from `CHANGELOG.md`, and publishes the version to Orca
+   Cloud with those notes as the changelog.
 
 Orca Cloud publishing needs no secrets. The repository is connected to the
 plugin under **Edit plugin > GitHub publishing** on Orca Cloud, and the
-workflow proves where it runs with a short-lived OIDC token from GitHub. To
-publish an existing release again, run **Actions > Publish to Orca Cloud**
-with its tag.
+workflow proves where it runs with a short-lived OIDC token from GitHub.
+Orca Cloud only accepts runs triggered by a published release, so pushing
+a tag on its own does nothing. If a run fails, fix the cause and re-run it.
 
 ## License
 
