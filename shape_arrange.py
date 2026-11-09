@@ -6,7 +6,7 @@
 # name = "Shape-Aware Arrange"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Concave parts (snowflakes, stars, combs, letters) interlock to fit more on the plate."
 # author = "Heitor Ramon"
-# version = "0.2.0"
+# version = "0.3.0"
 # ///
 """Shape-aware plate arrangement for OrcaSlicer.
 
@@ -229,16 +229,22 @@ def _silhouette(parts) -> np.ndarray:
     return tris[np.abs(e1[:, 0] * e2[:, 1] - e1[:, 1] * e2[:, 0]) > 1e-12]
 
 
-def _rasterize(tris: np.ndarray, res: float):
-    """Mask of cells touched by `tris` (coords relative to the part center) and the center in cells."""
-    lo = np.floor(tris.reshape(-1, 2).min(0) / res) - 1
-    px = tris / res - lo - 0.5  # PIL samples pixel centers at integer coordinates
-    w, h = (np.ceil(tris.reshape(-1, 2).max(0) / res) - lo + 2).astype(int)
-    img = Image.new("1", (int(w), int(h)), 0)
+def _base_raster(tris: np.ndarray, fine: float):
+    """Square L-mode image of `tris` (coords relative to the part center) with the center
+    at the exact image middle, sized so any rotation about it stays inside."""
+    half = int(math.ceil(np.linalg.norm(tris.reshape(-1, 2), axis=1).max() / fine)) + 3
+    img = Image.new("L", (2 * half, 2 * half), 0)
     draw = ImageDraw.Draw(img)
-    for tri in px.tolist():
-        draw.polygon([tuple(q) for q in tri], fill=1)
-    return np.array(img, dtype=bool), -lo
+    for tri in (tris / fine + half - 0.5).tolist():  # PIL samples pixel centers at integers
+        draw.polygon([tuple(q) for q in tri], fill=255)
+    return img, half
+
+
+def _pool(mask: np.ndarray, k: int) -> np.ndarray:
+    """k x k max-pool (any). Conservative: a coarse cell is set if any fine cell is."""
+    h, w = -(-mask.shape[0] // k) * k, -(-mask.shape[1] // k) * k
+    m = np.pad(mask, ((0, h - mask.shape[0]), (0, w - mask.shape[1])))
+    return m.reshape(h // k, k, w // k, k).any(axis=(1, 3))
 
 
 def _dilate(mask: np.ndarray, r: int) -> np.ndarray:
@@ -262,12 +268,21 @@ class Shape:
     cx: float             # silhouette center within kernel, cells
     cy: float
 
+    @property
+    def coarse(self) -> np.ndarray:  # kernel on the 2x coarser screening grid
+        if not hasattr(self, "_coarse"):
+            self._coarse = _pool(self.kernel, 2)
+        return self._coarse
+
 
 def _shapes(item: Item, p: Params):
     """Candidate footprints of an item, one per rotation."""
     xy = np.concatenate([v[:, :2] for v, _ in item.parts])
     center = (xy.min(0) + xy.max(0)) / 2
     tris = _silhouette(item.parts) - center
+    k = 4  # supersampling: rotate a fine image, then pool k x k blocks into one grid cell
+    base, half = _base_raster(tris, p.res / k)
+    base = Image.fromarray((_dilate(np.array(base) > 0, 1)[1:-1, 1:-1] * 255).astype(np.uint8))
     r = int(math.ceil(p.spacing / p.res))
     angles = [0.0]
     if p.step > 0:  # absolute multiples of step (so parts can land axis-aligned), plus "as is"
@@ -275,11 +290,13 @@ def _shapes(item: Item, p: Params):
         angles += sorted({round((a - current) % 360, 6) for a in np.arange(0, 360, p.step)} - {0.0})
     out = []
     for a in angles:
-        c, s_ = math.cos(math.radians(a)), math.sin(math.radians(a))
-        m, (cx, cy) = _rasterize(tris @ np.array([[c, s_], [-s_, c]]), p.res)
+        # image rows run +y, so PIL's on-screen CCW is world CW: negate
+        img = base.rotate(-float(a), resample=Image.NEAREST, fillcolor=0)
+        m = np.array(img.reduce(k)) > 0  # box mean > 0 == any fine pixel set
         rows, cols = np.flatnonzero(m.any(1)), np.flatnonzero(m.any(0))
-        m = _dilate(m[rows[0]:rows[-1] + 1, cols[0]:cols[-1] + 1], 1)  # +1 cell: PIL fill under-covers
-        out.append(Shape(float(a), m, _dilate(m, r), r, cx - cols[0] + 1 + r, cy - rows[0] + 1 + r))
+        m = _dilate(m[rows[0]:rows[-1] + 1, cols[0]:cols[-1] + 1], 1)  # +1 cell: raster slop
+        c = half / k  # part center in pooled cells
+        out.append(Shape(float(a), m, _dilate(m, r), r, c - cols[0] + 1 + r, c - rows[0] + 1 + r))
     return center, out
 
 
@@ -304,22 +321,22 @@ def _bed_grid(poly, excludes, res, obstacles=()):
 
 # ---------------------------------------------------------------- nesting
 
-def _best_position(occ_f, occ_shape, shape: Shape, bbox):
+def _best_position(occ_f, occ_shape, kernel: np.ndarray, bbox):
     ny, nx = occ_shape
-    kh, kw = shape.kernel.shape
+    kh, kw = kernel.shape
     if kh > ny or kw > nx:
         return None
-    kf = np.fft.rfft2(shape.kernel.astype(float), s=occ_shape)
+    kf = np.fft.rfft2(kernel.astype(np.float32), s=occ_shape)
     hits = np.fft.irfft2(occ_f * np.conj(kf), s=occ_shape)[: ny - kh + 1, : nx - kw + 1]
-    ys, xs = np.nonzero(hits < 0.5)
-    if not len(xs):
-        return None
     x0, y0, x1, y1 = bbox or (nx, ny, 0, 0)  # first part: plain footprint area
+    xs, ys = np.arange(nx - kw + 1), np.arange(ny - kh + 1)
     w = np.maximum(x1, xs + kw) - np.minimum(x0, xs)
     h = np.maximum(y1, ys + kh) - np.minimum(y0, ys)
-    score = (w * h).astype(float) + 1e-3 * (xs + ys)
+    score = np.outer(h, w).astype(np.float32) + 1e-3 * (ys[:, None] + xs[None, :])
+    score[hits >= 0.5] = np.inf
     i = int(np.argmin(score))
-    return score[i], int(xs[i]), int(ys[i])
+    y, x = divmod(i, score.shape[1])
+    return (float(score[y, x]), x, y) if np.isfinite(score[y, x]) else None
 
 
 def nest(items: list[Item], blocked: np.ndarray, p: Params, progress=None):
@@ -337,15 +354,40 @@ def nest(items: list[Item], blocked: np.ndarray, p: Params, progress=None):
     return placed, failed
 
 
+SCREEN_KEEP = 8  # angles re-checked at full precision after the coarse screen
+
+
+def _screen(shapes: list[Shape], occ: np.ndarray, bbox) -> list[Shape]:
+    """Try every angle on a 2x coarser grid (~4x cheaper), keep the best few.
+
+    The current rotation is always kept. If nothing fits coarsely (the coarse
+    grid is pessimistic), fall back to a 15-degree subset at full precision.
+    """
+    if len(shapes) <= SCREEN_KEEP:
+        return shapes
+    occ_c = _pool(occ > 0, 2)
+    occ_cf = np.fft.rfft2(occ_c.astype(np.float32))
+    bbox_c = None if bbox is None else (bbox[0] // 2, bbox[1] // 2, -(-bbox[2] // 2), -(-bbox[3] // 2))
+    scored = []
+    for i, s in enumerate(shapes):
+        r = _best_position(occ_cf, occ_c.shape, s.coarse, bbox_c)
+        if r:
+            scored.append((r[0], i))
+    if not scored:
+        return shapes[:: max(1, len(shapes) // 24)]
+    keep = {0} | {i for _, i in sorted(scored)[:SCREEN_KEEP]}
+    return [shapes[i] for i in sorted(keep)]
+
+
 def _place(prepared, blocked):
     """One greedy pass in the given order. Returns (placed, failed, bbox)."""
     occ = blocked.astype(float)
     bbox, placed, failed = None, {}, []
     for it, center, shapes in prepared:
-        occ_f = np.fft.rfft2(occ)
+        occ_f = np.fft.rfft2(occ.astype(np.float32))
         best = None
-        for s in shapes:
-            r = _best_position(occ_f, occ.shape, s, bbox)
+        for s in _screen(shapes, occ, bbox):
+            r = _best_position(occ_f, occ.shape, s.kernel, bbox)
             # shapes[0] is the current rotation; others must win by 1% (beats raster noise)
             if r and (best is None or r[0] < best[0] * 0.99):
                 best = (r[0], s, r[1], r[2])
@@ -433,7 +475,7 @@ def arrange_3mf(src: Path, dst: Path, p: Params = Params(), bed=None, progress=N
 
     moves, failed = run(p)
     if failed and p.refine:
-        moves2, failed2 = run(replace(p, res=p.res / 2, step=max(p.step, 30.0)))
+        moves2, failed2 = run(replace(p, res=p.res / 2, step=max(p.step, 15.0)))
         if len(failed2) < len(failed):
             moves, failed = moves2, failed2
 
@@ -496,7 +538,7 @@ def _call(obj, name):
     return attr() if callable(attr) else attr
 
 
-AUTO = dict(step=15.0, res=0.5, refine=True)  # plugin presets: 24 angles, 0.5 mm grid, 0.25 mm retry
+AUTO = dict(step=1.0, res=0.5, refine=True)  # plugin presets: 360 angles, 0.5 mm grid, 0.25 mm retry
 
 
 def _current_plate() -> int:

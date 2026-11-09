@@ -35,15 +35,17 @@ settings and other plates are kept.
 2. Open **File > Plugins** and click **Run** on *Shape-Aware Arrange*. A
    panel docks on the right.
 3. Set the spacing and click **Arrange current plate**. Everything else is
-   automatic: every part tries 24 rotations (15° steps) and keeps the one that
-   packs best. If parts are left over, the plate is retried once on a finer
+   automatic: every part tries all 360 rotations (1° steps) and keeps the one
+   that packs best. All angles are screened on a coarse grid, and the best 8
+   are re-checked at full precision. If parts are left over, the plate is retried once on a finer
    0.25 mm grid, which lets tight shapes interlock.
 4. Allow the launch prompt the first time; this is how the plugin opens the
    arranged copy. The panel shows how many parts were placed and lists any
    that did not fit; those are moved into a row above the plate.
 
-A plate of about 20 parts takes a few seconds, or up to about 10 seconds
-when it overflows and the finer retry runs.
+A plate whose parts all fit takes a few seconds. A crowded plate that
+overflows takes about 20 seconds (18 snowflakes, 80 mm), because the finer
+retry runs too. OrcaSlicer is unresponsive while it works.
 
 ## Command line
 
