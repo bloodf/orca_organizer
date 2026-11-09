@@ -3,3 +3,4 @@ __pycache__/
 *.tmp
 .omc/
 .DS_Store
+dist/

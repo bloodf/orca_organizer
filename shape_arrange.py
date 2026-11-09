@@ -4,7 +4,8 @@
 #
 # [tool.orcaslicer.plugin]
 # name = "Shape-Aware Arrange"
-# description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Concave parts (snowflakes, stars, combs, letters) interlock to fit more on the plate."
+# type = "script"
+# description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Irregular and concave parts interlock to fit more on the plate. Just set the spacing."
 # author = "Heitor Ramon"
 # version = "0.5.0"
 # ///
