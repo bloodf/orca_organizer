@@ -1,6 +1,7 @@
 name: Release
 
-# Push a tag matching the plugin version (e.g. v0.5.0) to publish a release.
+# Push a tag matching the plugin version (e.g. v0.7.0) to create a GitHub
+# release and publish it to Orca Cloud.
 on:
   push:
     tags: ["v*"]
@@ -47,16 +48,11 @@ jobs:
           gh release create "$GITHUB_REF_NAME" dist/shape_arrange_any.py assets/icon.png \
             --title "Shape-Aware Arrange $GITHUB_REF_NAME" --notes-file notes.md
 
-      - name: Orca Cloud upload checklist
-        run: |
-          {
-            echo "## Publish ${GITHUB_REF_NAME} on Orca Cloud"
-            echo
-            echo "Orca Cloud has no public upload API, so this step is manual:"
-            echo
-            echo "1. Sign in and open https://cloud.orcaslicer.com/app/plugins/shared-plugins/5bae3da1-7fcc-4cbd-ae25-53678e392d54"
-            echo "2. Upload a new version: \`shape_arrange_any.py\` from the release assets."
-            echo "3. Paste these notes as the changelog:"
-            echo
-            cat notes.md
-          } >> "$GITHUB_STEP_SUMMARY"
+  orca-cloud:
+    needs: release
+    permissions:
+      id-token: write
+      contents: read
+    uses: ./.github/workflows/publish-orcacloud.yml
+    with:
+      tag: ${{ github.ref_name }}

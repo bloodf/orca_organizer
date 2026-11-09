@@ -1,0 +1,65 @@
+name: Publish to Orca Cloud
+
+# Uploads a GitHub release's plugin file to the Orca Cloud listing.
+# No secrets: the job proves it runs in this repository with a short-lived
+# OIDC token signed by GitHub, which Orca Cloud trusts because the repository
+# is connected to the plugin (Orca Cloud > Edit plugin > GitHub publishing).
+#
+# Runs:
+#   - from release.yml after it creates a release (releases made by a workflow
+#     do not trigger "release" events, so release.yml calls this directly);
+#   - when a release is published by hand in the GitHub UI;
+#   - manually (Actions > Publish to Orca Cloud > Run workflow) for an existing tag.
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        required: true
+        type: string
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to publish, e.g. v0.7.0"
+        required: true
+  release:
+    types: [published]
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.event.release.tag_name }}
+      PLUGIN_FILE: shape_arrange_any.py
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Download the release's plugin file and notes
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$PLUGIN_FILE" --dir dist
+          gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body | head -c 4000 > changelog.md
+
+      - name: Publish to Orca Cloud
+        run: |
+          set -euo pipefail
+          oidc_token="$(curl -sS -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=orcacloud" | jq -r .value)"
+          metadata="$(jq -cn --arg version "${TAG#v}" --rawfile changelog changelog.md \
+            '{version: $version} + (if $changelog == "" then {} else {changelog: $changelog} end)')"
+          status="$(curl -sS -o response.json -w '%{http_code}' \
+            -H "Authorization: Bearer $oidc_token" \
+            -F "metadata=$metadata" \
+            -F "files=@dist/$PLUGIN_FILE" \
+            https://api.orcaslicer.com/api/v1/plugin-publish/releases)"
+          cat response.json
+          echo
+          if [ "$status" != "201" ]; then
+            echo "::error::Orca Cloud returned HTTP $status (401: repository not connected to the plugin; version error: tag not higher than the current plugin version)"
+            exit 1
+          fi
+          echo "Published ${TAG} to Orca Cloud." >> "$GITHUB_STEP_SUMMARY"

@@ -122,10 +122,16 @@ other file in the 3MF are unchanged.
    section for it to `CHANGELOG.md`.
 2. Commit, then tag and push: `git tag v0.5.0 && git push origin v0.5.0`.
 3. The Release workflow runs the tests, checks that the tag matches the
-   plugin version, and creates a GitHub release with
-   `shape_arrange_any.py` attached (Orca Cloud requires an OS/arch suffix
-   in the file name; `any` means pure Python). Its run summary lists the Orca Cloud upload steps. Orca Cloud
-   has no public upload API, so that last step is manual.
+   plugin version, creates a GitHub release with `shape_arrange_any.py`
+   attached (Orca Cloud requires an OS/arch suffix in the file name; `any`
+   means pure Python), and publishes that file to Orca Cloud with the
+   release notes as the changelog.
+
+Orca Cloud publishing needs no secrets. The repository is connected to the
+plugin under **Edit plugin > GitHub publishing** on Orca Cloud, and the
+workflow proves where it runs with a short-lived OIDC token from GitHub. To
+publish an existing release again, run **Actions > Publish to Orca Cloud**
+with its tag.
 
 ## License
 
