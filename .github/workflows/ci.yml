@@ -9,8 +9,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: astral-sh/setup-uv@v10
+      - uses: actions/checkout@v7.0.1
+      - uses: astral-sh/setup-uv@v10.3.3
       - name: Arrangement tests
         run: uv run --python 3.12 --with numpy --with pillow python tests/test_shape_arrange.py
       - name: Plugin tests
