@@ -6,7 +6,7 @@
 # name = "Shape-Aware Arrange"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Concave parts (snowflakes, stars, combs, letters) interlock to fit more on the plate."
 # author = "Heitor Ramon"
-# version = "0.4.0"
+# version = "0.5.0"
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Heitor Ramon
@@ -128,7 +128,7 @@ class Package:
 
     def _load_settings(self) -> dict:
         """Part subtypes, object names and plate membership from Orca/Bambu metadata."""
-        out = {"subtypes": {}, "names": {}, "plates": {}}
+        out = {"subtypes": {}, "names": {}, "plates": {}, "plate_meta": {}}
         text = self._text("Metadata/model_settings.config")
         if not text:
             return out
@@ -148,7 +148,27 @@ class Package:
                 kv = {m.get("key"): m.get("value") for m in mi.findall("metadata")}
                 members.add((kv.get("object_id"), int(kv.get("instance_id", 0))))
             out["plates"][pid] = members
+            out["plate_meta"][pid] = meta
         return out
+
+    def config(self) -> dict:
+        text = self._text("Metadata/project_settings.config")
+        return json.loads(text) if text else {}
+
+    def clearance(self, plate: int) -> float:
+        """Extra gap needed when the plate prints one object at a time ("By object").
+
+        The nozzle then lowers between finished parts, so parts must sit at least
+        the extruder clearance radius apart. 0 for the usual layer-by-layer printing.
+        """
+        cfg = self.config()
+        seq = self.settings["plate_meta"].get(plate, {}).get("print_sequence") or cfg.get("print_sequence", "")
+        if str(seq).strip().lower() != "by object":
+            return 0.0
+        value = cfg.get("extruder_clearance_radius") or cfg.get("extruder_clearance_max_radius") or 0
+        if isinstance(value, list):
+            value = max(float(v) for v in value) if value else 0
+        return float(value)
 
     def bed(self):
         """(printable polygon, [exclude polygons]) in plate-local mm."""
@@ -471,6 +491,9 @@ def plan_3mf(src: Path, p: Params = Params(), bed=None, progress=None):
     if not movable:
         raise ValueError(f"plate {p.plate} has no printable objects")
 
+    clearance = pkg.clearance(p.plate)
+    if clearance > p.spacing:
+        p = replace(p, spacing=clearance)
     xs, ys = zip(*poly)
     origin = plate_origin(p.plate, max(1, len(plates)), max(xs) - min(xs), max(ys) - min(ys))
     moving = {it.index for it in movable}
@@ -499,7 +522,7 @@ def plan_3mf(src: Path, p: Params = Params(), bed=None, progress=None):
         lo, hi = xy.min(0), xy.max(0)
         new[it.index] = _delta(0, lo, np.array([cursor, top])) @ it.transform
         cursor += hi[0] - lo[0] + max(p.spacing, 5)
-    return pkg, new, {"placed": len(moves), "unplaced": [it.name for it in failed]}
+    return pkg, new, {"placed": len(moves), "unplaced": [it.name for it in failed], "spacing": p.spacing}
 
 
 # ---------------------------------------------------------------- Orca plugin
@@ -626,6 +649,8 @@ class _Job:
         self.result = None
         pkg.write(dst, new)
         text = f"Plate {p.plate}: placed {report['placed']} object(s)."
+        if report["spacing"] > p.spacing:
+            text += f"\nPrint sequence is By object: kept {report['spacing']:g} mm extruder clearance."
         if report["unplaced"]:
             text += f"\nDid not fit (moved above the plate): {', '.join(report['unplaced'])}"
         if _open_in_orca(dst):

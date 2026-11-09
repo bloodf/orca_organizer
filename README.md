@@ -17,6 +17,18 @@ Requires OrcaSlicer 2.5 or later, which has the Python plugin system.
 4. Rewrites only the object transforms in the copy, then opens it in
    OrcaSlicer. Your original project file is never modified.
 
+It works with any model. Collisions are checked on all three axes:
+
+- **X/Y:** each footprint is the whole 3D model projected straight down, so
+  an overhang at any height reserves its space. Nothing is placed under
+  another part's overhang.
+- **Z:** parts keep their height and stay on the bed. They only move in X/Y
+  and turn around the vertical axis.
+- **Print by object:** when the plate prints one object at a time, the
+  print head drops between finished parts. Parts are then kept at least
+  the printer's extruder clearance radius apart, even if the spacing you set
+  is smaller.
+
 Orca 2.5 plugins can read the model but cannot move objects, so the plugin
 works on a copy and reopens it. Colors, painting, modifiers, per-object
 settings and other plates are kept.

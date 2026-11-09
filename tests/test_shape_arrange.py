@@ -199,6 +199,81 @@ def test_auto_mode_refines_to_fit_tight_interlock():
         assert coarse["unplaced"] and not auto["unplaced"], (coarse, auto)
 
 
+def merge(*meshes):
+    verts, faces = [], []
+    for v, f in meshes:
+        faces += [(a + len(verts), b + len(verts), c + len(verts)) for a, b, c in f]
+        verts += v
+    return verts, faces
+
+
+def box3(x0, y0, z0, x1, y1, z1):
+    v, f = box(x0, y0, x1, y1, z1 - z0)
+    return [(x, y, z + z0) for x, y, z in v], f
+
+
+def simple_project(path: Path, objects: list, items: list, settings: dict):
+    """Plain 3MF: objects = [mesh], items = [(object index, transform string)]."""
+    ns = 'xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"'
+    res = "".join(mesh_xml(i + 1, m) for i, m in enumerate(objects))
+    build = "".join(f'<item objectid="{o + 1}" transform="{t}"/>' for o, t in items)
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("3D/3dmodel.model", f'<model unit="millimeter" {ns}><resources>{res}</resources><build>{build}</build></model>')
+        z.writestr("Metadata/project_settings.config", json.dumps(settings))
+
+
+def projections(path: Path, bed: float, res=0.05):
+    """Full top-down projection (every height) of each item, plus its XY bounds."""
+    out = []
+    for it in sa.Package(path).items():
+        img = Image.new("1", (int(bed / res), int(bed / res)), 0)
+        draw = ImageDraw.Draw(img)
+        for v, t in it.parts:
+            for tri in (v[:, :2] / res)[t].tolist():
+                draw.polygon([tuple(q) for q in tri], fill=1)
+        xy = np.concatenate([v[:, :2] for v, _ in it.parts])
+        out.append((np.array(img, dtype=bool), xy.min(0), xy.max(0)))
+    return out
+
+
+def test_overhangs_block_space_at_every_height():
+    """A mushroom (4 mm stem, 30 mm cap at z=20) must keep blocks out from under its cap."""
+    bed = 60.0
+    mushroom = merge(box3(13, 13, 0, 17, 17, 20), box3(0, 0, 20, 30, 30, 22))
+    block = box(0, 0, 8, 8)
+    settings = {"printable_area": ["0x0", "60x0", "60x60", "0x60"]}
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        simple_project(src, [mushroom, block], [(0, tf(0, 5, 5))] + [(1, tf(0, 20, 20))] * 6, settings)
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=0.5, step=90, res=0.25))
+        assert report["placed"] >= 4, report
+        masks = []
+        for m, lo, hi in projections(dst, bed):
+            if lo[1] >= bed:  # overflow row above the plate
+                continue
+            assert lo.min() >= -1e-6 and hi.max() <= bed + 1e-6, f"part off the bed: {lo}, {hi}"
+            masks.append(m)
+        total = np.sum(masks, axis=0)
+        assert (total > 1).sum() == 0, "a part was placed under the mushroom cap"
+
+
+def test_by_object_sequence_keeps_extruder_clearance():
+    bed = 120.0
+    settings = {"printable_area": ["0x0", "120x0", "120x120", "0x120"],
+                "print_sequence": "by object", "extruder_clearance_radius": "20"}
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        simple_project(src, [box(0, 0, 10, 10)], [(0, tf(0, 50, 50))] * 3, settings)
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=2, step=90, res=0.5))
+        assert report["placed"] == 3 and report["spacing"] == 20, report
+        boxes = [(lo, hi) for _, lo, hi in projections(dst, bed, res=0.5)]
+        for i in range(3):
+            for j in range(i + 1, 3):
+                (alo, ahi), (blo, bhi) = boxes[i], boxes[j]
+                gap = np.maximum(np.maximum(blo - ahi, alo - bhi), 0)
+                assert np.hypot(*gap) >= 20 - 0.5, f"parts {i},{j} only {np.hypot(*gap):.1f} mm apart"
+
+
 def test_missing_plate_is_an_error():
     with tempfile.TemporaryDirectory() as d:
         src = Path(d, "in.3mf")
@@ -215,5 +290,7 @@ if __name__ == "__main__":
     test_interlocking_combs_fit_on_plate_2()
     test_crowded_plate_spacing_zero_with_obstacle()
     test_auto_mode_refines_to_fit_tight_interlock()
+    test_overhangs_block_space_at_every_height()
+    test_by_object_sequence_keeps_extruder_clearance()
     test_missing_plate_is_an_error()
     print("ok")
