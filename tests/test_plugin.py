@@ -95,6 +95,34 @@ def test_arrange_runs_off_ui_thread_and_finishes_on_it():
         assert sum(1 for m in log["posts"] if m.get("relay")) == 1, "second click started a second job"
 
 
+def test_fill_button_adds_copies():
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        import test_shape_arrange as t
+
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        log, pending, _ = install_stub(tmp, project)
+        sys.modules.pop("shape_arrange", None)
+        import shape_arrange as sa
+
+        sa._open_in_orca = lambda p: True
+        sa._current_plate = lambda: 1
+        log["plugin"]().register_capabilities()
+        log["cap"]().execute()
+        panel = sa._panel
+        panel.on_message({"action": "fill", "spacing": 2})
+        while not panel.done.is_set():
+            while pending:
+                panel.on_message(pending.pop(0))
+            panel.done.wait(0.05)
+        final = log["posts"][-1]["text"]
+        assert "Filled the plate with" in final, final
+        out = sa.Package(tmp / "storage" / "My Project-arranged.3mf")
+        assert len(out.items()) > 4
+
+
 if __name__ == "__main__":
     test_arrange_runs_off_ui_thread_and_finishes_on_it()
+    test_fill_button_adds_copies()
     print("ok")

@@ -274,6 +274,43 @@ def test_by_object_sequence_keeps_extruder_clearance():
                 assert np.hypot(*gap) >= 20 - 0.5, f"parts {i},{j} only {np.hypot(*gap):.1f} mm apart"
 
 
+def test_fill_plate_adds_registered_copies_without_overlap():
+    """Fill plate 1 (one 20 mm block) of the two-plate project; plate 2 must not change."""
+    import re
+
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        make_project(src)
+        report = sa.arrange_3mf(src, dst, sa.Params(plate=1, spacing=2, step=90, res=0.5, fill=True))
+        # 75 x 56 bed, 20 mm blocks with 2 mm gaps and edge margin: 3 x 2 = 6 in total
+        assert report["placed"] == 1 and report["added"] == 5, report
+
+        out = sa.Package(dst)
+        items = out.items()
+        assert len(items) == 4 + 5
+        new_tags = re.findall(r"<item\b[^>]*>", out.main_text)[4:]
+        assert all('objectid="4"' in t and "p:UUID=" in t for t in new_tags), new_tags
+        assert len({re.search(r'p:UUID="([^"]+)"', t).group(1) for t in new_tags}) == 5
+
+        plates = out.settings["plates"]
+        assert plates[1] == {("4", k) for k in range(6)}, plates[1]
+        assert plates[2] == {("2", 0), ("2", 1), ("6", 0)}
+        ids = re.findall(r'key="identify_id" value="(\d+)"', out.zip.read("Metadata/model_settings.config").decode())
+        assert len(ids) == len(set(ids)), "identify_id must stay unique"
+
+        before = sa.Package(src).items()
+        for b, a in zip(before[1:4], items[1:4]):  # plate 2 untouched
+            assert np.allclose(b.transform, a.transform)
+
+        origin = sa.plate_origin(1, 2, BED_W, BED_H)
+        masks = []
+        for it in [items[0]] + items[4:]:
+            xy = np.concatenate([v[:, :2] for v, _ in it.parts]) - origin
+            assert xy.min() >= -1e-6 and xy[:, 0].max() <= BED_W and xy[:, 1].max() <= BED_H, xy
+            masks.append(footprint(it, origin)[0])
+        assert (np.sum(masks, axis=0) > 1).sum() == 0, "copies overlap"
+
+
 def test_missing_plate_is_an_error():
     with tempfile.TemporaryDirectory() as d:
         src = Path(d, "in.3mf")
@@ -292,5 +329,6 @@ if __name__ == "__main__":
     test_auto_mode_refines_to_fit_tight_interlock()
     test_overhangs_block_space_at_every_height()
     test_by_object_sequence_keeps_extruder_clearance()
+    test_fill_plate_adds_registered_copies_without_overlap()
     test_missing_plate_is_an_error()
     print("ok")

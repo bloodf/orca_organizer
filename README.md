@@ -56,6 +56,10 @@ settings and other plates are kept.
    that packs best. All angles are screened on a coarse grid, and the best 8
    are re-checked at full precision. If parts are left over, the plate is retried once on a finer
    0.25 mm grid, which lets tight shapes interlock.
+   **Fill plate with copies** does the same, then keeps adding copies of
+   the plate's objects, one object at a time in turn, until nothing more
+   fits. Smaller objects keep filling the gaps once bigger ones stop
+   fitting. It adds at most 300 copies per run.
 4. Allow the launch prompt the first time; this is how the plugin opens the
    arranged copy. The panel shows how many parts were placed and lists any
    that did not fit; those are moved into a row above the plate.
@@ -73,6 +77,8 @@ The nesting core also runs outside OrcaSlicer on any 3MF:
 uv run --python 3.12 --with numpy --with pillow python shape_arrange.py \
     in.3mf out.3mf --plate 1 --spacing 2 --auto --preview plate.png
 ```
+
+Add `--fill` to fill the plate with copies.
 
 `--auto` uses the plugin's settings. Use `--step` and `--res` instead to
 choose the rotation step and grid size yourself.

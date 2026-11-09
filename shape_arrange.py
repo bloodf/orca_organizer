@@ -5,9 +5,9 @@
 # [tool.orcaslicer.plugin]
 # name = "Shape-Aware Arrange"
 # type = "script"
-# description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Irregular and concave parts interlock to fit more on the plate. Just set the spacing."
+# description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Irregular and concave parts interlock to fit more on the plate, or fill the whole plate with copies. Just set the spacing."
 # author = "Heitor Ramon"
-# version = "0.5.0"
+# version = "0.6.0"
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Heitor Ramon
@@ -53,6 +53,7 @@ class Params:
     res: float = 0.5        # raster cell size, mm
     center: bool = True     # center the finished layout on the plate
     refine: bool = False    # parts left over: retry once on a 2x finer grid, keep the better result
+    fill: bool = False      # after arranging, add copies of the plate's objects until nothing fits
 
 
 @dataclass
@@ -219,15 +220,51 @@ class Package:
             sub_mat = mat @ _mat_from_3mf(c.get("transform"))
             self._collect(sub_file, c.get("objectid"), sub_mat, parts, top_oid, c.get("objectid"))
 
-    def write(self, out: Path, new_transforms: dict[int, np.ndarray]):
-        text = self._replace_transforms(new_transforms)
+    def write(self, out: Path, new_transforms: dict[int, np.ndarray], added=(), plate: int = 1):
+        """Write a copy with new item transforms; `added` = [(object id, transform)] new instances."""
+        replaced = {self.main_name: self._add_items(self._replace_transforms(new_transforms), added)}
+        settings = self._text("Metadata/model_settings.config")
+        if added and settings is not None:
+            replaced["Metadata/model_settings.config"] = self._add_plate_instances(settings, added, plate)
         tmp = Path(out).with_suffix(".tmp")
         with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
             for info in self.zip.infolist():
-                data = text.encode("utf-8") if info.filename == self.main_name else self.zip.read(info)
+                data = replaced[info.filename].encode("utf-8") if info.filename in replaced else self.zip.read(info)
                 zout.writestr(info, data)
         self.zip.close()  # Windows cannot replace a file that is still open
         tmp.replace(out)
+
+    def _add_items(self, text: str, added) -> str:
+        """Append one <build><item> per new instance (Orca reads instances in build order)."""
+        if not added:
+            return text
+        import uuid
+
+        uuid_attr = ' p:UUID="{}"' if "xmlns:p=" in text else ""  # production ext requires UUIDs
+        tags = "".join(f'\n  <item objectid="{oid}"{uuid_attr.format(uuid.uuid4())} '
+                       f'transform="{_mat_to_3mf(m)}" printable="1" />' for oid, m in added)
+        end = text.rindex("</build>")
+        return text[:end].rstrip() + tags + "\n " + text[end:]
+
+    def _add_plate_instances(self, text: str, added, plate: int) -> str:
+        """Register new instances on `plate` in model_settings.config."""
+        counts: dict[str, int] = {}
+        for a, b in self._item_spans():
+            oid = _attr(self.main_text[a:b], "objectid")
+            counts[oid] = counts.get(oid, 0) + 1
+        next_id = max([int(v) for v in re.findall(r'key="identify_id" value="(\d+)"', text)] or [0]) + 1
+        entries = []
+        for oid, _ in added:
+            entries.append(f'    <model_instance>\n      <metadata key="object_id" value="{oid}"/>\n'
+                           f'      <metadata key="instance_id" value="{counts.get(oid, 0)}"/>\n'
+                           f'      <metadata key="identify_id" value="{next_id}"/>\n    </model_instance>\n')
+            counts[oid] = counts.get(oid, 0) + 1
+            next_id += 1
+        for m in re.finditer(r"<plate>.*?</plate>", text, re.S):
+            if re.search(rf'key="plater_id" value="{plate}"', m.group(0)):
+                end = m.end() - len("</plate>")
+                return text[:end] + "".join(entries) + "  " + text[end:]
+        raise ValueError(f"plate {plate} not found in model_settings.config")
 
     def _replace_transforms(self, new: dict[int, np.ndarray]) -> str:
         text = self.main_text
@@ -363,7 +400,11 @@ def _best_position(occ_f, occ_shape, kernel: np.ndarray, bbox):
 
 
 def nest(items: list[Item], blocked: np.ndarray, p: Params, progress=None):
-    """Place items largest-first. Returns ({item.index: (shape, x, y, center)}, [unplaced items])."""
+    """Place items largest-first.
+
+    Returns ({item.index: (shape, x, y, center)}, [unplaced items], [copies]); copies
+    (fill mode only) are (source item, shape, x, y, center).
+    """
     prepared = []
     for n, it in enumerate(items):
         if progress:
@@ -371,10 +412,44 @@ def nest(items: list[Item], blocked: np.ndarray, p: Params, progress=None):
         center, shapes = _shapes(it, p)
         prepared.append((it, center, shapes))
     prepared.sort(key=lambda t: -int(t[2][0].raw.sum()))
-    placed, failed, bbox = _place(prepared, blocked, progress)
-    if p.center and placed:
+    placed, failed, bbox, occ = _place(prepared, blocked, progress)
+    copies = _fill(prepared, occ, bbox, progress) if p.fill and not failed else []
+    if p.center and placed and not copies:
         _center_layout(placed, blocked, bbox)
-    return placed, failed
+    return placed, failed, copies
+
+
+MAX_COPIES = 300  # ponytail: fill cap so tiny parts on a big bed don't run for minutes; raise if needed
+
+
+def _fill(prepared, occ, bbox, progress=None):
+    """Add copies round-robin, one object at a time, until no object fits anywhere.
+
+    An object drops out of the rotation once a copy no longer fits; smaller
+    objects keep filling the gaps left by bigger ones.
+    """
+    seen, active = set(), []
+    for entry in prepared:  # one entry per object, largest first
+        if entry[0].object_id not in seen:
+            seen.add(entry[0].object_id)
+            active.append(entry)
+    copies = []
+    while active and len(copies) < MAX_COPIES:
+        still = []
+        for it, center, shapes in active:
+            if len(copies) >= MAX_COPIES:
+                break
+            if progress:
+                progress(len(copies), len(copies) + len(active), f"Filling: {len(copies)} copies added")
+            best = _try_place(shapes, occ, bbox)
+            if best is None:
+                continue
+            s, x, y = best
+            bbox = _stamp(occ, s, x, y, bbox)
+            copies.append((it, s, x, y, center))
+            still.append((it, center, shapes))
+        active = still
+    return copies
 
 
 SCREEN_KEEP = 8  # angles re-checked at full precision after the coarse screen
@@ -402,32 +477,43 @@ def _screen(shapes: list[Shape], occ: np.ndarray, bbox) -> list[Shape]:
     return [shapes[i] for i in sorted(keep)]
 
 
+def _try_place(shapes: list[Shape], occ: np.ndarray, bbox):
+    """Best (shape, x, y) for one part on the current occupancy, or None."""
+    occ_f = np.fft.rfft2(occ.astype(np.float32))
+    best = None
+    for s in _screen(shapes, occ, bbox):
+        r = _best_position(occ_f, occ.shape, s.kernel, bbox)
+        # shapes[0] is the current rotation; others must win by 1% (beats raster noise)
+        if r and (best is None or r[0] < best[0] * 0.99):
+            best = (r[0], s, r[1], r[2])
+    return None if best is None else best[1:]
+
+
+def _stamp(occ: np.ndarray, s: Shape, x: int, y: int, bbox):
+    """Mark a placed part as occupied; return the grown layout bbox."""
+    h, w = s.raw.shape
+    rx, ry = x + s.pad, y + s.pad
+    occ[ry:ry + h, rx:rx + w] = np.maximum(occ[ry:ry + h, rx:rx + w], s.raw)
+    kh, kw = s.kernel.shape
+    return (x, y, x + kw, y + kh) if bbox is None else (
+        min(bbox[0], x), min(bbox[1], y), max(bbox[2], x + kw), max(bbox[3], y + kh))
+
+
 def _place(prepared, blocked, progress=None):
-    """One greedy pass in the given order. Returns (placed, failed, bbox)."""
+    """One greedy pass in the given order. Returns (placed, failed, bbox, occupancy)."""
     occ = blocked.astype(float)
     bbox, placed, failed = None, {}, []
     for n, (it, center, shapes) in enumerate(prepared):
         if progress:
             progress(n, len(prepared), f"Placing {it.name}")
-        occ_f = np.fft.rfft2(occ.astype(np.float32))
-        best = None
-        for s in _screen(shapes, occ, bbox):
-            r = _best_position(occ_f, occ.shape, s.kernel, bbox)
-            # shapes[0] is the current rotation; others must win by 1% (beats raster noise)
-            if r and (best is None or r[0] < best[0] * 0.99):
-                best = (r[0], s, r[1], r[2])
+        best = _try_place(shapes, occ, bbox)
         if best is None:
             failed.append(it)
             continue
-        _, s, x, y = best
-        h, w = s.raw.shape
-        rx, ry = x + s.pad, y + s.pad
-        occ[ry:ry + h, rx:rx + w] = np.maximum(occ[ry:ry + h, rx:rx + w], s.raw)
-        kh, kw = s.kernel.shape
-        bbox = (x, y, x + kw, y + kh) if bbox is None else (
-            min(bbox[0], x), min(bbox[1], y), max(bbox[2], x + kw), max(bbox[3], y + kh))
+        s, x, y = best
+        bbox = _stamp(occ, s, x, y, bbox)
         placed[it.index] = (s, x, y, center)
-    return placed, failed, bbox
+    return placed, failed, bbox, occ
 
 
 def _center_layout(placed, blocked, bbox):
@@ -464,13 +550,16 @@ def plate_origin(plate: int, n_plates: int, bed_w: float, bed_h: float) -> np.nd
 
 def arrange_3mf(src: Path, dst: Path, p: Params = Params(), bed=None, progress=None) -> dict:
     """Arrange one plate of `src` and write the result to `dst`. Returns a report dict."""
-    pkg, new, report = plan_3mf(src, p, bed, progress)
-    pkg.write(Path(dst), new)
+    pkg, (new, copies), report = plan_3mf(src, p, bed, progress)
+    pkg.write(Path(dst), new, copies, p.plate)
     return {**report, "output": str(dst)}
 
 
 def plan_3mf(src: Path, p: Params = Params(), bed=None, progress=None):
-    """Compute the arrangement without writing. Returns (package, {item index: transform}, report)."""
+    """Compute the arrangement without writing.
+
+    Returns (package, ({item index: transform}, [(object id, transform)] copies to add), report).
+    """
     pkg = Package(src)
     poly, excludes = pkg.bed()
     poly = poly or bed or DEFAULT_BED
@@ -503,19 +592,22 @@ def plan_3mf(src: Path, p: Params = Params(), bed=None, progress=None):
 
     def run(q: Params):
         grid_origin, blocked = _bed_grid(poly, excludes, q.res, obstacles)
-        placed, failed = nest(movable, blocked, q, progress)
-        moves = {idx: _delta(s.angle, center, origin + grid_origin + np.array([x + s.cx, y + s.cy]) * q.res)
-                 for idx, (s, x, y, center) in placed.items()}
-        return moves, failed
+        placed, failed, copies = nest(movable, blocked, q, progress)
+        to_world = lambda s, x, y, center: _delta(
+            s.angle, center, origin + grid_origin + np.array([x + s.cx, y + s.cy]) * q.res)
+        moves = {idx: to_world(*v) for idx, v in placed.items()}
+        added = [(it, to_world(s, x, y, center)) for it, s, x, y, center in copies]
+        return moves, failed, added
 
-    moves, failed = run(p)
+    moves, failed, added = run(p)
     if failed and p.refine:
-        moves2, failed2 = run(replace(p, res=p.res / 2, step=max(p.step, 15.0)))
+        moves2, failed2, added2 = run(replace(p, res=p.res / 2, step=max(p.step, 15.0)))
         if len(failed2) < len(failed):
-            moves, failed = moves2, failed2
+            moves, failed, added = moves2, failed2, added2
 
     by_index = {it.index: it for it in movable}
     new = {idx: d @ by_index[idx].transform for idx, d in moves.items()}
+    copies = [(it.object_id, d @ it.transform) for it, d in added]
     # parts that did not fit go in a row above the plate grid, where no plate is
     cursor, top = origin[0] + min(xs), max(ys) + 10
     for it in failed:
@@ -523,7 +615,9 @@ def plan_3mf(src: Path, p: Params = Params(), bed=None, progress=None):
         lo, hi = xy.min(0), xy.max(0)
         new[it.index] = _delta(0, lo, np.array([cursor, top])) @ it.transform
         cursor += hi[0] - lo[0] + max(p.spacing, 5)
-    return pkg, new, {"placed": len(moves), "unplaced": [it.name for it in failed], "spacing": p.spacing}
+    report = {"placed": len(moves), "unplaced": [it.name for it in failed], "spacing": p.spacing,
+              "added": len(added), "plate": p.plate}
+    return pkg, (new, copies), report
 
 
 # ---------------------------------------------------------------- Orca plugin
@@ -533,15 +627,20 @@ body{background:var(--orca-bg);color:var(--orca-fg);font:13px var(--orca-font);m
 label{display:flex;justify-content:space-between;align-items:center;margin:8px 0;gap:8px}
 input,select{width:90px;background:var(--orca-bg);color:var(--orca-fg);border:1px solid var(--orca-border);padding:3px}
 button{width:100%;margin-top:12px;padding:8px;background:var(--orca-accent);color:var(--orca-accent-fg);border:0;border-radius:4px;cursor:pointer}
+button.secondary{background:transparent;color:var(--orca-fg);border:1px solid var(--orca-border);margin-top:8px}
 button:disabled{opacity:.5}#status{margin-top:12px;color:var(--orca-muted);white-space:pre-wrap}
 </style></head><body>
 <label>Spacing (mm) <input id="spacing" type="number" min="0" step="0.5" value="2"></label>
-<button id="go">Arrange current plate</button><div id="status">Rotation and placement are automatic. The arranged project opens as a new file; your original is not changed.</div>
+<button id="go">Arrange current plate</button>
+<button id="fill" class="secondary">Fill plate with copies</button>
+<div id="status">Rotation and placement are automatic. <b>Fill</b> also adds copies of the plate's objects until no more fit. The result opens as a new file; your original is not changed.</div>
 <script>
 const $=id=>document.getElementById(id);
-$('go').onclick=()=>{$('go').disabled=true;$('status').textContent='Arranging…';
- orca.postMessage({action:'arrange',spacing:+$('spacing').value});};
-orca.onMessage(m=>{$('status').textContent=m.text;if(m.relay)orca.postMessage({action:m.relay});if(m.done)$('go').disabled=false;});
+const run=action=>{$('go').disabled=$('fill').disabled=true;$('status').textContent='Working…';
+ orca.postMessage({action,spacing:+$('spacing').value});};
+$('go').onclick=()=>run('arrange');$('fill').onclick=()=>run('fill');
+orca.onMessage(m=>{$('status').textContent=m.text;if(m.relay)orca.postMessage({action:m.relay});
+ if(m.done)$('go').disabled=$('fill').disabled=false;});
 </script></body></html>"""
 
 
@@ -623,7 +722,8 @@ class _Job:
     def start(self, data: dict):
         import threading
 
-        p = Params(plate=_current_plate(), spacing=max(0.0, float(data.get("spacing", 2))), **AUTO)
+        p = Params(plate=_current_plate(), spacing=max(0.0, float(data.get("spacing", 2))),
+                   fill=data.get("action") == "fill", **AUTO)
         plater = orca.host.plater()
         project = _call(plater, "project_path") or ""
         stem = Path(project).stem if project else "untitled"
@@ -648,8 +748,10 @@ class _Job:
             return
         pkg, new, report, dst, p = self.result
         self.result = None
-        pkg.write(dst, new)
+        pkg.write(dst, *new, p.plate)
         text = f"Plate {p.plate}: placed {report['placed']} object(s)."
+        if report["added"]:
+            text += f"\nFilled the plate with {report['added']} extra cop{'y' if report['added'] == 1 else 'ies'}."
         if report["spacing"] > p.spacing:
             text += f"\nPrint sequence is By object: kept {report['spacing']:g} mm extruder clearance."
         if report["unplaced"]:
@@ -719,6 +821,7 @@ if __name__ == "__main__":
     ap.add_argument("--spacing", type=float, default=2.0)
     ap.add_argument("--step", type=float, default=30.0)
     ap.add_argument("--res", type=float, default=0.5)
+    ap.add_argument("--fill", action="store_true", help="after arranging, add copies until the plate is full")
     ap.add_argument("--auto", action="store_true", help="plugin presets: 15 deg steps, finer retry if parts are left over")
     ap.add_argument("--bed", help="WxH in mm when the 3MF has no printer settings, e.g. 270x270")
     ap.add_argument("--preview", type=Path, help="write a top-down PNG of the result")
@@ -730,6 +833,7 @@ if __name__ == "__main__":
     params = Params(a.plate, a.spacing, a.step, a.res)
     if a.auto:
         params = Params(a.plate, a.spacing, **AUTO)
+    params = replace(params, fill=a.fill)
     print(json.dumps(arrange_3mf(a.src, a.dst, params, bed=bed,
                                  progress=lambda i, n, m: print(f"[{i}/{n}] {m}", file=sys.stderr)), indent=2))
     if a.preview:

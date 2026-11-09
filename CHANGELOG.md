@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0
+
+- New **Fill plate with copies** button: arranges the plate, then adds copies of its objects (round-robin) until no more fit, so the whole bed is used.
+- Orca Cloud metadata: plugin type, OS-independent file name for releases.
+
 ## 0.5.0
 
 - Plates printed one object at a time ("By object") keep the printer's extruder clearance radius between parts.
