@@ -6,7 +6,7 @@
 # name = "Shape-Aware Arrange"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Concave parts (snowflakes, stars, combs, letters) interlock to fit more on the plate."
 # author = "Heitor Ramon"
-# version = "0.1.0"
+# version = "0.2.0"
 # ///
 """Shape-aware plate arrangement for OrcaSlicer.
 
@@ -25,7 +25,7 @@ import re
 import sys
 import zipfile
 import xml.etree.ElementTree as ET
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 
 import numpy as np
@@ -49,6 +49,7 @@ class Params:
     step: float = 30.0      # rotation step, degrees; 0 disables rotation
     res: float = 0.5        # raster cell size, mm
     center: bool = True     # center the finished layout on the plate
+    refine: bool = False    # parts left over: retry once on a 2x finer grid, keep the better result
 
 
 @dataclass
@@ -322,20 +323,25 @@ def _best_position(occ_f, occ_shape, shape: Shape, bbox):
 
 
 def nest(items: list[Item], blocked: np.ndarray, p: Params, progress=None):
-    """Place items on the grid. Returns ({item.index: (shape, x, y, center)}, [unplaced items])."""
+    """Place items largest-first. Returns ({item.index: (shape, x, y, center)}, [unplaced items])."""
     prepared = []
     for n, it in enumerate(items):
         if progress:
-            progress(n, len(items) * 2, f"Footprint {it.name}")
+            progress(n, len(items), f"Footprint {it.name}")
         center, shapes = _shapes(it, p)
         prepared.append((it, center, shapes))
     prepared.sort(key=lambda t: -int(t[2][0].raw.sum()))
+    placed, failed, bbox = _place(prepared, blocked)
+    if p.center and placed:
+        _center_layout(placed, blocked, bbox)
+    return placed, failed
 
+
+def _place(prepared, blocked):
+    """One greedy pass in the given order. Returns (placed, failed, bbox)."""
     occ = blocked.astype(float)
     bbox, placed, failed = None, {}, []
-    for n, (it, center, shapes) in enumerate(prepared):
-        if progress:
-            progress(len(items) + n, len(items) * 2, f"Placing {it.name}")
+    for it, center, shapes in prepared:
         occ_f = np.fft.rfft2(occ)
         best = None
         for s in shapes:
@@ -354,10 +360,7 @@ def nest(items: list[Item], blocked: np.ndarray, p: Params, progress=None):
         bbox = (x, y, x + kw, y + kh) if bbox is None else (
             min(bbox[0], x), min(bbox[1], y), max(bbox[2], x + kw), max(bbox[3], y + kh))
         placed[it.index] = (s, x, y, center)
-
-    if p.center and placed:
-        _center_layout(placed, blocked, bbox)
-    return placed, failed
+    return placed, failed, bbox
 
 
 def _center_layout(placed, blocked, bbox):
@@ -419,14 +422,23 @@ def arrange_3mf(src: Path, dst: Path, p: Params = Params(), bed=None, progress=N
     origin = plate_origin(p.plate, max(1, len(plates)), max(xs) - min(xs), max(ys) - min(ys))
     moving = {it.index for it in movable}
     obstacles = [_silhouette(it.parts) - origin for it in items if it.index not in moving and it.parts]
-    grid_origin, blocked = _bed_grid(poly, excludes, p.res, [t for t in obstacles if len(t)])
-    placed, failed = nest(movable, blocked, p, progress)
+    obstacles = [t for t in obstacles if len(t)]
+
+    def run(q: Params):
+        grid_origin, blocked = _bed_grid(poly, excludes, q.res, obstacles)
+        placed, failed = nest(movable, blocked, q, progress)
+        moves = {idx: _delta(s.angle, center, origin + grid_origin + np.array([x + s.cx, y + s.cy]) * q.res)
+                 for idx, (s, x, y, center) in placed.items()}
+        return moves, failed
+
+    moves, failed = run(p)
+    if failed and p.refine:
+        moves2, failed2 = run(replace(p, res=p.res / 2, step=max(p.step, 30.0)))
+        if len(failed2) < len(failed):
+            moves, failed = moves2, failed2
 
     by_index = {it.index: it for it in movable}
-    new = {}
-    for idx, (s, x, y, center) in placed.items():
-        dst_xy = origin + grid_origin + np.array([x + s.cx, y + s.cy]) * p.res
-        new[idx] = _delta(s.angle, center, dst_xy) @ by_index[idx].transform
+    new = {idx: d @ by_index[idx].transform for idx, d in moves.items()}
     # parts that did not fit go in a row above the plate grid, where no plate is
     cursor, top = origin[0] + min(xs), max(ys) + 10
     for it in failed:
@@ -435,7 +447,7 @@ def arrange_3mf(src: Path, dst: Path, p: Params = Params(), bed=None, progress=N
         new[it.index] = _delta(0, lo, np.array([cursor, top])) @ it.transform
         cursor += hi[0] - lo[0] + max(p.spacing, 5)
     pkg.write(Path(dst), new)
-    return {"placed": len(placed), "unplaced": [it.name for it in failed], "output": str(dst)}
+    return {"placed": len(moves), "unplaced": [it.name for it in failed], "output": str(dst)}
 
 
 # ---------------------------------------------------------------- Orca plugin
@@ -447,18 +459,12 @@ input,select{width:90px;background:var(--orca-bg);color:var(--orca-fg);border:1p
 button{width:100%;margin-top:12px;padding:8px;background:var(--orca-accent);color:var(--orca-accent-fg);border:0;border-radius:4px;cursor:pointer}
 button:disabled{opacity:.5}#status{margin-top:12px;color:var(--orca-muted);white-space:pre-wrap}
 </style></head><body>
-<label>Plate <input id="plate" type="number" min="1" value="1"></label>
 <label>Spacing (mm) <input id="spacing" type="number" min="0" step="0.5" value="2"></label>
-<label>Rotation step <select id="step">
-<option value="0">No rotation</option><option value="90">90&deg;</option><option value="45">45&deg;</option>
-<option value="30" selected>30&deg;</option><option value="15">15&deg;</option><option value="10">10&deg;</option></select></label>
-<label>Precision <select id="res">
-<option value="1">Fast (1 mm)</option><option value="0.5" selected>Normal (0.5 mm)</option><option value="0.25">Fine (0.25 mm)</option></select></label>
-<button id="go">Arrange plate</button><div id="status">The arranged project opens as a new file. Your original is not changed.</div>
+<button id="go">Arrange current plate</button><div id="status">Rotation and placement are automatic. The arranged project opens as a new file; your original is not changed.</div>
 <script>
 const $=id=>document.getElementById(id);
 $('go').onclick=()=>{$('go').disabled=true;$('status').textContent='Arranging…';
- orca.postMessage({action:'arrange',plate:+$('plate').value,spacing:+$('spacing').value,step:+$('step').value,res:+$('res').value});};
+ orca.postMessage({action:'arrange',spacing:+$('spacing').value});};
 orca.onMessage(m=>{$('status').textContent=m.text;if(m.done)$('go').disabled=false;});
 </script></body></html>"""
 
@@ -490,14 +496,22 @@ def _call(obj, name):
     return attr() if callable(attr) else attr
 
 
+AUTO = dict(step=15.0, res=0.5, refine=True)  # plugin presets: 24 angles, 0.5 mm grid, 0.25 mm retry
+
+
+def _current_plate() -> int:
+    """1-based plate selected in Orca; falls back to plate 1."""
+    for host in (orca.host.model(), orca.host.plater()):
+        if hasattr(host, "current_plate_index"):
+            return int(_call(host, "current_plate_index")) + 1  # Orca indexes plates from 0
+    return 1
+
+
 def _run_from_panel(panel, storage: Path, data: dict):
     # Runs on the UI thread (dock-panel callback), which export_3mf_copy requires.
     # ponytail: UI blocks for a few seconds while nesting; move to a worker thread if big plates hurt.
     try:
-        p = Params(plate=max(1, int(data.get("plate", 1))),
-                   spacing=max(0.0, float(data.get("spacing", 2))),
-                   step=max(0.0, float(data.get("step", 30))),
-                   res=min(2.0, max(0.1, float(data.get("res", 0.5)))))
+        p = Params(plate=_current_plate(), spacing=max(0.0, float(data.get("spacing", 2))), **AUTO)
         plater = orca.host.plater()
         project = _call(plater, "project_path") or ""
         stem = Path(project).stem if project else "untitled"
@@ -506,7 +520,7 @@ def _run_from_panel(panel, storage: Path, data: dict):
         plater.export_3mf_copy(str(src))
 
         report = arrange_3mf(src, dst, p)
-        text = f"Placed {report['placed']} object(s)."
+        text = f"Plate {p.plate}: placed {report['placed']} object(s)."
         if report["unplaced"]:
             text += f"\nDid not fit (moved above the plate): {', '.join(report['unplaced'])}"
         if _open_in_orca(dst):
@@ -576,6 +590,7 @@ if __name__ == "__main__":
     ap.add_argument("--spacing", type=float, default=2.0)
     ap.add_argument("--step", type=float, default=30.0)
     ap.add_argument("--res", type=float, default=0.5)
+    ap.add_argument("--auto", action="store_true", help="plugin presets: 15 deg steps, finer retry if parts are left over")
     ap.add_argument("--bed", help="WxH in mm when the 3MF has no printer settings, e.g. 270x270")
     ap.add_argument("--preview", type=Path, help="write a top-down PNG of the result")
     a = ap.parse_args()
@@ -584,6 +599,8 @@ if __name__ == "__main__":
         w, h = (float(v) for v in a.bed.lower().split("x"))
         bed = [(0, 0), (w, 0), (w, h), (0, h)]
     params = Params(a.plate, a.spacing, a.step, a.res)
+    if a.auto:
+        params = Params(a.plate, a.spacing, **AUTO)
     print(json.dumps(arrange_3mf(a.src, a.dst, params, bed=bed,
                                  progress=lambda i, n, m: print(f"[{i}/{n}] {m}", file=sys.stderr)), indent=2))
     if a.preview:

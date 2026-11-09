@@ -31,16 +31,19 @@ settings and other plates are kept.
 
 ## Use
 
-1. Open **File > Plugins** and click **Run** on *Shape-Aware Arrange*. A
+1. Select the plate you want to arrange in OrcaSlicer.
+2. Open **File > Plugins** and click **Run** on *Shape-Aware Arrange*. A
    panel docks on the right.
-2. Set the plate number, spacing, rotation step and precision, then click
-   **Arrange plate**.
-3. Allow the launch prompt the first time; this is how the plugin opens the
+3. Set the spacing and click **Arrange current plate**. Everything else is
+   automatic: every part tries 24 rotations (15° steps) and keeps the one that
+   packs best. If parts are left over, the plate is retried once on a finer
+   0.25 mm grid, which lets tight shapes interlock.
+4. Allow the launch prompt the first time; this is how the plugin opens the
    arranged copy. The panel shows how many parts were placed and lists any
    that did not fit; those are moved into a row above the plate.
 
-Finer rotation steps and precision pack tighter but take longer. 30° at
-0.5 mm takes a few seconds for about 20 parts.
+A plate of about 20 parts takes a few seconds, or up to about 10 seconds
+when it overflows and the finer retry runs.
 
 ## Command line
 
@@ -48,8 +51,11 @@ The nesting core also runs outside OrcaSlicer on any 3MF:
 
 ```sh
 uv run --python 3.12 --with numpy --with pillow python shape_arrange.py \
-    in.3mf out.3mf --plate 1 --spacing 2 --step 30 --preview plate.png
+    in.3mf out.3mf --plate 1 --spacing 2 --auto --preview plate.png
 ```
+
+`--auto` uses the plugin's settings. Use `--step` and `--res` instead to
+choose the rotation step and grid size yourself.
 
 Pass `--bed 270x270` for plain 3MF files that carry no printer settings.
 

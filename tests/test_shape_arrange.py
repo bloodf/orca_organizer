@@ -189,6 +189,16 @@ def test_crowded_plate_spacing_zero_with_obstacle():
         assert (total > 1).sum() <= 4, f"overlap of {(total > 1).sum()} cells at {res} mm"
 
 
+def test_auto_mode_refines_to_fit_tight_interlock():
+    """Plugin presets: 0.5 mm can't interlock the combs, the automatic 0.25 mm retry can."""
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        make_project(src)
+        coarse = sa.arrange_3mf(src, dst, sa.Params(plate=2, spacing=1.0, step=15, res=0.5))
+        auto = sa.arrange_3mf(src, dst, sa.Params(plate=2, spacing=1.0, **sa.AUTO))
+        assert coarse["unplaced"] and not auto["unplaced"], (coarse, auto)
+
+
 def test_missing_plate_is_an_error():
     with tempfile.TemporaryDirectory() as d:
         src = Path(d, "in.3mf")
@@ -204,5 +214,6 @@ def test_missing_plate_is_an_error():
 if __name__ == "__main__":
     test_interlocking_combs_fit_on_plate_2()
     test_crowded_plate_spacing_zero_with_obstacle()
+    test_auto_mode_refines_to_fit_tight_interlock()
     test_missing_plate_is_an_error()
     print("ok")
