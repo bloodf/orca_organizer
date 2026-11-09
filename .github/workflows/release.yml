@@ -54,8 +54,8 @@ jobs:
             echo
             echo "Orca Cloud has no public upload API, so this step is manual:"
             echo
-            echo "1. Open https://cloud.orcaslicer.com/app/plugins/plugin-hub and sign in."
-            echo "2. Open Shape-Aware Arrange and upload \`shape_arrange_any.py\` from the release assets."
+            echo "1. Sign in and open https://cloud.orcaslicer.com/app/plugins/shared-plugins/5bae3da1-7fcc-4cbd-ae25-53678e392d54"
+            echo "2. Upload a new version: \`shape_arrange_any.py\` from the release assets."
             echo "3. Paste these notes as the changelog:"
             echo
             cat notes.md

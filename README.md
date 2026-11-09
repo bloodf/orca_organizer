@@ -39,6 +39,10 @@ settings and other plates are kept.
 
 ## Install
 
+**From Orca Cloud:** sign in to Orca Cloud in OrcaSlicer, open **File > Plugins > Browse plugins**, find *Shape-Aware Arrange* and subscribe ([plugin page](https://cloud.orcaslicer.com/app/plugins/shared-plugins/5bae3da1-7fcc-4cbd-ae25-53678e392d54)). Updates arrive automatically.
+
+**From a file:**
+
 1. In OrcaSlicer, open **File > Plugins**.
 2. Click the arrow next to **Browse plugins**, choose **Install local
    plugin**, and select `shape_arrange.py`.
