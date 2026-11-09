@@ -1,0 +1,58 @@
+name: Release
+
+# Push a tag matching the plugin version (e.g. v0.5.0) to publish a release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+
+      - name: Arrangement tests
+        run: uv run --python 3.12 --with numpy --with pillow python tests/test_shape_arrange.py
+      - name: Plugin tests
+        run: uv run --python 3.12 --with numpy --with pillow python tests/test_plugin.py
+
+      - name: Check tag matches plugin version
+        run: |
+          version=$(sed -n 's/^# version = "\(.*\)"$/\1/p' shape_arrange.py)
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match plugin version $version in shape_arrange.py"
+            exit 1
+          fi
+
+      - name: Release notes from CHANGELOG.md
+        run: |
+          awk -v v="## ${GITHUB_REF_NAME#v}" '$0 ~ "^## " {p = index($0, v) == 1; next} p' CHANGELOG.md > notes.md
+          if [ ! -s notes.md ]; then
+            echo "::error::CHANGELOG.md has no '## ${GITHUB_REF_NAME#v}' section"
+            exit 1
+          fi
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" shape_arrange.py assets/icon.png \
+            --title "Shape-Aware Arrange $GITHUB_REF_NAME" --notes-file notes.md
+
+      - name: Orca Cloud upload checklist
+        run: |
+          {
+            echo "## Publish ${GITHUB_REF_NAME} on Orca Cloud"
+            echo
+            echo "Orca Cloud has no public upload API, so this step is manual:"
+            echo
+            echo "1. Open https://cloud.orcaslicer.com/app/plugins/plugin-hub and sign in."
+            echo "2. Open Shape-Aware Arrange and upload \`shape_arrange.py\` from the release assets."
+            echo "3. Paste these notes as the changelog:"
+            echo
+            cat notes.md
+          } >> "$GITHUB_STEP_SUMMARY"

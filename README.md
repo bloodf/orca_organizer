@@ -1,4 +1,8 @@
+<p align="center"><img src="assets/icon.png" width="128" alt="Shape-Aware Arrange icon"></p>
+
 # Shape-Aware Arrange for OrcaSlicer
+
+![Parts of many shapes packed tightly on a build plate](assets/social-preview.jpg)
 
 OrcaSlicer's built-in Arrange treats every object as its convex hull, so
 concave parts like snowflakes, stars, combs and letters end up spaced as if
@@ -97,6 +101,16 @@ other file in the 3MF are unchanged.
 - On Windows the arranged copy may open in a second OrcaSlicer window unless
   single-instance mode is on. If no launcher is found, the panel shows the
   file path to open by hand.
+
+## Releasing
+
+1. Bump `version` in the metadata block of `shape_arrange.py` and add a
+   section for it to `CHANGELOG.md`.
+2. Commit, then tag and push: `git tag v0.5.0 && git push origin v0.5.0`.
+3. The Release workflow runs the tests, checks that the tag matches the
+   plugin version, and creates a GitHub release with `shape_arrange.py`
+   attached. Its run summary lists the Orca Cloud upload steps. Orca Cloud
+   has no public upload API, so that last step is manual.
 
 ## License
 
