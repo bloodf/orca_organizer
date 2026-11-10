@@ -18,6 +18,10 @@ Requires OrcaSlicer 2.5 or later, which has the Python plugin system.
 3. Places parts largest-first. FFT collision search finds the position that
    keeps the layout's bounding box smallest while staying the set spacing
    away from other parts, the bed edge and any excluded areas.
+   If parts are left over, or when filling, it also tries a repeating
+   pattern for copies of the same part: it finds how tightly two copies nest,
+   tiles the bed with that pattern and fits the rest into the gaps. The
+   result that places more parts wins.
 4. Rewrites only the object transforms in the copy, then opens it in
    OrcaSlicer. Your original project file is never modified.
 

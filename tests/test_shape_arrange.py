@@ -313,6 +313,42 @@ def test_fill_plate_adds_registered_copies_without_overlap():
         assert (np.sum(masks, axis=0) > 1).sum() == 0, "copies overlap"
 
 
+def test_identical_brackets_tile_in_a_repeating_pattern():
+    """20 L-brackets (100 x 75 mm, 11 mm arms) on a 256 mm bed. Greedy placement alone fits 13 here;
+    tiling them as a repeating pattern fits 18. No two may overlap."""
+    bracket = merge(box(0, 0, 100, 11), box(0, 11, 11, 75))
+    bed = {"printable_area": ["0x0", "256x0", "256x256", "0x256"]}
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        simple_project(src, [bracket], [(0, tf(0, 5 + 3 * i, 5 + 3 * i)) for i in range(20)], bed)
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=2, step=15, res=0.5))
+        assert report["placed"] >= 18, report
+        masks = [m for m, lo, hi in projections(dst, 256.0, 0.1) if lo[1] < 256]
+        assert len(masks) == report["placed"]
+        assert (np.sum(masks, axis=0) > 1).sum() == 0, "brackets overlap"
+
+
+def test_pattern_never_adds_unasked_copies_or_drops_originals():
+    """Repeating patterns must not add copies when Fill is off, nor push an original off the plate when filling."""
+    bed = {"printable_area": ["0x0", "100x0", "100x100", "0x100"]}
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        # five 10 mm blocks and a bar too long for the bed: arrange leaves the bar over, adds nothing
+        simple_project(src, [box(0, 0, 10, 10), box(0, 0, 160, 2)],
+                       [(0, tf(0, 5 + 15 * i, 5)) for i in range(5)] + [(1, tf(0, 0, 50))], bed)
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=2, step=15, res=0.5))
+        assert report["placed"] == 5 and report["added"] == 0, report
+
+        # thirty 10 mm blocks and one 50 mm block: fill must keep the big block on the plate
+        simple_project(src, [box(0, 0, 10, 10), box(0, 0, 50, 50)],
+                       [(0, tf(0, 2 * i, 2 * i)) for i in range(30)] + [(1, tf(0, 20, 20))], bed)
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=2, step=15, res=0.5, fill=True))
+        assert report["placed"] == 31 and report["unplaced"] == [], report
+        masks = [m for m, lo, hi in projections(dst, 100.0, 0.1) if lo[1] < 100]
+        assert len(masks) == 31 + report["added"]
+        assert (np.sum(masks, axis=0) > 1).sum() == 0, "parts overlap"
+
+
 TOWER = {"printable_area": ["0x0", "100x0", "100x100", "0x100"], "enable_prime_tower": "1",
          "wipe_tower_x": ["60"], "wipe_tower_y": ["60"], "prime_tower_width": "30",
          "prime_tower_brim_width": "3", "filament_prime_volume": ["45", "45"], "layer_height": "0.2"}
@@ -389,6 +425,8 @@ if __name__ == "__main__":
     test_overhangs_block_space_at_every_height()
     test_by_object_sequence_keeps_extruder_clearance()
     test_fill_plate_adds_registered_copies_without_overlap()
+    test_identical_brackets_tile_in_a_repeating_pattern()
+    test_pattern_never_adds_unasked_copies_or_drops_originals()
     test_prime_tower_is_kept_free_with_two_filaments()
     test_single_filament_plate_has_no_tower()
     test_painted_part_needs_a_tower()

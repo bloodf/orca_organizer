@@ -7,7 +7,7 @@
 # type = "script"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Irregular and concave parts interlock to fit more on the plate, or fill the whole plate with copies. Just set the spacing."
 # author = "Heitor Ramon"
-# version = "0.7.1"
+# version = "0.8.0"
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Heitor Ramon
@@ -390,10 +390,25 @@ class Shape:
         return self._coarse
 
 
+def _z_angle(transform: np.ndarray) -> float:
+    """Current rotation about Z, degrees CCW."""
+    return math.degrees(math.atan2(transform[1, 0], transform[0, 0]))
+
+
+def _center(item: Item) -> np.ndarray:
+    """Center of the item's XY bounding box, world coordinates."""
+    xy = np.concatenate([v[:, :2] for v, _ in item.parts])
+    return (xy.min(0) + xy.max(0)) / 2
+
+
+def _footprint_key(item: Item):
+    """Items with equal keys have the same footprints: same object, same transform up to translation."""
+    return item.object_id, tuple(np.round(item.transform[:3, :3], 4).ravel())
+
+
 def _shapes(item: Item, p: Params):
     """Candidate footprints of an item, one per rotation."""
-    xy = np.concatenate([v[:, :2] for v, _ in item.parts])
-    center = (xy.min(0) + xy.max(0)) / 2
+    center = _center(item)
     tris = _silhouette(item.parts) - center
     k = 4  # supersampling: rotate a fine image, then pool k x k blocks into one grid cell
     base, half = _base_raster(tris, p.res / k)
@@ -401,7 +416,7 @@ def _shapes(item: Item, p: Params):
     r = int(math.ceil(p.spacing / p.res))
     angles = [0.0]
     if p.step > 0:  # absolute multiples of step (so parts can land axis-aligned), plus "as is"
-        current = math.degrees(math.atan2(item.transform[1, 0], item.transform[0, 0]))
+        current = _z_angle(item.transform)
         angles += sorted({round((a - current) % 360, 6) for a in np.arange(0, 360, p.step)} - {0.0})
     out = []
     for a in angles:
@@ -436,19 +451,26 @@ def _bed_grid(poly, excludes, res, obstacles=()):
 
 # ---------------------------------------------------------------- nesting
 
+def _hits(occ_f, occ_shape, kernel: np.ndarray) -> np.ndarray:
+    """True where the kernel, top-left at [y, x], overlaps an occupied cell. Kernel must fit."""
+    ny, nx = occ_shape
+    kh, kw = kernel.shape
+    kf = np.fft.rfft2(kernel.astype(np.float32), s=occ_shape)
+    return np.fft.irfft2(occ_f * np.conj(kf), s=occ_shape)[: ny - kh + 1, : nx - kw + 1] >= 0.5
+
+
 def _best_position(occ_f, occ_shape, kernel: np.ndarray, bbox):
     ny, nx = occ_shape
     kh, kw = kernel.shape
     if kh > ny or kw > nx:
         return None
-    kf = np.fft.rfft2(kernel.astype(np.float32), s=occ_shape)
-    hits = np.fft.irfft2(occ_f * np.conj(kf), s=occ_shape)[: ny - kh + 1, : nx - kw + 1]
+    hits = _hits(occ_f, occ_shape, kernel)
     x0, y0, x1, y1 = bbox or (nx, ny, 0, 0)  # first part: plain footprint area
     xs, ys = np.arange(nx - kw + 1), np.arange(ny - kh + 1)
     w = np.maximum(x1, xs + kw) - np.minimum(x0, xs)
     h = np.maximum(y1, ys + kh) - np.minimum(y0, ys)
     score = np.outer(h, w).astype(np.float32) + 1e-3 * (ys[:, None] + xs[None, :])
-    score[hits >= 0.5] = np.inf
+    score[hits] = np.inf
     i = int(np.argmin(score))
     y, x = divmod(i, score.shape[1])
     return (float(score[y, x]), x, y) if np.isfinite(score[y, x]) else None
@@ -460,15 +482,24 @@ def nest(items: list[Item], blocked: np.ndarray, p: Params, progress=None):
     Returns ({item.index: (shape, x, y, center)}, [unplaced items], [copies]); copies
     (fill mode only) are (source item, shape, x, y, center).
     """
-    prepared = []
+    prepared, cache = [], {}
     for n, it in enumerate(items):
-        if progress:
-            progress(n, len(items), f"Footprint {it.name}")
-        center, shapes = _shapes(it, p)
-        prepared.append((it, center, shapes))
+        key = _footprint_key(it)
+        if key not in cache:  # identical copies share footprints
+            if progress:
+                progress(n, len(items), f"Footprint {it.name}")
+            cache[key] = _shapes(it, p)[1]
+        prepared.append((it, _center(it), cache[key]))
     prepared.sort(key=lambda t: -int(t[2][0].raw.sum()))
-    placed, failed, bbox, occ = _place(prepared, blocked, progress)
-    copies = _fill(prepared, occ, bbox, progress) if p.fill and not failed else []
+    placed, failed, bbox, occ = _place(prepared, blocked.astype(float), progress=progress)
+    copies = []
+    if failed or p.fill:  # greedy left parts over, or fill: see if a repeating pattern does better
+        alt = _lattice_layout(prepared, blocked, p, progress)
+        # originals first: never trade a placed part for copies
+        if alt and (len(alt[0]), len(alt[2])) > (len(placed), 0):
+            placed, failed, copies, bbox = alt
+        elif p.fill and not failed:  # ponytail: greedy fill only as fallback, it is the slow path
+            copies = _fill(prepared, occ, bbox, progress)
     if p.center and placed and not copies:
         _center_layout(placed, blocked, bbox)
     return placed, failed, copies
@@ -477,7 +508,7 @@ def nest(items: list[Item], blocked: np.ndarray, p: Params, progress=None):
 MAX_COPIES = 300  # ponytail: fill cap so tiny parts on a big bed don't run for minutes; raise if needed
 
 
-def _fill(prepared, occ, bbox, progress=None):
+def _fill(prepared, occ, bbox, progress=None, limit=MAX_COPIES):
     """Add copies round-robin, one object at a time, until no object fits anywhere.
 
     An object drops out of the rotation once a copy no longer fits; smaller
@@ -489,10 +520,10 @@ def _fill(prepared, occ, bbox, progress=None):
             seen.add(entry[0].object_id)
             active.append(entry)
     copies = []
-    while active and len(copies) < MAX_COPIES:
+    while active and len(copies) < limit:
         still = []
         for it, center, shapes in active:
-            if len(copies) >= MAX_COPIES:
+            if len(copies) >= limit:
                 break
             if progress:
                 progress(len(copies), len(copies) + len(active), f"Filling: {len(copies)} copies added")
@@ -554,10 +585,12 @@ def _stamp(occ: np.ndarray, s: Shape, x: int, y: int, bbox):
         min(bbox[0], x), min(bbox[1], y), max(bbox[2], x + kw), max(bbox[3], y + kh))
 
 
-def _place(prepared, blocked, progress=None):
-    """One greedy pass in the given order. Returns (placed, failed, bbox, occupancy)."""
-    occ = blocked.astype(float)
-    bbox, placed, failed = None, {}, []
+def _place(prepared, occ, bbox=None, progress=None):
+    """One greedy pass in the given order onto `occ` (updated in place).
+
+    Returns (placed, failed, bbox, occupancy).
+    """
+    placed, failed = {}, []
     for n, (it, center, shapes) in enumerate(prepared):
         if progress:
             progress(n, len(prepared), f"Placing {it.name}")
@@ -569,6 +602,196 @@ def _place(prepared, blocked, progress=None):
         bbox = _stamp(occ, s, x, y, bbox)
         placed[it.index] = (s, x, y, center)
     return placed, failed, bbox, occ
+
+
+# ---------------------------------------------------------------- lattice
+
+LATTICE_STEP = 15.0  # degrees between the rotations tried for a repeating pattern
+LATTICE_DIRS = 36    # first-neighbour directions tried per rotation, over a half turn
+LATTICE_TOP = 6      # densest patterns per rotation that get counted on the bed
+
+
+def _lattice_layout(prepared, blocked, p: Params, progress=None):
+    """Alternative to the greedy pass: tile copies of the largest group of identical parts
+    in a repeating pattern, then place everything else greedily into the gaps.
+
+    Identical = same _footprint_key. Returns
+    (placed, failed, copies, bbox) like the greedy pass, or None.
+    """
+    groups: dict = {}
+    for entry in prepared:
+        groups.setdefault(_footprint_key(entry[0]), []).append(entry)
+    group = max(groups.values(), key=lambda g: len(g) * int(g[0][2][0].raw.sum()))
+    if len(group) < 2 and not p.fill:
+        return None
+    lead, center, shapes = group[0]
+    current = _z_angle(lead.transform)
+    grid = p.step * math.ceil(LATTICE_STEP / p.step) if p.step > 0 else 360.0
+    tried = [s for i, s in enumerate(shapes)
+             if i == 0 or (round(current + s.angle, 6) % 360 < 180 and abs(math.remainder(current + s.angle, grid)) < 1e-6)]
+    need = MAX_COPIES + len(group) if p.fill else len(group)
+    occ = blocked.astype(float)
+    spots = _lattice(tried, occ, need, progress)
+    if not spots:
+        return None
+    def fits(s, x, y):  # spots are valid by construction; this guard makes overlaps impossible anyway
+        kh, kw = s.kernel.shape
+        return not (occ[y:y + kh, x:x + kw][s.kernel] > 0).any()
+
+    rest, placed, copies, bbox = list(group), {}, [], None
+    for s, x, y in spots[:len(group)]:
+        if fits(s, x, y):
+            it, c, _ = rest.pop(0)
+            placed[it.index] = (s, x, y, c)
+            bbox = _stamp(occ, s, x, y, bbox)
+    others = rest + [e for e in prepared if all(e is not g for g in group)]
+    more, failed, bbox, occ = _place(others, occ, bbox, progress)  # originals before any copies
+    placed.update(more)
+    if p.fill and not failed:
+        for s, x, y in spots[len(group):]:
+            if len(copies) >= MAX_COPIES:
+                break
+            if fits(s, x, y):
+                copies.append((lead, s, x, y, center))
+                bbox = _stamp(occ, s, x, y, bbox)
+        copies += _fill(prepared, occ, bbox, progress, MAX_COPIES - len(copies))
+    return placed, failed, copies, bbox
+
+
+def _lattice(shapes: list[Shape], occ: np.ndarray, need: int, progress=None):
+    """Best repeating pattern of one shape on the bed: [(shape, x, y)], nearest the origin first."""
+    ny, nx = occ.shape
+    occ_f = np.fft.rfft2(occ.astype(np.float32))
+    best, spots = (0, 0), []
+    for n, s in enumerate(shapes):
+        if progress:
+            progress(n, len(shapes), "Trying repeating patterns")
+        kh, kw = s.kernel.shape
+        if kh > ny or kw > nx or 4 * kh * kw > ny * nx:  # big parts: few copies fit, greedy does fine
+            continue
+        valid = ~_hits(occ_f, occ.shape, s.kernel)
+        if not valid.any():
+            continue
+        for v1, v2, area in _bases(_forbidden(s)):
+            found = _lattice_spots(valid, v1, v2)
+            key = (min(len(found), need), -area)
+            if key > best:
+                best, spots = key, [(s, x, y) for y, x in found]
+    return spots
+
+
+def _forbidden(s: Shape) -> np.ndarray:
+    """Offsets at which a second copy would hit the first one.
+
+    Bool (2kh+1, 2kw+1); element [kh + dy, kw + dx] is offset (dy, dx) between the two kernels.
+    """
+    kh, kw = s.kernel.shape
+    h, w = s.raw.shape
+    occ = np.zeros((3 * kh, 3 * kw), np.float32)
+    occ[kh + s.pad:kh + s.pad + h, kw + s.pad:kw + s.pad + w] = s.raw
+    return _hits(np.fft.rfft2(occ), occ.shape, s.kernel)
+
+
+def _clip(dst_shape, src_shape, oy: int, ox: int):
+    """(dst, src) slices that paste src at [oy, ox] into dst, cut to fit; None if disjoint."""
+    y0, x0 = max(oy, 0), max(ox, 0)
+    y1, x1 = min(oy + src_shape[0], dst_shape[0]), min(ox + src_shape[1], dst_shape[1])
+    if y0 >= y1 or x0 >= x1:
+        return None
+    return (slice(y0, y1), slice(x0, x1)), (slice(y0 - oy, y1 - oy), slice(x0 - ox, x1 - ox))
+
+
+def _bases(forb: np.ndarray):
+    """Densest valid lattice bases ((dy, dx), (dy, dx), cell area) for copies of one shape.
+
+    v1 is the nearest free offset in each of LATTICE_DIRS directions. v2 is the free offset,
+    clear of the whole row of copies along v1, that gives the smallest cell area.
+    """
+    fh, fw = forb.shape
+    cy, cx = fh // 2, fw // 2
+    near = np.zeros_like(forb)
+    near[1:] |= forb[:-1]
+    near[:-1] |= forb[1:]
+    near[:, 1:] |= forb[:, :-1]
+    near[:, :-1] |= forb[:, 1:]
+    ys, xs = np.nonzero(~forb & near)
+    dy, dx = ys - cy, xs - cx
+    half = (dy > 0) | ((dy == 0) & (dx > 0))
+    dy, dx = dy[half], dx[half]
+    if not len(dy):
+        return []
+    bins = np.minimum((np.arctan2(dy, dx) / np.pi * LATTICE_DIRS).astype(int), LATTICE_DIRS - 1)
+    order = np.lexsort((dy * dy + dx * dx, bins))
+    first = order[np.r_[True, bins[order][1:] != bins[order][:-1]]]
+    gy, gx = np.mgrid[-(fh - 1):fh, -(fw - 1):fw]  # v2 search box: twice the forbidden box
+    out = {}
+    for a, b in zip(dy[first].tolist(), dx[first].tolist()):
+        row = np.zeros(gy.shape, bool)  # offsets that hit any copy in the row k * v1
+        k_max = min(2 * fh // abs(a) if a else 10**9, 2 * fw // abs(b) if b else 10**9)
+        for k in range(-k_max, k_max + 1):
+            cut = _clip(row.shape, forb.shape, fh - 1 - cy + k * a, fw - 1 - cx + k * b)
+            if cut:
+                row[cut[0]] |= forb[cut[1]]
+        area = np.abs(a * gx - b * gy)
+        area[row | (area == 0)] = np.iinfo(area.dtype).max
+        for _ in range(3):  # the smallest cell may still clash two rows away; try the next
+            i = int(np.argmin(area))
+            if area.flat[i] == np.iinfo(area.dtype).max:
+                break
+            v1, v2 = _reduce((a, b), (int(gy.flat[i]), int(gx.flat[i])))
+            if _clear(forb, v1, v2):
+                out.setdefault((v1, v2), int(area.flat[i]))
+                break
+            area.flat[i] = np.iinfo(area.dtype).max
+    return [(v1, v2, a) for (v1, v2), a in sorted(out.items(), key=lambda t: t[1])[:LATTICE_TOP]]
+
+
+def _reduce(u, v):
+    """Lagrange-reduce a 2D lattice basis: same lattice, shortest vectors."""
+    dot = lambda p, q: p[0] * q[0] + p[1] * q[1]
+    while True:
+        if dot(u, u) > dot(v, v):
+            u, v = v, u
+        m = round(dot(u, v) / dot(u, u))
+        if m == 0:
+            return u, v
+        v = (v[0] - m * u[0], v[1] - m * u[1])
+
+
+def _clear(forb: np.ndarray, v1, v2) -> bool:
+    """No two copies of the lattice v1, v2 collide."""
+    fh, fw = forb.shape
+    cy, cx = fh // 2, fw // 2
+    area = abs(v1[0] * v2[1] - v1[1] * v2[0])
+    reach = math.hypot(fh, fw)  # lattice vector u has |coef of v1| <= |v2| |u| / area, and vice versa
+    ni, nj = int(math.hypot(*v2) * reach / area) + 1, int(math.hypot(*v1) * reach / area) + 1
+    i, j = np.mgrid[-ni:ni + 1, -nj:nj + 1]
+    vy, vx = i * v1[0] + j * v2[0], i * v1[1] + j * v2[1]
+    m = (np.abs(vy) <= cy) & (np.abs(vx) <= cx) & ((vy != 0) | (vx != 0))
+    return not forb[vy[m] + cy, vx[m] + cx].any()
+
+
+def _lattice_spots(valid: np.ndarray, v1, v2) -> list[tuple[int, int]]:
+    """Positions [(y, x)] of the lattice v1, v2 that land on valid cells, best shift, origin first."""
+    ph, pw = abs(v1[0]) + abs(v2[0]), abs(v1[1]) + abs(v2[1])  # holds one whole lattice cell
+    inv = np.linalg.inv(np.array([[v1[0], v2[0]], [v1[1], v2[1]]], float))
+    vh, vw = valid.shape
+    corners = np.array([[-ph, -pw], [-ph, vw], [vh, -pw], [vh, vw]], float).T
+    ij = inv @ corners
+    lo, hi = np.floor(ij.min(1)).astype(int), np.ceil(ij.max(1)).astype(int)
+    count = np.zeros((ph, pw), np.int32)
+    offsets = []
+    for i in range(lo[0], hi[0] + 1):
+        for j in range(lo[1], hi[1] + 1):
+            oy, ox = i * v1[0] + j * v2[0], i * v1[1] + j * v2[1]
+            cut = _clip(valid.shape, count.shape, oy, ox)
+            if cut:
+                count[cut[1]] += valid[cut[0]]
+                offsets.append((oy, ox))
+    py, px = divmod(int(np.argmax(count)), pw)
+    found = [(oy + py, ox + px) for oy, ox in offsets
+             if 0 <= oy + py < vh and 0 <= ox + px < vw and valid[oy + py, ox + px]]
+    return sorted(found, key=lambda t: (t[0] + t[1], t[0]))
 
 
 def _center_layout(placed, blocked, bbox):

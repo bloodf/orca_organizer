@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.0
+
+- Plates with many copies of the same part try a repeating pattern: the plugin finds how tightly two copies nest and tiles the bed with that pattern, then fits the remaining parts into the gaps. It is used when it places more parts than the normal arrangement. 20 L-brackets (100 x 75 mm) on a 256 mm bed: 18 fit, up from 15. Fill plate with copies uses it too (18 brackets, up from 14).
+- Identical copies share one footprint, so plates with many copies prepare faster.
+
 ## 0.7.1
 
 - Multi-color plates keep the prime tower's area free (two or more filaments, or color painting, with the prime tower enabled), brim included.
