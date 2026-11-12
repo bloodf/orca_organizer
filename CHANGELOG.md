@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.2 (2026-11-12)
+
+- Build tools only: shared Orca UI foundation 2.0.3 (Vite 8.3.8, @vitejs/plugin-vue 6.0.11). No change to arranging, filling or the interface.
+
 ## 0.9.1 (2026-11-12)
 
 - Fix Orca Cloud publishing of release notes containing semicolons: send metadata as a literal form string so curl does not truncate the JSON. Version 0.9.0 remains available on GitHub; its Orca Cloud upload was rejected before publication.
