@@ -12,7 +12,7 @@ at run time, nothing is downloaded, and the page needs no `unsafe-eval` (templat
 | `src/store.ts` | all reactive state, polling, focus requests; the plugin owns the job, the page only shows it |
 | `src/messages.ts`, `src/status.ts` | pt-BR / en strings, structured `msg` to text lines |
 | `src/protocol.ts`, `src/hostTheme.ts` | message types and the host bridge; light/dark detection |
-| `shared/` | vendored ui-foundation 2.0.2 (see `shared/manifest.json`). Do not edit; `npm run check:shared` |
+| `shared/` | vendored ui-foundation 2.0.3 (see `shared/manifest.json`). Do not edit; `npm run check:shared` |
 | `tests/` | vitest + jsdom component tests (`panel`, `messages`, `english-parity`, `theme`) |
 | `scripts/embed.mjs` | embeds `dist/index.html` into `shape_arrange.py` (`--check` for CI) |
 | `scripts/verify-browser.mjs` | production page under CSP in headless Chrome with a MOCK host bridge, screenshots |
