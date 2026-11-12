@@ -1,0 +1,892 @@
+{
+ "error_codes": [
+  "bad_number",
+  "bad_rotation",
+  "bad_unit",
+  "bed_small",
+  "build_layout",
+  "no_build",
+  "no_model",
+  "plate_empty",
+  "plate_gone",
+  "plate_missing"
+ ],
+ "cases": [
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "bad_number",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nSpacing must be a number, 0 mm or more.\nNext: Enter a value such as 2 and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "bad_number",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nSpacing must be a number, 0 mm or more.\nNext: Enter a value such as 2 and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "bad_number",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: Spacing must be a number, 0 mm or more.\nNext: Enter a value such as 2 and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "bad_rotation",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nRotation must be automatic or keep orientation.\nNext: Choose one of the two options.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "bad_rotation",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nRotation must be automatic or keep orientation.\nNext: Choose one of the two options.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "bad_rotation",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: Rotation must be automatic or keep orientation.\nNext: Choose one of the two options.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "no_model",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nThe project file has no 3D model.\nNext: Save the project again in OrcaSlicer and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "no_model",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nThe project file has no 3D model.\nNext: Save the project again in OrcaSlicer and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "no_model",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: The project file has no 3D model.\nNext: Save the project again in OrcaSlicer and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "bad_unit",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nThe project uses inch as its unit; only millimetres can be arranged.\nNext: Convert the model to millimetres in OrcaSlicer, save it and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "bad_unit",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nThe project uses inch as its unit; only millimetres can be arranged.\nNext: Convert the model to millimetres in OrcaSlicer, save it and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "bad_unit",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: The project uses inch as its unit; only millimetres can be arranged.\nNext: Convert the model to millimetres in OrcaSlicer, save it and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "no_build",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nThe project file has no build section.\nNext: Save the project again in OrcaSlicer and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "no_build",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nThe project file has no build section.\nNext: Save the project again in OrcaSlicer and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "no_build",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: The project file has no build section.\nNext: Save the project again in OrcaSlicer and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "build_layout",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nThe project file's layout cannot be edited safely.\nNext: Save the project again in OrcaSlicer (this rewrites the file) and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "build_layout",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nThe project file's layout cannot be edited safely.\nNext: Save the project again in OrcaSlicer (this rewrites the file) and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "build_layout",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: The project file's layout cannot be edited safely.\nNext: Save the project again in OrcaSlicer (this rewrites the file) and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "plate_missing",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nPlate 3 is not in the project's plate list.\nNext: Select an existing plate and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "plate_missing",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nPlate 3 is not in the project's plate list.\nNext: Select an existing plate and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "plate_missing",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: Plate 3 is not in the project's plate list.\nNext: Select an existing plate and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "plate_gone",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nPlate 3 does not exist: the project has 2 plates.\nNext: Select one of the existing plates and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "plate_gone",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nPlate 3 does not exist: the project has 2 plates.\nNext: Select one of the existing plates and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "plate_gone",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: Plate 3 does not exist: the project has 2 plates.\nNext: Select one of the existing plates and retry.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "plate_empty",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nPlate 3 has no printable objects.\nNext: Select another plate, or add parts to this one.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "plate_empty",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nPlate 3 has no printable objects.\nNext: Select another plate, or add parts to this one.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "plate_empty",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: Plate 3 has no printable objects.\nNext: Select another plate, or add parts to this one.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "bed_small",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nThe bed is smaller than the 0.5 mm grid used to place parts.\nNext: Check the printer's bed shape in OrcaSlicer.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "bed_small",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nThe bed is smaller than the 0.5 mm grid used to place parts.\nNext: Check the printer's bed shape in OrcaSlicer.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "bed_small",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: The bed is smaller than the 0.5 mm grid used to place parts.\nNext: Check the printer's bed shape in OrcaSlicer.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "unexpected"
+    },
+    "detail": "boom"
+   },
+   "text": "P, plate 2: could not fill.\nSomething unexpected went wrong.\nNext: Try again. If it keeps happening, the details below help to diagnose it.\nDetails: boom",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "unexpected"
+    },
+    "detail": "boom"
+   },
+   "text": "Could not start: Something unexpected went wrong.\nNext: Try again. If it keeps happening, the details below help to diagnose it.\nDetails: boom",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "save_failed",
+    "detail": "disk full"
+   },
+   "text": "P, plate 2: could not save the arranged copy: disk full\nNothing was opened; earlier copies are unchanged.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "cancelled"
+   },
+   "text": "P, plate 2: cancelled. Nothing was written or opened."
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "cancelling"
+   },
+   "text": "P, plate 2: cancelling…"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "saving"
+   },
+   "text": "P, plate 2: saving the arranged copy…"
+  },
+  {
+   "msg": {
+    "stem": null,
+    "plate": 1,
+    "action": "arrange",
+    "code": "cancelled"
+   },
+   "text": "untitled, plate 1: cancelled. Nothing was written or opened."
+  },
+  {
+   "msg": null,
+   "text": "unused",
+   "stale": "The run below is for P, plate 2, not the current selection.",
+   "stale_ref": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange"
+   }
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 2,
+    "added": 300,
+    "by_object": {
+     "a": 150,
+     "b": 150
+    },
+    "limit": true,
+    "max": 300,
+    "tower": true,
+    "clearance": 20.0,
+    "keep": true,
+    "unplaced": [
+     "c",
+     "d"
+    ],
+    "open": "asked",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 2,
+    "added": 300,
+    "by_object": {
+     "a": 150,
+     "b": 150
+    },
+    "limit": true,
+    "max": 300,
+    "tower": true,
+    "clearance": 20.0,
+    "keep": true,
+    "unplaced": [
+     "c",
+     "d"
+    ],
+    "open": "later",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nArranged from the project as it was when you clicked.\nFinished while the panel was closed. Use Open this copy in OrcaSlicer to load it.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 2,
+    "added": 300,
+    "by_object": {
+     "a": 150,
+     "b": 150
+    },
+    "limit": true,
+    "max": 300,
+    "tower": true,
+    "clearance": 20.0,
+    "keep": true,
+    "unplaced": [
+     "c",
+     "d"
+    ],
+    "open": "failed",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nArranged from the project as it was when you clicked.\nCould not ask OrcaSlicer to open it (no permission). Use Open this copy in OrcaSlicer or open the file by hand.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 2,
+    "added": 300,
+    "by_object": {
+     "a": 150,
+     "b": 150
+    },
+    "limit": true,
+    "max": 300,
+    "tower": true,
+    "clearance": 20.0,
+    "keep": true,
+    "unplaced": [
+     "c",
+     "d"
+    ],
+    "open": "none",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 1,
+    "added": 0,
+    "by_object": {},
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "unplaced": [],
+    "open": "asked",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 1 object.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 1,
+    "added": 0,
+    "by_object": {},
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "unplaced": [],
+    "open": "later",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 1 object.\nArranged from the project as it was when you clicked.\nFinished while the panel was closed. Use Open this copy in OrcaSlicer to load it.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 1,
+    "added": 0,
+    "by_object": {},
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "unplaced": [],
+    "open": "failed",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 1 object.\nArranged from the project as it was when you clicked.\nCould not ask OrcaSlicer to open it (no permission). Use Open this copy in OrcaSlicer or open the file by hand.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 1,
+    "added": 0,
+    "by_object": {},
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "unplaced": [],
+    "open": "none",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 1 object.\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 5,
+    "added": 1,
+    "by_object": {
+     "block": 1
+    },
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": 12.5,
+    "keep": false,
+    "unplaced": [],
+    "open": "asked",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 5,
+    "added": 1,
+    "by_object": {
+     "block": 1
+    },
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": 12.5,
+    "keep": false,
+    "unplaced": [],
+    "open": "later",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nFinished while the panel was closed. Use Open this copy in OrcaSlicer to load it.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 5,
+    "added": 1,
+    "by_object": {
+     "block": 1
+    },
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": 12.5,
+    "keep": false,
+    "unplaced": [],
+    "open": "failed",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nCould not ask OrcaSlicer to open it (no permission). Use Open this copy in OrcaSlicer or open the file by hand.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 5,
+    "added": 1,
+    "by_object": {
+     "block": 1
+    },
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": 12.5,
+    "keep": false,
+    "unplaced": [],
+    "open": "none",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
+   "path": "/s/P-arranged.3mf"
+  }
+ ]
+}

@@ -11,7 +11,23 @@ jobs:
     steps:
       - uses: actions/checkout@v7.0.1
       - uses: astral-sh/setup-uv@v10.3.3
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: ui/package-lock.json
+      - name: Panel build (Vue) and shared UI manifest
+        working-directory: ui
+        run: |
+          npm ci --ignore-scripts
+          npm run check:shared
+          npm run typecheck
+          npm run check:embedded
       - name: Arrangement tests
         run: uv run --python 3.12 --with numpy --with pillow python tests/test_shape_arrange.py
+      - name: Packing geometry tests (exact polygons)
+        run: uv run --python 3.12 --with numpy --with pillow python tests/test_packing.py
       - name: Plugin tests
         run: uv run --python 3.12 --with numpy --with pillow python tests/test_plugin.py
+      - name: Panel tests (embedded page, English parity, Vue components)
+        run: uv run --python 3.12 --with numpy --with pillow python tests/test_panel_js.py
