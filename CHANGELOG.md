@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.1 (2026-11-12)
+
+- Fix Orca Cloud publishing of release notes containing semicolons: send metadata as a literal form string so curl does not truncate the JSON. Version 0.9.0 remains available on GitHub; its Orca Cloud upload was rejected before publication.
+- Includes the packing improvements and Vue + PrimeVue interface from 0.9.0 without changing their behavior.
+
 ## 0.9.0 (2026-11-12)
 
 - Tighter, still safe spacing. The margin around each footprint is now derived instead of stacked: the outline covers the part at every rotation by construction, and the spacing is added exactly once. The requested gap is never undercut; the extra gap left by the 0.5 mm grid drops from about 1.8 mm to about 1 mm at the median (synthetic exact-geometry checks), up to about 2 mm along slanted edges. Fill fits more: 20 mm squares 99 to 113, L-brackets 44 to 47, T-parts 43 to 52 on a 256 mm bed (2 mm spacing).
