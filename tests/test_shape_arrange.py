@@ -640,7 +640,81 @@ def test_write_failure_keeps_earlier_output_and_leaves_no_partial_file():
         assert dst.read_bytes() == b"earlier result"
 
 
+def instances_project(path: Path):
+    """Two plates; object 2 has three instances, object 4 one. The plate list is stale, as Orca writes
+    it after instances were added or deleted: plate 1 claims all three instances of object 2 although
+    #1 and #2 sit on plate 2 (stacked, like "Set number of instances" leaves them), and plate 2 lists
+    instance ids that no longer exist. Orca ignores this list and assigns instances by position."""
+    ns = ('xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" '
+          'xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06"')
+    sub = {"3D/Objects/object_1.model": mesh_xml(1, box(0, 0, 20, 12)),
+           "3D/Objects/object_3.model": mesh_xml(3, box(0, 0, 10, 10))}
+    objects = "".join(
+        f'<object id="{oid}" p:UUID="0000000{oid}-0000-0000-0000-000000000000" type="model"><components>'
+        f'<component p:path="/{f}" objectid="{sid}" transform="1 0 0 0 1 0 0 0 1 0 0 0"/></components></object>'
+        for oid, sid, f in [(2, 1, "3D/Objects/object_1.model"), (4, 3, "3D/Objects/object_3.model")])
+    px = BED_W * 1.2  # plate 2 origin x
+    items = "".join([
+        f'<item objectid="2" p:UUID="a1" transform="{tf(0, 20, 20)}" printable="1"/>',        # A#0, plate 1
+        f'<item objectid="2" p:UUID="a1" transform="{tf(0, px + 27, 22)}" printable="1"/>',   # A#1, plate 2
+        f'<item objectid="2" p:UUID="a1" transform="{tf(0, px + 31, 26)}" printable="1"/>',   # A#2, on A#1
+        f'<item objectid="4" p:UUID="a4" transform="{tf(0, px + 5, 5)}" printable="1"/>',     # B#0, plate 2
+    ])
+    main = (f'<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" {ns}><resources>{objects}'
+            f'</resources><build p:UUID="b">{items}</build></model>')
+
+    def plate(pid, members):
+        mi = "".join(f'<model_instance><metadata key="object_id" value="{o}"/><metadata key="instance_id" value="{i}"/>'
+                     f'<metadata key="identify_id" value="{n}"/></model_instance>' for o, i, n in members)
+        return f'<plate><metadata key="plater_id" value="{pid}"/>{mi}</plate>'
+
+    settings = ('<?xml version="1.0" encoding="UTF-8"?>\n<config>'
+                '<object id="2"><metadata key="name" value="bar"/><part id="1" subtype="normal_part"/></object>'
+                '<object id="4"><metadata key="name" value="small"/><part id="3" subtype="normal_part"/></object>'
+                + plate(1, [(2, 0, 540), (2, 1, 544), (2, 2, 545)])
+                + plate(2, [(4, 0, 546), (2, 5, 0), (2, 6, 0)]) + '</config>')
+    project = {"printable_area": ["0x0", f"{BED_W:g}x0", f"{BED_W:g}x{BED_H:g}", f"0x{BED_H:g}"]}
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("3D/3dmodel.model", main)
+        for name, body in sub.items():
+            z.writestr(name, f'<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" {ns}>'
+                             f'<resources>{body}</resources><build/></model>')
+        z.writestr("Metadata/model_settings.config", settings)
+        z.writestr("Metadata/project_settings.config", json.dumps(project))
+
+
+def test_instances_follow_their_position_not_a_stale_plate_list():
+    """Regression (0.9.5): with instances, parts overlapped on the plate. Plate membership came from
+    model_settings.config, which Orca leaves stale for instances; instances sitting on the arranged
+    plate were neither moved nor kept clear of. Membership now follows position, like Orca's own."""
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        instances_project(src)
+        before = sa.Package(src).items()
+        origin = sa.plate_origin(2, 2, BED_W, BED_H)
+        for fill in (False, True):
+            report = sa.arrange_3mf(src, dst, sa.Params(plate=2, spacing=1, step=90, res=0.5, fill=fill))
+            assert report["placed"] == 3 and report["unplaced"] == [], report
+            after = sa.Package(dst).items()
+            assert np.allclose(before[0].transform, after[0].transform), "plate 1 instance must not move"
+            masks = []
+            for it in after[1:]:
+                xy = np.concatenate([v[:, :2] for v, _ in it.parts]) - origin
+                assert xy.min() >= -1e-6 and xy[:, 0].max() <= BED_W and xy[:, 1].max() <= BED_H, (it.name, xy.min(0))
+                masks.append(footprint(it, origin)[0])
+            assert (np.sum(masks, axis=0) > 1).sum() == 0, f"parts overlap on plate 2 (fill={fill})"
+            if fill:
+                assert report["added"] > 0, report
+
+        report = sa.arrange_3mf(src, dst, sa.Params(plate=1, spacing=1, step=90, res=0.5))
+        assert report["placed"] == 1, report
+        after = sa.Package(dst).items()
+        for b, a in zip(before[1:], after[1:]):  # instances on plate 2 stay there
+            assert np.allclose(b.transform, a.transform)
+
+
 if __name__ == "__main__":
+    test_instances_follow_their_position_not_a_stale_plate_list()
     test_rotated_prime_tower_matches_orca_corners()
     test_fill_takes_turns_between_models_on_the_pattern_path()
     test_non_millimetre_unit_is_rejected_before_writing()

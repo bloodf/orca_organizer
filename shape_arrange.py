@@ -7,7 +7,7 @@
 # type = "script"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Irregular and concave parts interlock to fit more on the plate, or fill the whole plate with copies. Just set the spacing."
 # author = "Heitor Ramon"
-# version = "0.9.4"
+# version = "0.9.5"
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Heitor Ramon
@@ -1225,6 +1225,28 @@ def plate_origin(plate: int, n_plates: int, bed_w: float, bed_h: float) -> np.nd
     return np.array([col * bed_w * (1 + PLATE_GAP), -row * bed_h * (1 + PLATE_GAP)])
 
 
+def _plate_of(item: Item, poly, n_plates: int) -> int | None:
+    """1-based plate an item sits on, by position, as Orca decides it; None if on no plate.
+
+    Orca (PartPlateList::reload_all_objects) gives each instance to the first plate whose area its
+    bounding box touches. The <model_instance> lists in model_settings.config are not used for this:
+    Orca keeps only one entry per object when loading and rebuilds the plates from positions, and
+    the lists it writes go stale for objects with several instances (wrong plate, instance ids
+    that no longer exist), so trusting them left instances on the plate unmoved and in the way.
+    """
+    if not item.parts:
+        return None
+    xy = np.concatenate([v[:, :2] for v, _ in item.parts])
+    lo, hi = xy.min(0), xy.max(0)
+    xs, ys = zip(*poly)
+    bed_lo, bed_hi = np.array([min(xs), min(ys)]), np.array([max(xs), max(ys)])
+    for plate in range(1, max(1, n_plates) + 1):
+        origin = plate_origin(plate, max(1, n_plates), *(bed_hi - bed_lo))
+        if (lo <= origin + bed_hi).all() and (hi >= origin + bed_lo).all():
+            return plate
+    return None
+
+
 def arrange_3mf(src: Path, dst: Path, p: Params = Params(), bed=None, progress=None) -> dict:
     """Arrange one plate of `src` and write the result to `dst`. Returns a report dict."""
     pkg, (new, copies), report = plan_3mf(src, p, bed, progress)
@@ -1260,14 +1282,7 @@ def _plan(pkg: Package, p: Params, bed, progress):
         if p.plate not in plates:
             raise PlanError(f"plate {p.plate} does not exist (project has {len(plates)})", "plate_gone",
                             plate=p.plate, plates=len(plates))
-        seen: dict[str, int] = {}
-        members = []
-        for it in items:  # instance_id = order among build items of the same object
-            k = seen.get(it.object_id, 0)
-            seen[it.object_id] = k + 1
-            if (it.object_id, k) in plates[p.plate]:
-                members.append(it)
-        items = members
+        items = [it for it in items if _plate_of(it, poly, len(plates)) == p.plate]
     movable = [it for it in items if it.printable and it.parts and len(_silhouette(it.parts))]
     if not movable:
         raise PlanError(f"plate {p.plate} has no printable objects", "plate_empty", plate=p.plate)

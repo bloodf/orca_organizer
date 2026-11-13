@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.5 (2026-11-13)
+
+- Fix parts overlapping on the plate when an object has several instances. The plate's parts were read from the plate list OrcaSlicer saves in the project, which goes stale once instances are added or removed: instances sitting on the plate could be left out, so they were neither arranged nor kept clear of, and instances on another plate could be pulled in. Arrange and Fill now take every part whose position is on the selected plate, the same way OrcaSlicer assigns parts to plates when it opens the result.
+
 ## 0.9.4 (2026-11-12)
 
 - Fix "Could not start: plugin.storage() must be called from a plugin callback" when clicking Arrange or Fill. OrcaSlicer 2.5 answers `plugin.storage()` only inside plugin callbacks, not from a panel or tab message; the folder is now read while loading (and when the tab or panel opens) and kept. The test host now refuses storage() outside callbacks.
