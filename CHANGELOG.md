@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.3 (2026-11-12)
+
+- Fix OrcaSlicer crashing on start with Organizer 0.9.0–0.9.2 installed. The Organizer tab called the host's base `on_load`/`on_unload`; in OrcaSlicer those are C++ virtuals that dispatch back to the plugin's own method, so the call recursed until the stack overflowed (SIGBUS). The tab no longer calls the base hooks, and the test host now behaves like the real one.
+
 ## 0.9.2 (2026-11-12)
 
 - Build tools only: shared Orca UI foundation 2.0.3 (Vite 8.3.8, @vitejs/plugin-vue 6.0.11). No change to arranging, filling or the interface.
