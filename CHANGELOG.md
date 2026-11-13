@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.9.4 (2026-11-12)
+
+- Fix "Could not start: plugin.storage() must be called from a plugin callback" when clicking Arrange or Fill. OrcaSlicer 2.5 answers `plugin.storage()` only inside plugin callbacks, not from a panel or tab message; the folder is now read while loading (and when the tab or panel opens) and kept. The test host now refuses storage() outside callbacks.
+
 ## 0.9.3 (2026-11-12)
 
 - Fix OrcaSlicer crashing on start with Organizer 0.9.0–0.9.2 installed. The Organizer tab called the host's base `on_load`/`on_unload`; in OrcaSlicer those are C++ virtuals that dispatch back to the plugin's own method, so the call recursed until the stack overflowed (SIGBUS). The tab no longer calls the base hooks, and the test host now behaves like the real one.
