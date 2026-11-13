@@ -7,7 +7,7 @@
 # type = "script"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Irregular and concave parts interlock to fit more on the plate, or fill the whole plate with copies. Just set the spacing."
 # author = "Heitor Ramon"
-# version = "0.9.2"
+# version = "0.9.3"
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Heitor Ramon
@@ -3172,14 +3172,6 @@ def _pages_base():
     return getattr(getattr(orca, "pages", None), "PagesPluginCapabilityBase", None)
 
 
-def _super_hook(obj, name: str):
-    """Run the base class hook if it has one. A base without it must not break load/unload."""
-    try:
-        getattr(super(type(obj), obj), name)()
-    except Exception:
-        pass
-
-
 PAGE_NAME = "Organizer"  # tab label; must be unique within the plugin and have no ';'
 
 if orca is not None:
@@ -3221,13 +3213,13 @@ if orca is not None:
                 _session.on_message(data)
 
             def on_load(self):
+                # Never call the base on_load/on_unload: in OrcaSlicer they are C++ virtuals that dispatch back to
+                # this override, so super().on_load() recurses until the stack overflows and Orca crashes on start.
                 _page_sink.bind(self)
-                _super_hook(self, "on_load")
 
             def on_unload(self):
                 _session.detach(_page_sink)
                 _page_sink.unbind()
-                _super_hook(self, "on_unload")
     else:
         OrganizerPage = None  # old host: the Script and its dock panel are the only entry
 

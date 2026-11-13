@@ -97,8 +97,18 @@ def install_stub(tmp: Path, project: Path, pages: bool = True, base_hooks: bool 
                 log["page_posts"].append((dict(data), threading.get_ident()))
 
         if base_hooks:
-            PagesBase.on_load = lambda self: log["hooks"].append("base on_load")
-            PagesBase.on_unload = lambda self: log["hooks"].append("base on_unload")
+            # Like OrcaSlicer's pybind11 base: on_load/on_unload are C++ virtuals, so calling the base from an
+            # override dispatches back to the override. The real host recurses until the stack overflows.
+            def virtual(name):
+                def hook(self):
+                    log["hooks"].append("base " + name)
+                    if len(log["hooks"]) > 20:
+                        raise AssertionError("base %s re-entered the override: infinite recursion" % name)
+                    getattr(type(self), name)(self)
+                return hook
+
+            PagesBase.on_load = virtual("on_load")
+            PagesBase.on_unload = virtual("on_unload")
         orca.pages = types.SimpleNamespace(PagesPluginCapabilityBase=PagesBase)
     sys.modules["orca"] = orca
     return log, pending, ui_thread
@@ -460,10 +470,9 @@ def test_pages_capability_registered_next_to_the_script():
         page = log["caps"][1]()
         assert page.get_name() == "Organizer" and ";" not in page.get_name()
         assert page.get_ui() == sa.PANEL_HTML and sa._page_sink in sa._session.sinks
-        page.on_load()
-        assert log["hooks"] == ["base on_load"]
+        page.on_load()  # must not call the virtual base hook: in Orca that recursed and crashed the app
         page.on_unload()
-        assert log["hooks"] == ["base on_load", "base on_unload"] and sa._page_sink not in sa._session.sinks
+        assert log["hooks"] == [] and sa._page_sink not in sa._session.sinks
 
 
 def test_old_hosts_keep_only_the_script():
