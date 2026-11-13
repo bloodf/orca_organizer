@@ -69,6 +69,13 @@ def install_stub(tmp: Path, project: Path, pages: bool = True, base_hooks: bool 
             log["exports"].append(Path(path))
             shutil.copy(log["project"], path)
 
+    def storage():
+        # Like OrcaSlicer 2.5: only answered inside a plugin callback (here: while registering), never from a
+        # panel or page message, where the real host raises this exact error.
+        if not log.get("in_callback"):
+            raise RuntimeError("plugin.storage() must be called from a plugin callback")
+        return str(tmp / "storage")
+
     pending = []
     orca = types.ModuleType("orca")
     orca.base = object
@@ -87,7 +94,7 @@ def install_stub(tmp: Path, project: Path, pages: bool = True, base_hooks: bool 
         model=lambda: types.SimpleNamespace(current_plate_index=log["plate_index"],  # 0-based
                                             objects=lambda: list(range(log["objects"]))),
         plater=lambda: Plater(),
-        plugin=types.SimpleNamespace(storage=lambda: str(tmp / "storage")),
+        plugin=types.SimpleNamespace(storage=storage),
         app_language=lambda: log["lang"],
         ui=types.SimpleNamespace(create_dock_panel=lambda **kw: Panel(**kw)),
     )
@@ -121,7 +128,9 @@ def load(tmp: Path, project: Path, **host):
 
     opened = []
     sa._open_in_orca = lambda p: (opened.append((p, threading.get_ident())), True)[1]
+    log["in_callback"] = True
     log["plugin"]().register_capabilities()
+    log["in_callback"] = False
     log["cap"] = log["caps"][0]  # the Script
     log["cap"]().execute()
     return sa, log, pending, opened, ui_thread

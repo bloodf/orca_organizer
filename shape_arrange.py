@@ -7,7 +7,7 @@
 # type = "script"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Irregular and concave parts interlock to fit more on the plate, or fill the whole plate with copies. Just set the spacing."
 # author = "Heitor Ramon"
-# version = "0.9.3"
+# version = "0.9.4"
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Heitor Ramon
@@ -3172,11 +3172,36 @@ def _pages_base():
     return getattr(getattr(orca, "pages", None), "PagesPluginCapabilityBase", None)
 
 
+_storage_dir = {"path": None}
+
+
+def _remember_storage():
+    """Read the plugin's storage folder while inside a plugin callback and keep it.
+
+    OrcaSlicer 2.5 only answers plugin.storage() inside its own plugin callbacks (load, execute, tab hooks);
+    from a panel message it raises "plugin.storage() must be called from a plugin callback".
+    """
+    try:
+        _storage_dir["path"] = orca.host.plugin.storage()
+    except Exception:
+        pass
+    return _storage_dir["path"]
+
+
+def _storage_path():
+    if _storage_dir["path"]:
+        return _storage_dir["path"]
+    path = _remember_storage()
+    if not path:
+        raise RuntimeError("the plugin's storage folder is not known yet; reopen the Organizer and try again")
+    return path
+
+
 PAGE_NAME = "Organizer"  # tab label; must be unique within the plugin and have no ';'
 
 if orca is not None:
     _panel = None
-    _session = _Session(lambda: orca.host.plugin.storage())
+    _session = _Session(_storage_path)
     _page_sink = _PageSink()
     _PageBase = _pages_base()
 
@@ -3186,6 +3211,7 @@ if orca is not None:
 
         def execute(self):
             global _panel
+            _remember_storage()
             if _panel is not None and _panel.is_open():
                 _panel.show()
             else:  # a new panel attaches to the same session, so a running job is not lost
@@ -3203,6 +3229,7 @@ if orca is not None:
                 return PAGE_NAME
 
             def get_ui(self):  # called when the tab is first shown
+                _remember_storage()
                 _page_sink.bind(self)
                 _session.attach(_page_sink)
                 return PANEL_HTML
@@ -3216,6 +3243,7 @@ if orca is not None:
                 # Never call the base on_load/on_unload: in OrcaSlicer they are C++ virtuals that dispatch back to
                 # this override, so super().on_load() recurses until the stack overflows and Orca crashes on start.
                 _page_sink.bind(self)
+                _remember_storage()
 
             def on_unload(self):
                 _session.detach(_page_sink)
@@ -3227,6 +3255,7 @@ if orca is not None:
     class ShapeArrangePlugin(orca.base):
         def register_capabilities(self):
             orca.request_permissions(threading=True)  # nesting runs off the UI thread
+            _remember_storage()
             orca.register_capability(ArrangeScript)
             if OrganizerPage is not None:
                 try:
