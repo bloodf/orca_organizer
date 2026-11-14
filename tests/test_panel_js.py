@@ -101,7 +101,8 @@ def test_embedded_page_is_offline_and_needs_no_unsafe_eval():
     html = sa.PANEL_HTML
     assert not re.search(r"<script[^>]*\ssrc=", html), "external script"
     assert not re.search(r"<link[^>]*\shref=", html), "external stylesheet or preload"
-    assert not re.search(r"@import|url\(\s*[\"']?(?!data:)", html), "external CSS resource"
+    # A bare "@import" is in PrimeVue 5's CSS sanitizer regex; only a real import names a url( or a quoted path.
+    assert not re.search(r"@import\s*(?:url\(|[\"'])|url\(\s*[\"']?(?!data:)", html), "external CSS resource"
     assert not re.search(r"<iframe|<object|<embed", html, re.I)
     assert not re.search(r"\beval\(|new Function|\bFunction\(", html), "needs unsafe-eval: templates must be compiled ahead of time"
     assert not re.search(r"\bfetch\(|XMLHttpRequest|WebSocket|sendBeacon|importScripts", html), "the page only talks to the host bridge"
