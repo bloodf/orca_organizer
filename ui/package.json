@@ -5,10 +5,10 @@
   "type": "module",
   "description": "Vue 3 + PrimeVue panel of the Organizer plugin. Built into one offline HTML file and embedded in ../shape_arrange.py.",
   "scripts": {
-    "typecheck": "vue-tsc --noEmit",
+    "typecheck": "node shared/scripts/vue-tsc.mjs --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "build": "vue-tsc --noEmit && vite build && node scripts/embed.mjs",
+    "build": "node shared/scripts/vue-tsc.mjs --noEmit && vite build && node scripts/embed.mjs",
     "check:embedded": "vite build && node scripts/embed.mjs --check",
     "check:shared": "node shared/scripts/check.mjs"
   },
@@ -18,10 +18,11 @@
     "vue": "3.5.45"
   },
   "devDependencies": {
+    "@typescript/typescript6": "6.0.2",
     "@vitejs/plugin-vue": "6.0.11",
     "@vitest/coverage-v8": "5.1.0",
     "jsdom": "31.0.1",
-    "typescript": "6.0.3",
+    "typescript": "7.0.2",
     "vite": "8.3.8",
     "vite-plugin-singlefile": "2.3.4",
     "vitest": "5.1.0",
