@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.0 (2026-11-13)
+
+- Interface moved to PrimeVue 5 with the shared Orca UI foundation 3.0.2 (Aura in its 4.x sizes, same palette and layout). No change to arranging or filling, and no visible change intended. PrimeVue 5 is under the PrimeUI Community License; the key ships in the shared foundation and is checked offline.
+- Needs a newer system WebView, because PrimeVue 5 colours use CSS `light-dark()`: macOS WebKit 17.5+ (Safari 17.5 / macOS 14.5), Windows WebView2, Linux WebKitGTK 2.44+.
+
 ## 0.9.5 (2026-11-13)
 
 - Fix parts overlapping on the plate when an object has several instances. The plate's parts were read from the plate list OrcaSlicer saves in the project, which goes stale once instances are added or removed: instances sitting on the plate could be left out, so they were neither arranged nor kept clear of, and instances on another plate could be pulled in. Arrange and Fill now take every part whose position is on the selected plate, the same way OrcaSlicer assigns parts to plates when it opens the result.
