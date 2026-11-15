@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { nextTick, onBeforeUnmount, onMounted, provide, watch, watchEffect } from 'vue';
+import { computed, nextTick, onBeforeUnmount, onMounted, provide, watch, watchEffect } from 'vue';
 import { usePrimeVue, type PrimeVueLocaleOptions } from 'primevue/config';
 import { primeVueOptions } from '../shared/src';
 import { organizerKey } from './useOrganizer';
 import type { Organizer } from './store';
 import ArrangeForm from './components/ArrangeForm.vue';
+import IdlePanel from './components/IdlePanel.vue';
 import JobProgress from './components/JobProgress.vue';
 import PanelHeader from './components/PanelHeader.vue';
 import PanelNotices from './components/PanelNotices.vue';
@@ -14,6 +15,9 @@ import StatusBlock from './components/StatusBlock.vue';
 const props = defineProps<{ organizer: Organizer }>();
 provide(organizerKey, props.organizer);
 const { s, lang, state, start, stop } = props.organizer;
+
+// The dock shows one thing at a time: the form, the running job or the result. A tab shows the form beside them.
+const view = computed(() => (state.busy ? 'running' : state.resultVisible && !state.formOpen ? 'result' : 'form'));
 
 const prime = usePrimeVue();
 const englishLocale = { ...prime.config.locale } as PrimeVueLocaleOptions;
@@ -45,19 +49,38 @@ onBeforeUnmount(stop);
 </script>
 
 <template>
-  <main class="panel">
-    <PanelHeader />
+  <PanelHeader />
+  <main class="oui-page panel">
     <PanelNotices />
-    <ArrangeForm />
-    <JobProgress />
-    <StatusBlock />
-    <ResultCard />
-    <p id="foot" class="oui-meta foot">{{ s.foot }}</p>
+    <div class="grid" :data-view="view" :data-result="state.resultVisible || undefined">
+      <ArrangeForm class="pane-form" />
+      <div class="pane-side">
+        <StatusBlock />
+        <JobProgress />
+        <ResultCard />
+        <IdlePanel />
+      </div>
+    </div>
   </main>
 </template>
 
 <style>
-.panel { display: grid; gap: 12px; max-width: 560px; padding: 12px; min-width: 0; }
+.panel { padding: var(--oui-s3); }
 .panel > * { min-width: 0; }
-.foot { margin: 0; overflow-wrap: anywhere; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--oui-s3); align-items: start; min-width: 0; }
+.pane-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--oui-s2); align-content: start; min-width: 0; }
+.pane-side:not(:has(> :not(.oui-sr, :empty))) { display: none; }
+/* Dock: an outcome is read before the form; a running job or a result takes the form's place. */
+@container oui-page (max-width: 620px) {
+  .grid:not([data-result]) > .pane-side, .grid[data-view='result'] > .pane-side { order: -1; }
+  .grid[data-view='running'] > .pane-form, .grid[data-view='result'] > .pane-form, .grid .idle { display: none; }
+  .pane-side:not(:has(> :not(.oui-sr, :empty, .idle))) { display: none; }
+}
+/* Tab: the form in its own card on the left, the job, the result or what to expect on the right. */
+@container oui-page (min-width: 621px) {
+  .grid { grid-template-columns: minmax(280px, 360px) minmax(0, 560px); gap: var(--oui-s4); }
+  .pane-form { padding: var(--oui-s4); border-radius: var(--oui-radius-lg); background: var(--oui-surface); box-shadow: inset 0 0 0 1px var(--oui-border), var(--oui-shadow-panel); }
+  .grid .result .row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--oui-s2); }
+  .grid .result .row > .p-button { white-space: nowrap; }
+}
 </style>

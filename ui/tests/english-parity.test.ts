@@ -15,7 +15,7 @@ describe('English parity with the plugin', () => {
     for (const f of fixtures.cases as Array<Record<string, any>>) {
       await panel.deliver({ sync: true, lang: 'en_US', job: 'p', busy: false, error: !!f.error, text: 'EN', msg: f.msg, path: f.path || null, stale: f.stale || '', stale_ref: f.stale_ref || null });
       const want = f.stale ? f.stale : f.text;
-      const got = f.stale ? panel.text('#stale') : panel.status();
+      const got = f.stale ? panel.text('#stale strong') : panel.status();
       expect(got, JSON.stringify(f.msg)).toBe(want);
     }
   });

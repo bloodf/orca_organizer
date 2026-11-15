@@ -1,5 +1,5 @@
 import { computed, reactive } from 'vue';
-import { pickLang, strings, type Lang } from './messages';
+import { numberFormat, pickLang, strings, type Lang } from './messages';
 import { MAX_COPIES, type Bridge, type Ctx, type HostMessage, type Prefs, type Rotation, type StaleRef } from './protocol';
 import { describe, jobRef, splitLines, translate, type StatusLine, type StatusSource, type StatusView } from './status';
 
@@ -9,6 +9,8 @@ const SILENCE_MS = 10_000;
 
 /** Element ids the panel moves focus to. Components render these ids. */
 export type FocusId = 'spacing' | 'go' | 'fill' | 'cancel' | 'open';
+
+const capital = (text: string) => text.charAt(0).toLocaleUpperCase() + text.slice(1);
 
 export interface OrganizerOptions {
   /** The browser's language; the host's language (from the plugin) wins once it is known. */
@@ -39,6 +41,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     cancelling: false,
     path: null as string | null,
     resultVisible: false,
+    formOpen: false, // the dock shows one thing at a time: true once the user went from a result back to the form
     pathNote: null as 'copied' | 'copyFail' | null,
     clipboard: false,
     spacing: 2 as number | null,
@@ -74,6 +77,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   });
   const goLabel = computed(() => (state.ctx && state.ctx.plate ? s.value.go({ plate: state.ctx.plate }) : s.value.goNone));
   const fillLabel = computed(() => (state.ctx && state.ctx.plate ? s.value.fill({ plate: state.ctx.plate }) : s.value.fillNone));
+  const ctxShort = computed(() => (state.ctx && state.ctx.plate ? s.value.ctxShort({ plate: state.ctx.plate, objects: state.ctx.objects }) : ''));
+  const projectName = computed(() => (state.ctx && state.ctx.plate ? state.ctx.name || s.value.untitledProject : ''));
   const staleText = computed(() => (state.staleRef ? s.value.stale({ ref: ref(state.staleRef) }) : state.stale));
 
   const statusView = computed<StatusView>(() => {
@@ -95,6 +100,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     return { lines: line(s.value.ready), error: false, progress: null };
   });
 
+  /** Nothing ran yet and there is something to arrange: the status is the one-line promise under the form. */
+  const ready = computed(() => state.status == null && !(state.ctx && state.ctx.objects === 0));
   const progress = computed(() => statusView.value.progress);
   const hasCount = computed(() => !!progress.value && (progress.value.n != null || progress.value.count != null));
   const percent = computed(() => {
@@ -102,6 +109,25 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     return p && p.n != null && p.n > 0 ? Math.round((p.i / p.n) * 100) : null;
   });
   const countText = computed(() => (progress.value && hasCount.value ? s.value.count(progress.value) : ''));
+
+  /** The running job as the job card shows it. The full sentence stays in the status region for screen readers. */
+  /** The app bar shows "Plate N · …" (see PanelHeader: offline, loading and a problem take its place). */
+  const barShowsPlate = (plate: number) => !!ctxShort.value && !state.offline && !loading.value && !ctxProblem.value && state.ctx?.plate === plate;
+  const jobView = computed(() => {
+    const src = state.status;
+    const m = src?.kind === 'job' ? src.msg : null;
+    const prefix = m && m.plate != null ? ref(m) + ': ' : '';
+    const first = statusView.value.lines[0]?.text ?? '';
+    const plate = m?.plate ?? state.ctx?.plate ?? null;
+    const p = progress.value;
+    return {
+      phase: capital(prefix && first.startsWith(prefix) ? first.slice(prefix.length) : first),
+      name: m?.stem || state.ctx?.name || s.value.untitledProject,
+      // The app bar already names the selected plate: repeat it only when the run is for another one.
+      detail: [plate != null && !barShowsPlate(plate) ? s.value.plateLabel({ plate }) : '', p ? (p.n != null ? p.subject : countText.value) : ''].filter(Boolean).join(' · '),
+      figure: p && p.n != null ? s.value.countShort({ i: p.i, n: p.n }) : p && p.count != null ? '+' + numberFormat(lang.value)(p.count) : '',
+    };
+  });
 
   const activeId = (): string => {
     const a = typeof document !== 'undefined' ? document.activeElement : null;
@@ -121,7 +147,9 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     state.busy = busy;
     if (!busy) state.cancelling = false;
     // Keep focus where the user can still act: Cancel while running, the result (or Arrange) afterwards.
-    if (busy && !was && (active === 'go' || active === 'fill')) requestFocus('cancel');
+    // The dock hides the form during a run: focus anywhere in it (spacing, Advanced, copies) goes to Cancel, not to the body.
+    const inForm = typeof document !== 'undefined' && !!document.activeElement?.closest('.pane-form');
+    if (busy && !was && (active === 'go' || active === 'fill' || inForm)) requestFocus('cancel');
     if (!busy && was && (active === 'cancel' || active === 'body')) requestFocus(state.resultVisible ? 'open' : 'go');
   }
 
@@ -165,7 +193,10 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     }
     if (m.path) {
       done = m.job ?? null;
-      if (state.path !== m.path) state.pathNote = null;
+      if (state.path !== m.path) {
+        state.pathNote = null;
+        state.formOpen = false;
+      }
       state.path = m.path;
       state.resultVisible = true;
     }
@@ -187,6 +218,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     state.status = { kind: 'starting' };
     state.path = null;
     state.resultVisible = false;
+    state.formOpen = false;
     state.cancelling = false;
     setBusy(true);
     const copies = action === 'fill' && state.copies != null ? { copies: state.copies } : {};
@@ -240,6 +272,12 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     }
   }
 
+  /** From a result back to the form (the dock hides the form while a result is shown). */
+  function again() {
+    state.formOpen = true;
+    requestFocus('spacing');
+  }
+
   function retry() {
     state.retrying = true;
     retryAt = now();
@@ -288,8 +326,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   bridge.onMessage(onMessage);
 
   return {
-    state, lang, s, t, loading, ctxText, ctxProblem, goLabel, fillLabel, staleText, statusView, progress, hasCount, percent, countText,
-    run, setSpacing, setRotation, setCopies, cancel, open, copyPath, retry, start, stop, onMessage,
+    state, lang, s, t, loading, ctxText, ctxProblem, goLabel, fillLabel, staleText, ctxShort, projectName, statusView, ready, progress, hasCount, percent, countText, jobView,
+    run, setSpacing, setRotation, setCopies, cancel, open, copyPath, again, retry, start, stop, onMessage,
   };
 }
 

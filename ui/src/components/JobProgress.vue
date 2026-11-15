@@ -1,30 +1,44 @@
 <script setup lang="ts">
 import Button from 'primevue/button';
-import ProgressBar from 'primevue/progressbar';
+import { ref, watchEffect } from 'vue';
+import { OuiIcon, OuiJob, OuiStatus } from '../../shared/src/components';
+import { x } from '../../shared/src/icons';
 import { useOrganizer } from '../useOrganizer';
 
-const { s, state, percent, hasCount, countText, cancel } = useOrganizer();
+const { s, state, percent, jobView, countText, cancel } = useOrganizer();
+const root = ref<HTMLElement | null>(null);
+// foundation-gap: OuiJob needs a progressText prop and a title on its detail line. Until then the bar gets its spoken
+// value here ("7 of 14 · part"), as the page had before, instead of only a percentage, and the detail line, cut to one
+// line, gets its full text as a tooltip.
+watchEffect(() => {
+  const detail = root.value?.querySelector('.oui-job-detail');
+  if (detail) detail.setAttribute('title', jobView.value.detail);
+  const bar = root.value?.querySelector('[role=progressbar]');
+  void percent.value; // the bar may be redrawn when it turns determinate
+  if (!bar) return;
+  if (countText.value) bar.setAttribute('aria-valuetext', countText.value);
+  else bar.removeAttribute('aria-valuetext');
+}, { flush: 'post' });
 </script>
 
 <template>
-  <section v-if="state.busy" class="job" :aria-label="s.barLabel">
-    <Button id="cancel" :label="state.cancelling ? s.cancelPending : s.cancel" variant="outlined" :aria-disabled="state.cancelling" :aria-busy="state.cancelling" fluid @click="cancel()" />
-    <ProgressBar
-      v-if="percent != null"
-      id="bar"
-      mode="determinate"
-      :value="percent"
-      :show-value="false"
-      :aria-label="s.barLabel"
-      :aria-valuetext="countText"
-    />
-    <ProgressBar v-else id="bar" mode="indeterminate" :aria-label="s.barLabel" />
-    <p v-if="hasCount" id="count" class="oui-meta oui-number">{{ countText }}</p>
+  <!-- The page's hero while a run is busy: what is being arranged, how far, and Cancel under it. -->
+  <section v-if="state.busy" id="job" ref="root" class="job" :aria-label="s.barLabel">
+    <OuiJob compact hero :name="jobView.name" :progress="percent" :progress-label="s.barLabel" :count="jobView.figure" :detail="jobView.detail">
+      <template #status><OuiStatus state="busy" :label="jobView.phase" /></template>
+      <template #actions>
+        <Button id="cancel" :label="state.cancelling ? s.cancelPending : s.cancel" severity="secondary" :aria-disabled="state.cancelling" :aria-busy="state.cancelling" fluid @click="cancel()">
+          <template #icon><OuiIcon :icon="x" :size="14" /></template>
+        </Button>
+      </template>
+    </OuiJob>
   </section>
 </template>
 
 <style scoped>
-.job { display: grid; gap: 8px; }
-.job p { margin: 0; overflow-wrap: anywhere; }
-#bar { height: 8px; }
+/* One line each: the project and the part being placed can be long. */
+.job :deep(.oui-job-detail) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.job :deep(.p-button) { white-space: normal; }
+/* foundation-gap: no card surface for an OuiJob outside an OuiPanel (the reference draws the same box locally). */
+.job { border-radius: var(--oui-radius-lg); background: var(--oui-surface); box-shadow: inset 0 0 0 1px var(--oui-border), var(--oui-shadow-panel); overflow: hidden; }
 </style>

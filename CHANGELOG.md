@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.12.0 (2026-11-15)
+
+- New look for the Organizer tab and the Script's panel, on the shared Orca UI foundation 4.0.1: a sky-blue bar with the new Organizer mark, the project, plate and object count, and icons on every action. Arranging and filling work as before.
+- The docked panel (about 280 x 360) shows one thing at a time: the form, the running job, or the result. **Arrange** and **Fill** both fit without scrolling, and during a run the progress and **Cancel** sit right under the bar instead of below the fold.
+- A run shows as a card with its phase, the project, the part being placed and "7 of 14" (or "+5" copies while filling), with **Cancel** under it.
+- The result says what happened first (green), warns about parts that did not fit (amber), and then shows the saved copy: the file name, **Open this copy in OrcaSlicer**, **Copy path**, the full path and the fine print of the run. **New arrangement** goes back to the form in the dock.
+- In a tab, the form sits in its own card on the left and the job or result on the right; before the first run, an illustration says what will appear there.
+- Spacing has the unit in the field and +/- buttons. Rotation and the copy limit stay under **Advanced**; what each control does is under **How it works** and in each control's tooltip.
+- Errors, "no answer from the plugin" and "the run below is for another plate" are banners with their own icon and colour.
+- New plugin icon with the Organizer mark.
+- The plugin file now carries the licence notices of the code and font bundled in its page (Vue, PrimeVue, Lucide icons, Manrope).
+
 ## 0.11.0 (2026-11-14)
 
 - New under **Advanced**: *Only 90° steps* rotation. Parts turn only by quarter turns, so parts that are square to the bed stay square to it.

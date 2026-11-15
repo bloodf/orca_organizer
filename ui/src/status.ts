@@ -1,7 +1,8 @@
 import { ENGLISH, strings, type Lang, type Num, numberFormat } from './messages';
 import type { Cause, JobMsg } from './protocol';
 
-export type LineKind = 'main' | 'cause' | 'next' | 'detail' | 'info';
+/** `warn`: parts that did not fit. `note`: the fine print of a finished run, shown under the saved copy. */
+export type LineKind = 'main' | 'cause' | 'next' | 'detail' | 'info' | 'warn' | 'note';
 
 export interface StatusLine {
   key: string;
@@ -104,25 +105,25 @@ export function describe(lang: Lang, ref: (m: JobMsg) => string, m: JobMsg): Des
       return { lines: [...split('main', 'main', t.startFailed({ why: why.why })), ...why.lines], progress: null };
     }
     case 'done': {
-      const out: string[] = [t.res.placed({ ref: r, placed: m.placed ?? 0 })];
+      const out: [LineKind, string][] = [['main', t.res.placed({ ref: r, placed: m.placed ?? 0 })]];
       if (m.added) {
         const per = Object.entries(m.by_object ?? {})
           .map(([name, count]) => name + ' ×' + num(count))
           .join(', ');
-        out.push(t.res.added({ added: m.added, per }));
-        if (m.limit) out.push(t.res.limit({ max: m.max ?? 0 }));
+        out.push(['info', t.res.added({ added: m.added, per })]);
+        if (m.limit) out.push(['info', t.res.limit({ max: m.max ?? 0 })]);
       }
-      if (m.tower) out.push(t.res.tower);
-      if (m.clearance != null) out.push(t.res.clearance({ clearance: m.clearance }));
-      if (m.keep) out.push(t.res.keep);
-      if (m.right) out.push(t.res.right);
-      if (m.unplaced && m.unplaced.length) out.push(t.res.unplaced({ names: m.unplaced.join(', ') }));
-      out.push(t.res.foot);
+      if (m.tower) out.push(['note', t.res.tower]);
+      if (m.clearance != null) out.push(['note', t.res.clearance({ clearance: m.clearance })]);
+      if (m.keep) out.push(['note', t.res.keep]);
+      if (m.right) out.push(['note', t.res.right]);
+      if (m.unplaced && m.unplaced.length) out.push(['warn', t.res.unplaced({ names: m.unplaced.join(', ') })]);
+      out.push(['note', t.res.foot]);
       if (m.open) {
         const open = t.open_[m.open];
-        out.push(typeof open === 'function' ? open({ detail: m.detail ?? '' }) : open);
+        out.push(['note', typeof open === 'function' ? open({ detail: m.detail ?? '' }) : open]);
       }
-      return { lines: out.map((text, index) => ({ key: `res-${index}`, kind: index === 0 ? 'main' : 'info', text })), progress: null };
+      return { lines: out.map(([kind, text], index) => ({ key: `res-${index}`, kind, text })), progress: null };
     }
   }
   return null;

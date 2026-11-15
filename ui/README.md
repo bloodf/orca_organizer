@@ -1,18 +1,19 @@
-# Organizer panel (Vue 3 + PrimeVue 4)
+# Organizer panel (Vue 3 + PrimeVue 5)
 
 The panel of the Organizer tab and of the dock opened by the *Shape-Aware Arrange* Script is one Vue 3 app:
-SFCs in `src/`, PrimeVue 4.5.5 controls, the shared Orca preset in `shared/`. Both entries load the same page.
+SFCs in `src/`, PrimeVue 5.0.5 controls, the shared Orca UI foundation in `shared/` (preset, components, icons, sky accent). Both entries load the same page.
 The plugin is still ONE `.py` file: the build embeds the compiled single-file HTML in `../shape_arrange.py`
 (`PANEL_HTML`, between the `# >>> PANEL_HTML` / `# <<< PANEL_HTML` markers). Nothing is read from sibling files
 at run time, nothing is downloaded, and the page needs no `unsafe-eval` (templates are compiled ahead of time).
 
 | Path | What |
 |---|---|
-| `src/App.vue`, `src/components/*.vue` | header, notices, form, job progress, status, result |
+| `src/App.vue`, `src/components/*.vue` | app bar, notices, form, job card, status banners, saved copy, first-run panel |
+| `src/assets/organizer-plate.webp` | the first-run illustration (copied from ui-foundation `assets/illustrations/`) |
 | `src/store.ts` | all reactive state, polling, focus requests; the plugin owns the job, the page only shows it |
 | `src/messages.ts`, `src/status.ts` | pt-BR / en strings, structured `msg` to text lines |
 | `src/protocol.ts`, `src/hostTheme.ts` | message types and the host bridge; light/dark detection |
-| `shared/` | vendored ui-foundation 2.0.3 (see `shared/manifest.json`). Do not edit; `npm run check:shared` |
+| `shared/` | vendored ui-foundation 4.0.1 (see `shared/manifest.json`). Do not edit; `npm run check:shared` |
 | `tests/` | vitest + jsdom component tests (`panel`, `messages`, `english-parity`, `theme`) |
 | `scripts/embed.mjs` | embeds `dist/index.html` into `shape_arrange.py` (`--check` for CI) |
 | `scripts/verify-browser.mjs` | production page under CSP in headless Chrome with a MOCK host bridge, screenshots |
@@ -39,5 +40,6 @@ embedded page so that releases need only Python.
 
 ## Third-party code in the embedded page
 
-Vue 3.5.45 (MIT), PrimeVue 4.5.5 (MIT), @primeuix/themes 1.2.5 (MIT). Licenses: `shared/licenses/`. Dev tools
+Vue 3.5.45 (MIT), PrimeVue 5.0.5 (PrimeUI Community License), @primeuix/themes 3.1.1 (MIT), Lucide icons (ISC), Manrope font (OFL-1.1). Licenses: `shared/licenses/`; `scripts/embed.mjs` copies them as comments into the `PANEL_HTML` block of
+`../shape_arrange.py`, so they ship with the plugin file (`check:embedded` fails if they are stale). Dev tools
 (Vite, vitest, jsdom, TypeScript) are not shipped.

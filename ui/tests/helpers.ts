@@ -15,7 +15,8 @@ export interface Panel {
   flush(): Promise<void>;
   q<T extends Element = HTMLElement>(selector: string): T | null;
   text(selector: string): string;
-  /** The status as the user reads it: one line per paragraph. */
+  /** The status as the plugin wrote it: every line the page shows (banner headlines, their lines, the fine print
+   *  under the saved copy, or the promise under the form), in the order of the message, one per line. */
   status(): string;
   isError(): boolean;
   typeSpacing(value: string): Promise<void>;
@@ -38,7 +39,7 @@ export async function mountPanel(options: OrganizerOptions & { language?: string
   };
   const organizer = createOrganizer(bridge, { navigatorLanguage: options.language ?? 'en-US', ...options });
   const app: VueApp = createApp(AppRoot, { organizer });
-  installOrcaUI(app, organizer.lang.value);
+  installOrcaUI(app, organizer.lang.value, 'sky');
   app.mount('#app');
   const flush = async () => {
     await nextTick();
@@ -46,7 +47,13 @@ export async function mountPanel(options: OrganizerOptions & { language?: string
   };
   await flush();
   const q = <T extends Element = HTMLElement>(selector: string) => document.querySelector<T>(selector);
-  const lines = (selector: string) => [...document.querySelectorAll(selector)].map((p) => p.textContent ?? '').join('\n');
+  // A banner carries its headline's index on its root; the headline is the <strong>, the lines inside have their own.
+  const lineText = (el: Element) => (el.classList.contains('oui-banner') ? el.querySelector('.oui-banner-text > strong') : el)?.textContent ?? '';
+  const lines = () => {
+    const alert = q('#status-error');
+    const found = alert ? [alert, ...alert.querySelectorAll('[data-i]')] : [...document.querySelectorAll('[data-i]')];
+    return found.sort((a, b) => Number((a as HTMLElement).dataset.i) - Number((b as HTMLElement).dataset.i)).map(lineText).join('\n');
+  };
   return {
     organizer,
     deliver: async (m) => {
@@ -58,8 +65,8 @@ export async function mountPanel(options: OrganizerOptions & { language?: string
     takeRequests: () => posts.splice(0).filter((m) => m.action !== 'poll'),
     flush,
     q,
-    text: (selector) => q(selector)?.textContent ?? '',
-    status: () => (q('#status-error') ? lines('#status-error p') : lines('#status p')),
+    text: (selector) => (q(selector)?.textContent ?? '').trim(),
+    status: lines,
     isError: () => !!q('#status-error'),
     typeSpacing: async (value) => {
       const input = q<HTMLInputElement>('#spacing')!;
