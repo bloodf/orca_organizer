@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.11.0 (2026-11-14)
 
 - New under **Advanced**: *Only 90° steps* rotation. Parts turn only by quarter turns, so parts that are square to the bed stay square to it.
 - New under **Advanced**: *Most copies to add when filling*. Fill stops after that many copies (an order of 12, for example) or when the plate is full; empty fills the plate as before. The CLI takes `--copies N`.
