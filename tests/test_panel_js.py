@@ -58,6 +58,8 @@ def english_fixtures() -> list[dict]:
          sa.Params(spacing=2)),
         ({"placed": 5, "added": 1, "added_by_object": {"block": 1}, "prime_tower": False, "spacing": 12.5,
           "unplaced": []}, sa.Params(spacing=2)),
+        ({"placed": 3, "added": 0, "added_by_object": {}, "prime_tower": False, "spacing": 2.0, "unplaced": []},
+         sa.Params(spacing=2, step=90)),
     ]
     for report, p in reports:
         for how in ("asked", "later", "failed", "none"):

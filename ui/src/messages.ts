@@ -23,8 +23,10 @@ function en(num: Num) {
     adv: 'Advanced',
     rotationLabel: 'Rotation',
     optAuto: 'Automatic (1° steps)',
+    optRight: 'Only 90° steps',
     optKeep: "Keep each part's orientation",
-    rotationHelp: 'Automatic tries every angle. Keeping the orientation only moves parts, which fits fewer of them.',
+    rotationHelp:
+      'Automatic tries every angle. Only 90° steps keeps edges square to the bed for parts that are square now. Keeping the orientation only moves parts. Both fit fewer parts.',
     cancel: 'Cancel',
     cancelPending: 'Cancelling…',
     saved: 'Saved copy',
@@ -76,7 +78,7 @@ function en(num: Num) {
       bad_number: ['Spacing must be a number, 0 mm or more.', 'Enter a value such as 2 and try again.'] as Cause,
       bad_step: ['The rotation step must be a number, 0° or more.', "Use a step such as 15, or 0 to keep each part's orientation, and try again."] as Cause,
       bad_res: ['The grid size must be a number above 0 mm.', 'Use a grid size such as 0.5 and try again.'] as Cause,
-      bad_rotation: ['Rotation must be automatic or keep orientation.', 'Choose one of the two options.'] as Cause,
+      bad_rotation: ['Rotation must be automatic, only 90° steps or keep orientation.', 'Choose one of the three options.'] as Cause,
       no_model: ['The project file has no 3D model.', 'Save the project again in OrcaSlicer and retry.'] as Cause,
       bad_unit: (a: { unit: string }): Cause => [
         'The project uses ' + a.unit + ' as its unit; only millimetres can be arranged.',
@@ -118,6 +120,7 @@ function en(num: Num) {
       clearance: (a: { clearance: number }) =>
         'Print sequence is By object: kept ' + num(a.clearance) + ' mm XY clearance between parts. Orca still checks height and print order.',
       keep: 'Rotation was off: every part kept its orientation.',
+      right: 'Rotation was limited to 90° steps.',
       unplaced: (a: { names: string }) => 'Did not fit (moved above the plate): ' + a.names,
       foot: 'Arranged from the project as it was when you clicked.',
     },
@@ -148,8 +151,10 @@ function ptBR(num: Num): Strings {
     adv: 'Avançado',
     rotationLabel: 'Rotação',
     optAuto: 'Automática (passos de 1°)',
+    optRight: 'Só passos de 90°',
     optKeep: 'Manter a orientação de cada peça',
-    rotationHelp: 'A automática testa todos os ângulos. Manter a orientação só move as peças e cabem menos.',
+    rotationHelp:
+      'A automática testa todos os ângulos. Só passos de 90° mantém as bordas no esquadro da mesa para as peças que já estão no esquadro. Manter a orientação só move as peças. Nos dois casos cabem menos peças.',
     cancel: 'Cancelar',
     cancelPending: 'Cancelando…',
     saved: 'Cópia salva',
@@ -201,7 +206,7 @@ function ptBR(num: Num): Strings {
       bad_number: ['O espaçamento deve ser um número de 0 mm ou mais.', 'Digite um valor como 2 e tente novamente.'],
       bad_step: ['O passo de rotação deve ser um número de 0° ou mais.', 'Use um passo como 15, ou 0 para manter a orientação de cada peça, e tente novamente.'],
       bad_res: ['O tamanho da grade deve ser um número acima de 0 mm.', 'Use um tamanho de grade como 0,5 e tente novamente.'],
-      bad_rotation: ['A rotação deve ser automática ou manter a orientação.', 'Escolha uma das duas opções.'],
+      bad_rotation: ['A rotação deve ser automática, só passos de 90° ou manter a orientação.', 'Escolha uma das três opções.'],
       no_model: ['O arquivo do projeto não tem modelo 3D.', 'Salve o projeto de novo no OrcaSlicer e tente novamente.'],
       bad_unit: (a: { unit: string }): Cause => [
         'O projeto usa ' + a.unit + ' como unidade; só é possível arrumar em milímetros.',
@@ -242,6 +247,7 @@ function ptBR(num: Num): Strings {
       clearance: (a) =>
         'A sequência de impressão é Por objeto: mantida folga XY de ' + num(a.clearance) + ' mm entre as peças. O Orca ainda confere altura e ordem de impressão.',
       keep: 'Rotação desligada: cada peça manteve a orientação.',
+      right: 'A rotação ficou limitada a passos de 90°.',
       unplaced: (a) => 'Não couberam (movidas para fora da placa): ' + a.names,
       foot: 'Arrumado a partir do projeto como estava quando você clicou.',
     },

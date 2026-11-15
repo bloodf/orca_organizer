@@ -214,7 +214,7 @@
     },
     "detail": "d"
    },
-   "text": "P, plate 2: could not arrange.\nRotation must be automatic or keep orientation.\nNext: Choose one of the two options.",
+   "text": "P, plate 2: could not arrange.\nRotation must be automatic, only 90° steps or keep orientation.\nNext: Choose one of the three options.",
    "error": true
   },
   {
@@ -235,7 +235,7 @@
     },
     "detail": "d"
    },
-   "text": "P, plate 2: could not fill.\nRotation must be automatic or keep orientation.\nNext: Choose one of the two options.",
+   "text": "P, plate 2: could not fill.\nRotation must be automatic, only 90° steps or keep orientation.\nNext: Choose one of the three options.",
    "error": true
   },
   {
@@ -253,7 +253,7 @@
     },
     "detail": "d"
    },
-   "text": "Could not start: Rotation must be automatic or keep orientation.\nNext: Choose one of the two options.",
+   "text": "Could not start: Rotation must be automatic, only 90° steps or keep orientation.\nNext: Choose one of the three options.",
    "error": true
   },
   {
@@ -955,6 +955,7 @@
     "tower": true,
     "clearance": 20.0,
     "keep": true,
+    "right": false,
     "unplaced": [
      "c",
      "d"
@@ -982,6 +983,7 @@
     "tower": true,
     "clearance": 20.0,
     "keep": true,
+    "right": false,
     "unplaced": [
      "c",
      "d"
@@ -1009,6 +1011,7 @@
     "tower": true,
     "clearance": 20.0,
     "keep": true,
+    "right": false,
     "unplaced": [
      "c",
      "d"
@@ -1036,6 +1039,7 @@
     "tower": true,
     "clearance": 20.0,
     "keep": true,
+    "right": false,
     "unplaced": [
      "c",
      "d"
@@ -1060,6 +1064,7 @@
     "tower": false,
     "clearance": null,
     "keep": false,
+    "right": false,
     "unplaced": [],
     "open": "asked",
     "detail": "no permission"
@@ -1081,6 +1086,7 @@
     "tower": false,
     "clearance": null,
     "keep": false,
+    "right": false,
     "unplaced": [],
     "open": "later",
     "detail": "no permission"
@@ -1102,6 +1108,7 @@
     "tower": false,
     "clearance": null,
     "keep": false,
+    "right": false,
     "unplaced": [],
     "open": "failed",
     "detail": "no permission"
@@ -1123,6 +1130,7 @@
     "tower": false,
     "clearance": null,
     "keep": false,
+    "right": false,
     "unplaced": [],
     "open": "none",
     "detail": "no permission"
@@ -1146,6 +1154,7 @@
     "tower": false,
     "clearance": 12.5,
     "keep": false,
+    "right": false,
     "unplaced": [],
     "open": "asked",
     "detail": "no permission"
@@ -1169,6 +1178,7 @@
     "tower": false,
     "clearance": 12.5,
     "keep": false,
+    "right": false,
     "unplaced": [],
     "open": "later",
     "detail": "no permission"
@@ -1192,6 +1202,7 @@
     "tower": false,
     "clearance": 12.5,
     "keep": false,
+    "right": false,
     "unplaced": [],
     "open": "failed",
     "detail": "no permission"
@@ -1215,11 +1226,100 @@
     "tower": false,
     "clearance": 12.5,
     "keep": false,
+    "right": false,
     "unplaced": [],
     "open": "none",
     "detail": "no permission"
    },
    "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 3,
+    "added": 0,
+    "by_object": {},
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "right": true,
+    "unplaced": [],
+    "open": "asked",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 3 objects.\nRotation was limited to 90° steps.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 3,
+    "added": 0,
+    "by_object": {},
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "right": true,
+    "unplaced": [],
+    "open": "later",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 3 objects.\nRotation was limited to 90° steps.\nArranged from the project as it was when you clicked.\nFinished while the panel was closed. Use Open this copy in OrcaSlicer to load it.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 3,
+    "added": 0,
+    "by_object": {},
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "right": true,
+    "unplaced": [],
+    "open": "failed",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 3 objects.\nRotation was limited to 90° steps.\nArranged from the project as it was when you clicked.\nCould not ask OrcaSlicer to open it (no permission). Use Open this copy in OrcaSlicer or open the file by hand.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 3,
+    "added": 0,
+    "by_object": {},
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "right": true,
+    "unplaced": [],
+    "open": "none",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 3 objects.\nRotation was limited to 90° steps.\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
    "path": "/s/P-arranged.3mf"
   }
  ]

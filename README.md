@@ -131,8 +131,10 @@ settings and other plates are kept.
 The spacing is the gap kept between parts' top-down outlines. It is never
 undercut; because positions sit on a 0.5 mm grid, the real gap is typically
 about 1 mm larger, up to about 2 mm along slanted edges. Under
-**Advanced**, *Keep each part's orientation* turns rotation off: parts only
-move, which fits fewer of them.
+**Advanced**, *Only 90° steps* turns parts only by quarter turns, so parts that
+are square to the bed stay square to it (each part may also keep its current
+angle), and *Keep each part's orientation* turns rotation off: parts only
+move. Both fit fewer parts than automatic rotation.
 
 Each run is saved as `<project>-arranged-<date>-<time>-<id>.3mf` in the
 plugin's storage folder, so earlier results stay. The plugin does not delete

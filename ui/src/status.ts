@@ -115,6 +115,7 @@ export function describe(lang: Lang, ref: (m: JobMsg) => string, m: JobMsg): Des
       if (m.tower) out.push(t.res.tower);
       if (m.clearance != null) out.push(t.res.clearance({ clearance: m.clearance }));
       if (m.keep) out.push(t.res.keep);
+      if (m.right) out.push(t.res.right);
       if (m.unplaced && m.unplaced.length) out.push(t.res.unplaced({ names: m.unplaced.join(', ') }));
       out.push(t.res.foot);
       if (m.open) {

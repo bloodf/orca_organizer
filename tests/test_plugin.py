@@ -8,6 +8,7 @@ Every wait has a deadline, so a broken finish fails the test instead of hanging 
 """
 
 import hashlib
+import math
 import os
 import shutil
 import sys
@@ -707,6 +708,27 @@ def test_keep_orientation_option():
         drive_page(page, log, lambda: sa._session.job.state == "done", ui)
 
 
+def test_right_angle_rotation_option():
+    """'right' turns parts only in 90 degree steps: each part ends at its own angle or square to the bed."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)  # combs on plate 2 sit at 30 and -10 degrees
+        sa, log, pending, opened, ui = load(tmp, project)
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "arrange", "spacing": 1, "rotation": "right"})
+        job = sa._session.job
+        assert job.p.step == 90 and job.p.res == sa.AUTO["res"] and job.p.refine
+        drive_page(page, log, lambda: job.state == "done", ui)
+        assert "Rotation was limited to 90° steps." in job.summary, job.summary
+        assert job.done_msg["right"] and not job.done_msg["keep"]
+        before = {it.index: sa._z_angle(it.transform) for it in sa.Package(project).items()}
+        for it in sa.Package(job.path).items()[1:]:
+            a = sa._z_angle(it.transform)
+            assert min(abs(math.remainder(a, 90)), abs(math.remainder(a - before[it.index], 360))) < 1e-6, (it.name, a)
+
+
 def test_failed_run_is_flagged_as_error_for_the_page():
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d)
@@ -928,6 +950,7 @@ if __name__ == "__main__":
     test_reloaded_tab_recovers_state_and_unload_stops_posts()
     test_context_reports_stale_runs_and_empty_projects()
     test_keep_orientation_option()
+    test_right_angle_rotation_option()
     test_failed_run_is_flagged_as_error_for_the_page()
     test_old_failed_snapshots_are_pruned_but_never_a_running_job()
     test_unexpected_failure_keeps_the_raw_error_as_details()

@@ -51,6 +51,7 @@ export interface JobMsg {
   tower?: boolean;
   clearance?: number | null;
   keep?: boolean;
+  right?: boolean;
   unplaced?: string[];
   open?: 'asked' | 'later' | 'failed' | 'none';
 }
@@ -80,7 +81,7 @@ export interface HostMessage {
   relay?: string;
 }
 
-export type Rotation = 'auto' | 'keep';
+export type Rotation = 'auto' | 'right' | 'keep';
 
 export type OutMessage =
   | { action: 'hello' }

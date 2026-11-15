@@ -16,6 +16,7 @@ const { s, lang, state, goLabel, fillLabel, run, setSpacing } = useOrganizer();
 const locale = computed(() => (lang.value === 'pt-BR' ? 'pt-BR' : 'en-US'));
 const rotations = computed<{ value: Rotation; label: string }[]>(() => [
   { value: 'auto', label: s.value.optAuto },
+  { value: 'right', label: s.value.optRight },
   { value: 'keep', label: s.value.optKeep },
 ]);
 // PrimeVue puts the id on the real input; aria-describedby has to be added there.
