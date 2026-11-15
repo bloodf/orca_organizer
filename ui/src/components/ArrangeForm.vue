@@ -8,10 +8,10 @@ import InputNumber from 'primevue/inputnumber';
 import Message from 'primevue/message';
 import RadioButton from 'primevue/radiobutton';
 import { computed } from 'vue';
-import type { Rotation } from '../protocol';
+import { MAX_COPIES, type Rotation } from '../protocol';
 import { useOrganizer } from '../useOrganizer';
 
-const { s, lang, state, goLabel, fillLabel, run, setSpacing } = useOrganizer();
+const { s, lang, state, goLabel, fillLabel, run, setSpacing, setCopies } = useOrganizer();
 
 const locale = computed(() => (lang.value === 'pt-BR' ? 'pt-BR' : 'en-US'));
 const rotations = computed<{ value: Rotation; label: string }[]>(() => [
@@ -70,6 +70,22 @@ const spacingPt = computed(() => ({
             </div>
             <p id="rotation-help" class="oui-meta">{{ s.rotationHelp }}</p>
           </fieldset>
+          <div class="oui-field copies">
+            <label for="copies">{{ s.copiesLabel }}</label>
+            <InputNumber
+              input-id="copies"
+              :model-value="state.copies"
+              :min="1"
+              :max="MAX_COPIES"
+              :max-fraction-digits="0"
+              :use-grouping="false"
+              :disabled="state.busy"
+              :pt="{ pcInputText: { root: { 'aria-describedby': 'copies-help' } } }"
+              fluid
+              @update:model-value="setCopies"
+            />
+            <p id="copies-help" class="oui-meta">{{ s.copiesHelp }}</p>
+          </div>
         </AccordionContent>
       </AccordionPanel>
     </Accordion>
@@ -84,7 +100,8 @@ const spacingPt = computed(() => ({
 .action { display: grid; gap: 6px; align-content: start; min-width: 0; }
 .rotation { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: 8px; }
 .rotation legend { padding: 0; font-weight: 600; margin-bottom: 8px; overflow-wrap: anywhere; }
-.rotation p { margin: 0; overflow-wrap: anywhere; }
+.rotation p, .copies p { margin: 0; overflow-wrap: anywhere; }
+.copies { margin-top: 12px; }
 .choice { display: flex; align-items: flex-start; gap: 8px; }
 .choice label { overflow-wrap: anywhere; }
 .advanced :deep(.p-accordionheader) { padding-inline: 0; }

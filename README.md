@@ -122,7 +122,9 @@ settings and other plates are kept.
    fits. The turns also apply when copies of one object are tiled in a
    repeating pattern. Smaller objects keep filling the gaps once bigger ones
    stop fitting. It adds at most 300 copies per run, and the panel lists how
-   many copies of each object were added.
+   many copies of each object were added. To add a set number, for example
+   12 for an order, enter it in *Most copies to add when filling* under
+   **Advanced**; empty fills the plate.
 4. Allow the launch prompt the first time; this is how the plugin opens the
    arranged copy. The panel shows how many parts were placed, lists any
    that did not fit (moved into a row above the plate) and always shows
@@ -196,7 +198,7 @@ uv run --python 3.12 --with numpy --with pillow python shape_arrange.py \
     in.3mf out.3mf --plate 1 --spacing 2 --auto --preview plate.png
 ```
 
-Add `--fill` to fill the plate with copies.
+Add `--fill` to fill the plate with copies, and `--copies N` to add at most N of them.
 
 `--auto` uses the plugin's settings: 1° steps on a 0.5 mm grid, and one
 retry on a 0.25 mm grid with 15° steps if parts are left over. Use `--step`

@@ -795,6 +795,30 @@ def test_bad_rotation_step_and_grid_have_their_own_cause():
             raise AssertionError(f"{params} was accepted")
 
 
+def test_fill_stops_at_the_requested_number_of_copies():
+    """Fill adds at most `copies` copies, on the pattern path (identical parts) and the greedy path."""
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        make_project(src)  # plate 1: one 20 mm block, room for 5 more
+        for copies, added in ((3, 3), (1, 1), (sa.MAX_COPIES, 5)):
+            report = sa.arrange_3mf(src, dst, sa.Params(plate=1, spacing=2, step=90, fill=True, copies=copies))
+            assert report["added"] == added, (copies, report)
+            assert len(sa.Package(dst).items()) == 4 + added
+            msg = sa.result_msg(report, sa.Params(plate=1, spacing=2, fill=True, copies=copies))
+            assert msg["max"] == copies and msg["limit"] == (added == copies), msg
+        simple_project(src, [box(0, 0, 10, 10), box(0, 0, 6, 6)], [(0, tf(0, 5, 5)), (1, tf(0, 30, 5))],
+                       {"printable_area": ["0x0", "80x0", "80x80", "0x80"]})
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=2, step=90, fill=True, copies=7))
+        assert report["added"] == 7 and sum(report["added_by_object"].values()) == 7, report
+    for bad in (0, sa.MAX_COPIES + 1, 2.5, True, "3"):
+        try:
+            sa.check_params(sa.Params(fill=True, copies=bad))
+        except sa.PlanError as e:
+            assert e.code == "bad_copies" and e.args_ == {"max": sa.MAX_COPIES}, (bad, e.code, e.args_)
+        else:
+            raise AssertionError(f"copies={bad!r} was accepted")
+
+
 def xy_boxes(path: Path):
     out = []
     for it in sa.Package(path).items():
@@ -879,6 +903,7 @@ if __name__ == "__main__":
     test_by_object_clearance_is_kept_between_convex_hulls()
     test_parts_that_do_not_fit_are_parked_clear_of_parts_already_parked()
     test_bad_rotation_step_and_grid_have_their_own_cause()
+    test_fill_stops_at_the_requested_number_of_copies()
     test_spacing_limit_names_the_extruder_clearance_when_it_set_the_spacing()
     test_instances_follow_their_position_not_a_stale_plate_list()
     test_rotated_prime_tower_matches_orca_corners()

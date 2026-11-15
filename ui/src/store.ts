@@ -43,6 +43,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     clipboard: false,
     spacing: 2 as number | null,
     rotation: 'auto' as Rotation,
+    copies: null as number | null, // Fill's copy limit; empty: as many as fit
     spacingInvalid: false,
     validation: false, // a local input error: shown over whatever the plugin says, until the input changes
     focus: null as { id: FocusId; seq: number } | null,
@@ -177,13 +178,18 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     state.resultVisible = false;
     state.cancelling = false;
     setBusy(true);
-    bridge.postMessage({ action, spacing: v, rotation: state.rotation });
+    const copies = action === 'fill' && state.copies != null ? { copies: state.copies } : {};
+    bridge.postMessage({ action, spacing: v, rotation: state.rotation, ...copies });
   }
 
   function setSpacing(value: number | null) {
     state.spacing = value;
     state.spacingInvalid = false;
     state.validation = false;
+  }
+
+  function setCopies(value: number | null) {
+    state.copies = value;
   }
 
   function cancel() {
@@ -265,7 +271,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
 
   return {
     state, lang, s, t, loading, ctxText, ctxProblem, goLabel, fillLabel, staleText, statusView, progress, hasCount, percent, countText,
-    run, setSpacing, cancel, open, copyPath, retry, start, stop, onMessage,
+    run, setSpacing, setCopies, cancel, open, copyPath, retry, start, stop, onMessage,
   };
 }
 

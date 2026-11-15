@@ -1,5 +1,6 @@
 {
  "error_codes": [
+  "bad_copies",
   "bad_number",
   "bad_res",
   "bad_rotation",
@@ -30,7 +31,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -51,7 +53,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -69,7 +72,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -90,7 +94,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -111,7 +116,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -129,7 +135,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -150,7 +157,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -171,7 +179,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -189,11 +198,75 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
    "text": "Could not start: The grid size must be a number above 0 mm.\nNext: Use a grid size such as 0.5 and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "bad_copies",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65,
+     "max": 300
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nThe number of copies must be a whole number from 1 to 300.\nNext: Enter a number of copies such as 10, or leave it empty to fill the plate, and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "bad_copies",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65,
+     "max": 300
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nThe number of copies must be a whole number from 1 to 300.\nNext: Enter a number of copies such as 10, or leave it empty to fill the plate, and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "bad_copies",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65,
+     "max": 300
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: The number of copies must be a whole number from 1 to 300.\nNext: Enter a number of copies such as 10, or leave it empty to fill the plate, and try again.",
    "error": true
   },
   {
@@ -210,7 +283,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -231,7 +305,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -249,7 +324,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -270,7 +346,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -291,7 +368,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -309,7 +387,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -330,7 +409,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -351,7 +431,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -369,7 +450,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -390,7 +472,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -411,7 +494,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -429,7 +513,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -450,7 +535,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -471,7 +557,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -489,7 +576,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -510,7 +598,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -531,7 +620,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -549,7 +639,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -570,7 +661,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -591,7 +683,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -609,7 +702,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -630,7 +724,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -651,7 +746,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -669,7 +765,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -690,7 +787,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -711,7 +809,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -729,7 +828,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -750,7 +850,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -771,7 +872,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -789,7 +891,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -810,7 +913,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -831,7 +935,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -849,7 +954,8 @@
      "res": 0.5,
      "spacing": 300,
      "limit": 37.5,
-     "clearance": 65
+     "clearance": 65,
+     "max": 300
     },
     "detail": "d"
    },
@@ -1320,6 +1426,102 @@
     "detail": "no permission"
    },
    "text": "P, plate 2: placed 3 objects.\nRotation was limited to 90° steps.\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 1,
+    "added": 12,
+    "by_object": {
+     "block": 12
+    },
+    "limit": true,
+    "max": 12,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "right": false,
+    "unplaced": [],
+    "open": "asked",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 1,
+    "added": 12,
+    "by_object": {
+     "block": 12
+    },
+    "limit": true,
+    "max": 12,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "right": false,
+    "unplaced": [],
+    "open": "later",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nArranged from the project as it was when you clicked.\nFinished while the panel was closed. Use Open this copy in OrcaSlicer to load it.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 1,
+    "added": 12,
+    "by_object": {
+     "block": 12
+    },
+    "limit": true,
+    "max": 12,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "right": false,
+    "unplaced": [],
+    "open": "failed",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nArranged from the project as it was when you clicked.\nCould not ask OrcaSlicer to open it (no permission). Use Open this copy in OrcaSlicer or open the file by hand.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 1,
+    "added": 12,
+    "by_object": {
+     "block": 12
+    },
+    "limit": true,
+    "max": 12,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "right": false,
+    "unplaced": [],
+    "open": "none",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
    "path": "/s/P-arranged.3mf"
   }
  ]

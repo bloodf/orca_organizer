@@ -217,6 +217,28 @@ def test_fill_button_adds_copies():
         pkg.close()
 
 
+def test_fill_takes_a_copy_limit_from_the_page():
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa, log, pending, opened, ui = load(tmp, project)
+        sa._current_plate = lambda: 1
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "fill", "spacing": 2, "copies": 0})
+        assert sa._session.job is None and log["page_posts"][-1][0]["msg"]["cause"] == {"code": "bad_copies", "max": 300}
+        page.on_message({"action": "fill", "spacing": 2, "copies": 2})
+        job = sa._session.job
+        assert job.p.copies == 2
+        drive_page(page, log, lambda: job.state == "done", ui)
+        assert job.done_msg["added"] == 2 and job.done_msg["limit"] and job.done_msg["max"] == 2, job.done_msg
+        assert "Stopped at the 2-copy limit." in job.summary, job.summary
+        page.on_message({"action": "fill", "spacing": 2})  # no limit sent: as many as fit, up to MAX_COPIES
+        assert sa._session.job.p.copies == sa.MAX_COPIES
+        drive_page(page, log, lambda: sa._session.job.state == "done", ui)
+
+
 def test_closed_panel_keeps_the_job_and_reopening_recovers_the_result():
     """C2: closing the panel loses the relay; the reopened panel's hello saves the result (no surprise
     launch), shows its path and can open it. finish is tied to the job id and idempotent."""
@@ -880,7 +902,7 @@ def test_every_user_reachable_error_has_cause_and_next_step():
         assert codes == set(sa.ERRORS_EN), (codes ^ set(sa.ERRORS_EN))
         for code in codes:
             why, nxt = sa.error_en({"code": code, "plate": 3, "plates": 1, "unit": "inch", "res": 0.5,
-                                      "spacing": 300, "limit": 37.5, "clearance": 65})
+                                      "spacing": 300, "limit": 37.5, "clearance": 65, "max": 300})
             assert why.endswith(".") and nxt.endswith(".") and "{" not in why + nxt, (code, why, nxt)
         assert sa.error_en({"code": "plate_gone", "plate": 3, "plates": 1})[0].endswith("the project has 1 plate.")
         assert isinstance(sa.PlanError("x", "plate_empty", plate=1), ValueError)  # old callers still catch ValueError
@@ -931,6 +953,7 @@ def test_start_error_is_explained_for_the_page():
 if __name__ == "__main__":
     test_arrange_runs_off_ui_thread_and_finishes_on_it()
     test_fill_button_adds_copies()
+    test_fill_takes_a_copy_limit_from_the_page()
     test_closed_panel_keeps_the_job_and_reopening_recovers_the_result()
     test_one_job_at_a_time_with_its_own_files_and_earlier_results_kept()
     test_cancel_while_running_writes_and_opens_nothing()

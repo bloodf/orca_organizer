@@ -17,6 +17,7 @@ export interface Cause {
   spacing?: number;
   limit?: number;
   clearance?: number;
+  max?: number;
 }
 
 export type MsgCode =
@@ -81,12 +82,15 @@ export interface HostMessage {
   relay?: string;
 }
 
+/** Most copies one Fill adds (shape_arrange.py MAX_COPIES). */
+export const MAX_COPIES = 300;
+
 export type Rotation = 'auto' | 'right' | 'keep';
 
 export type OutMessage =
   | { action: 'hello' }
   | { action: 'poll' }
-  | { action: 'arrange' | 'fill'; spacing: number; rotation: Rotation }
+  | { action: 'arrange' | 'fill'; spacing: number; rotation: Rotation; copies?: number }
   | { action: 'cancel' | 'open' | 'finish'; job: string | null };
 
 /** The bridge the host injects into the page. */

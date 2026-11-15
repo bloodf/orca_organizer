@@ -495,6 +495,31 @@ describe('structure and accessibility', () => {
     expect(panel.status()).toContain('Rotation was limited to 90° steps.');
   });
 
+  it('sends a copy limit with Fill only, and none when the field is empty', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX }));
+    panel.q('#adv')!.click();
+    await panel.flush();
+    expect(document.querySelector('label[for=copies]')!.textContent).toBe('Most copies to add when filling');
+    expect(panel.q('#copies')!.getAttribute('aria-describedby')).toBe('copies-help');
+    expect(panel.q<HTMLInputElement>('#copies')!.value).toBe('');
+    panel.take();
+    panel.q('#fill')!.click();
+    await panel.flush();
+    expect(panel.takeRequests()).toEqual([{ action: 'fill', spacing: 2, rotation: 'auto' }]);
+    await panel.deliver(sync({ busy: false }));
+    panel.organizer.setCopies(12);
+    await panel.flush();
+    panel.q('#go')!.click();
+    await panel.flush();
+    expect(panel.takeRequests()).toEqual([{ action: 'arrange', spacing: 2, rotation: 'auto' }]);
+    await panel.deliver(sync({ busy: false }));
+    panel.q('#fill')!.click();
+    await panel.flush();
+    expect(panel.takeRequests()).toEqual([{ action: 'fill', spacing: 2, rotation: 'auto', copies: 12 }]);
+    expect(panel.q<HTMLInputElement>('#copies')!.disabled).toBe(true);
+  });
+
   it('renders no raw HTML from messages (project and path names are text)', async () => {
     panel = await mountPanel();
     await panel.deliver(sync({ ctx: { plate: 1, objects: 1, name: '<img src=x onerror=alert(1)>', problem: null } }));
