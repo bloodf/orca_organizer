@@ -23,8 +23,12 @@ function en(num: Num) {
     adv: 'Advanced',
     rotationLabel: 'Rotation',
     optAuto: 'Automatic (1° steps)',
+    optRight: 'Only 90° steps',
+    copiesLabel: 'Most copies to add when filling',
+    copiesHelp: 'Fill stops after this many copies, or sooner when the plate is full. Leave it empty to fill the plate (up to 300).',
     optKeep: "Keep each part's orientation",
-    rotationHelp: 'Automatic tries every angle. Keeping the orientation only moves parts, which fits fewer of them.',
+    rotationHelp:
+      'Automatic tries every angle. Only 90° steps keeps edges square to the bed for parts that are square now. Keeping the orientation only moves parts. Both fit fewer parts.',
     cancel: 'Cancel',
     cancelPending: 'Cancelling…',
     saved: 'Saved copy',
@@ -74,7 +78,13 @@ function en(num: Num) {
     details: 'Details: ',
     err: {
       bad_number: ['Spacing must be a number, 0 mm or more.', 'Enter a value such as 2 and try again.'] as Cause,
-      bad_rotation: ['Rotation must be automatic or keep orientation.', 'Choose one of the two options.'] as Cause,
+      bad_step: ['The rotation step must be a number, 0° or more.', "Use a step such as 15, or 0 to keep each part's orientation, and try again."] as Cause,
+      bad_res: ['The grid size must be a number above 0 mm.', 'Use a grid size such as 0.5 and try again.'] as Cause,
+      bad_copies: (a: { max: number }): Cause => [
+        'The number of copies must be a whole number from 1 to ' + num(a.max) + '.',
+        'Enter a number of copies such as 10, or leave it empty to fill the plate, and try again.',
+      ],
+      bad_rotation: ['Rotation must be automatic, only 90° steps or keep orientation.', 'Choose one of the three options.'] as Cause,
       no_model: ['The project file has no 3D model.', 'Save the project again in OrcaSlicer and retry.'] as Cause,
       bad_unit: (a: { unit: string }): Cause => [
         'The project uses ' + a.unit + ' as its unit; only millimetres can be arranged.',
@@ -95,6 +105,14 @@ function en(num: Num) {
         'The bed is smaller than the ' + num(a.res) + ' mm grid used to place parts.',
         "Check the printer's bed shape in OrcaSlicer.",
       ],
+      spacing_large: (a: { spacing: number; limit: number }): Cause => [
+        'A spacing of ' + num(a.spacing) + ' mm leaves no room on this bed.',
+        'Enter a spacing below ' + num(a.limit) + ' mm and try again.',
+      ],
+      clearance_large: (a: { clearance: number; limit: number }): Cause => [
+        "The plate prints by object, and the printer's extruder clearance radius of " + num(a.clearance) + ' mm leaves no room on this bed.',
+        'Set the extruder clearance radius below ' + num(a.limit) + ' mm in the printer settings, or print layer by layer, and try again.',
+      ],
       unexpected: ['Something unexpected went wrong.', 'Try again. If it keeps happening, the details below help to diagnose it.'] as Cause,
     } as Record<string, Cause | ((a: never) => Cause)>,
     saveFailed: (a: { ref: string; detail: string }) =>
@@ -108,6 +126,7 @@ function en(num: Num) {
       clearance: (a: { clearance: number }) =>
         'Print sequence is By object: kept ' + num(a.clearance) + ' mm XY clearance between parts. Orca still checks height and print order.',
       keep: 'Rotation was off: every part kept its orientation.',
+      right: 'Rotation was limited to 90° steps.',
       unplaced: (a: { names: string }) => 'Did not fit (moved above the plate): ' + a.names,
       foot: 'Arranged from the project as it was when you clicked.',
     },
@@ -138,8 +157,12 @@ function ptBR(num: Num): Strings {
     adv: 'Avançado',
     rotationLabel: 'Rotação',
     optAuto: 'Automática (passos de 1°)',
+    optRight: 'Só passos de 90°',
+    copiesLabel: 'Máximo de cópias ao preencher',
+    copiesHelp: 'O preenchimento para depois deste número de cópias, ou antes, se a placa encher. Deixe vazio para preencher a placa (até 300).',
     optKeep: 'Manter a orientação de cada peça',
-    rotationHelp: 'A automática testa todos os ângulos. Manter a orientação só move as peças e cabem menos.',
+    rotationHelp:
+      'A automática testa todos os ângulos. Só passos de 90° mantém as bordas no esquadro da mesa para as peças que já estão no esquadro. Manter a orientação só move as peças. Nos dois casos cabem menos peças.',
     cancel: 'Cancelar',
     cancelPending: 'Cancelando…',
     saved: 'Cópia salva',
@@ -189,7 +212,13 @@ function ptBR(num: Num): Strings {
     details: 'Detalhe técnico: ',
     err: {
       bad_number: ['O espaçamento deve ser um número de 0 mm ou mais.', 'Digite um valor como 2 e tente novamente.'],
-      bad_rotation: ['A rotação deve ser automática ou manter a orientação.', 'Escolha uma das duas opções.'],
+      bad_step: ['O passo de rotação deve ser um número de 0° ou mais.', 'Use um passo como 15, ou 0 para manter a orientação de cada peça, e tente novamente.'],
+      bad_res: ['O tamanho da grade deve ser um número acima de 0 mm.', 'Use um tamanho de grade como 0,5 e tente novamente.'],
+      bad_copies: (a: { max: number }): Cause => [
+        'O número de cópias deve ser um número inteiro de 1 a ' + num(a.max) + '.',
+        'Digite um número de cópias como 10, ou deixe vazio para preencher a placa, e tente novamente.',
+      ],
+      bad_rotation: ['A rotação deve ser automática, só passos de 90° ou manter a orientação.', 'Escolha uma das três opções.'],
       no_model: ['O arquivo do projeto não tem modelo 3D.', 'Salve o projeto de novo no OrcaSlicer e tente novamente.'],
       bad_unit: (a: { unit: string }): Cause => [
         'O projeto usa ' + a.unit + ' como unidade; só é possível arrumar em milímetros.',
@@ -210,6 +239,14 @@ function ptBR(num: Num): Strings {
         'A mesa é menor que a grade de ' + num(a.res) + ' mm usada para posicionar as peças.',
         'Confira o formato da mesa da impressora no OrcaSlicer.',
       ],
+      spacing_large: (a: { spacing: number; limit: number }): Cause => [
+        'Um espaçamento de ' + num(a.spacing) + ' mm não deixa espaço nesta mesa.',
+        'Digite um espaçamento menor que ' + num(a.limit) + ' mm e tente novamente.',
+      ],
+      clearance_large: (a: { clearance: number; limit: number }): Cause => [
+        'A placa imprime um objeto por vez, e o raio de folga da extrusora da impressora, de ' + num(a.clearance) + ' mm, não deixa espaço nesta mesa.',
+        'Defina o raio de folga da extrusora abaixo de ' + num(a.limit) + ' mm nas configurações da impressora, ou imprima camada por camada, e tente novamente.',
+      ],
       unexpected: ['Algo inesperado deu errado.', 'Tente novamente. Se continuar, o detalhe técnico abaixo ajuda a diagnosticar.'],
     },
     saveFailed: (a) =>
@@ -222,6 +259,7 @@ function ptBR(num: Num): Strings {
       clearance: (a) =>
         'A sequência de impressão é Por objeto: mantida folga XY de ' + num(a.clearance) + ' mm entre as peças. O Orca ainda confere altura e ordem de impressão.',
       keep: 'Rotação desligada: cada peça manteve a orientação.',
+      right: 'A rotação ficou limitada a passos de 90°.',
       unplaced: (a) => 'Não couberam (movidas para fora da placa): ' + a.names,
       foot: 'Arrumado a partir do projeto como estava quando você clicou.',
     },

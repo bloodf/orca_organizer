@@ -333,7 +333,7 @@ describe('errors (O03, B-27)', () => {
   it('translates failures to start and to save, and shows an older plugin text as it is', async () => {
     panel = await mountPanel();
     await panel.deliver({ text: 'EN', error: true, busy: false, lang: 'pt_BR', msg: { code: 'start_failed', cause: { code: 'bad_rotation' }, detail: 'd' } });
-    expect(panel.status()).toBe('Não foi possível iniciar: A rotação deve ser automática ou manter a orientação.\nPróximo passo: Escolha uma das duas opções.');
+    expect(panel.status()).toBe('Não foi possível iniciar: A rotação deve ser automática, só passos de 90° ou manter a orientação.\nPróximo passo: Escolha uma das três opções.');
     await panel.deliver(sync({ lang: 'en_US', job: 'j2', error: true, text: 'EN', msg: { stem: 'P', plate: 2, action: 'arrange', code: 'save_failed', detail: 'disk full' } }));
     expect(panel.status()).toMatch(/could not save the arranged copy: disk full\nNothing was opened/);
     await panel.deliver(sync({ job: 'j2', error: true, text: 'Some message from an older plugin', msg: null }));
@@ -477,6 +477,65 @@ describe('structure and accessibility', () => {
     await panel.flush();
     expect(panel.takeRequests()).toEqual([{ action: 'arrange', spacing: 2, rotation: 'keep' }]);
     expect(panel.q<HTMLInputElement>('#rotation-keep')!.disabled).toBe(true); // locked while the run is busy
+  });
+
+  it('offers 90° steps as a third rotation option', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX }));
+    panel.q('#adv')!.click();
+    await panel.flush();
+    expect(document.querySelector('label[for=rotation-right]')!.textContent).toBe('Only 90° steps');
+    panel.q('#rotation-right')!.click();
+    await panel.flush();
+    panel.take();
+    panel.q('#go')!.click();
+    await panel.flush();
+    expect(panel.takeRequests()).toEqual([{ action: 'arrange', spacing: 2, rotation: 'right' }]);
+    await panel.deliver(sync({ job: 'j1', busy: false, text: 'EN', path: '/s/P.3mf', msg: { ...REF, code: 'done', placed: 2, added: 0, right: true, keep: false } }));
+    expect(panel.status()).toContain('Rotation was limited to 90° steps.');
+  });
+
+  it('sends a copy limit with Fill only, and none when the field is empty', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX }));
+    panel.q('#adv')!.click();
+    await panel.flush();
+    expect(document.querySelector('label[for=copies]')!.textContent).toBe('Most copies to add when filling');
+    expect(panel.q('#copies')!.getAttribute('aria-describedby')).toBe('copies-help');
+    expect(panel.q<HTMLInputElement>('#copies')!.value).toBe('');
+    panel.take();
+    panel.q('#fill')!.click();
+    await panel.flush();
+    expect(panel.takeRequests()).toEqual([{ action: 'fill', spacing: 2, rotation: 'auto' }]);
+    await panel.deliver(sync({ busy: false }));
+    panel.organizer.setCopies(12);
+    await panel.flush();
+    panel.q('#go')!.click();
+    await panel.flush();
+    expect(panel.takeRequests()).toEqual([{ action: 'arrange', spacing: 2, rotation: 'auto' }]);
+    await panel.deliver(sync({ busy: false }));
+    panel.q('#fill')!.click();
+    await panel.flush();
+    expect(panel.takeRequests()).toEqual([{ action: 'fill', spacing: 2, rotation: 'auto', copies: 12 }]);
+    expect(panel.q<HTMLInputElement>('#copies')!.disabled).toBe(true);
+  });
+
+  it('opens with the remembered settings once, and never over what the user changed', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX, prefs: { spacing: 3.5, rotation: 'right', copies: 12 } }));
+    expect(panel.organizer.state.spacing).toBe(3.5);
+    expect(panel.organizer.state.rotation).toBe('right');
+    expect(panel.organizer.state.copies).toBe(12);
+    await panel.typeSpacing('1');
+    await panel.deliver(sync({ ctx: CTX, prefs: { spacing: 7, rotation: 'keep', copies: 3 } }));
+    expect(panel.organizer.state.spacing).toBe(1);
+    expect(panel.organizer.state.rotation).toBe('right');
+    panel.unmount();
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX, prefs: { spacing: -2, rotation: 'sideways', copies: 2.5 } }));
+    expect(panel.organizer.state.spacing).toBe(2);
+    expect(panel.organizer.state.rotation).toBe('auto');
+    expect(panel.organizer.state.copies).toBe(null);
   });
 
   it('renders no raw HTML from messages (project and path names are text)', async () => {

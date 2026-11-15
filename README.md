@@ -76,7 +76,10 @@ It works with any model. Collisions are checked on all three axes:
 - **Print by object:** when the plate prints one object at a time, the
   print head drops between finished parts. Parts are then kept at least
   the printer's extruder clearance radius apart in X/Y, even if the spacing
-  you set is smaller. Height and print order are still checked by Orca.
+  you set is smaller. Orca checks this clearance between the parts' convex
+  hulls, so in this mode each part is arranged as its convex hull and
+  concave parts do not interlock. Height and print order are still checked
+  by Orca.
 
 The footprint is the model's geometry only: part brims, supports, skirts
 and travel moves are not included. The result is an arrangement, not a
@@ -119,7 +122,9 @@ settings and other plates are kept.
    fits. The turns also apply when copies of one object are tiled in a
    repeating pattern. Smaller objects keep filling the gaps once bigger ones
    stop fitting. It adds at most 300 copies per run, and the panel lists how
-   many copies of each object were added.
+   many copies of each object were added. To add a set number, for example
+   12 for an order, enter it in *Most copies to add when filling* under
+   **Advanced**; empty fills the plate.
 4. Allow the launch prompt the first time; this is how the plugin opens the
    arranged copy. The panel shows how many parts were placed, lists any
    that did not fit (moved into a row above the plate) and always shows
@@ -128,12 +133,21 @@ settings and other plates are kept.
 The spacing is the gap kept between parts' top-down outlines. It is never
 undercut; because positions sit on a 0.5 mm grid, the real gap is typically
 about 1 mm larger, up to about 2 mm along slanted edges. Under
-**Advanced**, *Keep each part's orientation* turns rotation off: parts only
-move, which fits fewer of them.
+**Advanced**, *Only 90° steps* turns parts only by quarter turns, so parts that
+are square to the bed stay square to it (each part may also keep its current
+angle), and *Keep each part's orientation* turns rotation off: parts only
+move. Both fit fewer parts than automatic rotation.
+
+The panel remembers the spacing, rotation and copy limit of the last run you
+started, also after OrcaSlicer restarts (`settings.json` in the plugin's
+storage folder).
 
 Each run is saved as `<project>-arranged-<date>-<time>-<id>.3mf` in the
 plugin's storage folder, so earlier results stay. The plugin does not delete
-them; remove old ones by hand when you no longer need them.
+them; remove old ones by hand when you no longer need them. A run that fails
+keeps its project snapshot in `jobs/<id>/` of that folder for diagnosis; the
+plugin keeps the 10 newest of those and removes any older than 30 days when
+the next run starts.
 
 **Cancel** stops a run at the next checkpoint; nothing is written or
 opened. Only one run works at a time, whichever entry you use: the
@@ -148,8 +162,6 @@ A plate whose parts all fit takes a few seconds. A crowded plate that
 overflows takes about 20 seconds (18 snowflakes, 80 mm), because the finer
 retry runs too. The work runs in the background, so OrcaSlicer stays usable,
 and the panel shows progress.
-
-## Command line
 
 ## Organizer tab and the Script
 
@@ -190,7 +202,7 @@ uv run --python 3.12 --with numpy --with pillow python shape_arrange.py \
     in.3mf out.3mf --plate 1 --spacing 2 --auto --preview plate.png
 ```
 
-Add `--fill` to fill the plate with copies.
+Add `--fill` to fill the plate with copies, and `--copies N` to add at most N of them.
 
 `--auto` uses the plugin's settings: 1° steps on a 0.5 mm grid, and one
 retry on a 0.25 mm grid with 15° steps if parts are left over. Use `--step`
@@ -202,7 +214,7 @@ Pass `--bed 270x270` for plain 3MF files that carry no printer settings.
 
 ## Panel source
 
-The Organizer tab and the Script's dock panel are one Vue 3 + PrimeVue 4 app in `ui/` (see
+The Organizer tab and the Script's dock panel are one Vue 3 + PrimeVue 5 app in `ui/` (see
 `ui/README.md`). The plugin stays a single `.py` file: `cd ui && npm ci --ignore-scripts && npm run build`
 compiles the app into one offline HTML file and embeds it in `shape_arrange.py` (`PANEL_HTML`).
 Editing `ui/src` without rebuilding is caught by CI and by `tests/test_panel_js.py`. Python users who
@@ -212,6 +224,7 @@ only run or release the plugin need no Node: the built page is committed inside 
 
 ```sh
 uv run --python 3.12 --with numpy --with pillow python tests/test_shape_arrange.py
+uv run --python 3.12 --with numpy --with pillow python tests/test_packing.py
 uv run --python 3.12 --with numpy --with pillow python tests/test_plugin.py
 uv run --python 3.12 --with numpy --with pillow python tests/test_panel_js.py
 ```

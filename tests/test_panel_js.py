@@ -32,7 +32,7 @@ def english_fixtures() -> list[dict]:
     label, ref = "P, plate 2", {"stem": "P", "plate": 2}
     out = []
     for code in sa.ERRORS_EN:
-        cause = {"code": code, "plate": 3, "plates": 2, "unit": "inch", "res": 0.5}
+        cause = {"code": code, "plate": 3, "plates": 2, "unit": "inch", "res": 0.5, "spacing": 300, "limit": 37.5, "clearance": 65, "max": 300}
         for action in ("arrange", "fill"):
             out.append({"msg": {**ref, "action": action, "code": "failed", "cause": cause, "detail": "d"},
                         "text": sa.failure_text(action, label, cause, "d"), "error": True})
@@ -58,6 +58,10 @@ def english_fixtures() -> list[dict]:
          sa.Params(spacing=2)),
         ({"placed": 5, "added": 1, "added_by_object": {"block": 1}, "prime_tower": False, "spacing": 12.5,
           "unplaced": []}, sa.Params(spacing=2)),
+        ({"placed": 3, "added": 0, "added_by_object": {}, "prime_tower": False, "spacing": 2.0, "unplaced": []},
+         sa.Params(spacing=2, step=90)),
+        ({"placed": 1, "added": 12, "added_by_object": {"block": 12}, "prime_tower": False, "spacing": 2.0,
+          "unplaced": []}, sa.Params(spacing=2, fill=True, copies=12)),
     ]
     for report, p in reports:
         for how in ("asked", "later", "failed", "none"):

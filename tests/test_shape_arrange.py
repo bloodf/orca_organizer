@@ -713,7 +713,198 @@ def test_instances_follow_their_position_not_a_stale_plate_list():
             assert np.allclose(b.transform, a.transform)
 
 
+def test_plate_beyond_1_without_plate_list_is_refused():
+    """A plain 3MF has no plate list: Orca puts everything on plate 1, so plate 2 must not be invented."""
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        simple_project(src, [box(0, 0, 10, 10)], [(0, tf(0, 5, 5))], {"printable_area": ["0x0", "60x0", "60x60", "0x60"]})
+        try:
+            sa.arrange_3mf(src, dst, sa.Params(plate=2, spacing=1, step=90))
+        except sa.PlanError as e:
+            assert e.code == "plate_gone" and e.args_ == {"plate": 2, "plates": 1}, (e.code, e.args_)
+        else:
+            raise AssertionError("plate 2 of a project without plates was arranged")
+        assert not dst.exists()
+
+
+def test_bad_project_setting_is_not_reported_as_bad_spacing():
+    """The page explains `bad_number` as a spacing error; a broken printer setting must not claim that."""
+    blocks = [(0, tf(0, 5, 5)), (1, tf(0, 20, 5))]
+    with tempfile.TemporaryDirectory() as d:
+        src = Path(d, "in.3mf")
+        simple_project(src, [box(0, 0, 10, 10)] * 2, blocks, {**TOWER, "layer_height": "0"}, filament_settings(1, 2))
+        try:
+            sa.arrange_3mf(src, Path(d, "out.3mf"), sa.Params(spacing=1, step=90))
+        except ValueError as e:
+            assert sa.error_args(e)["code"] != "bad_number", sa.error_args(e)
+            assert "layer_height" in str(e)
+        else:
+            raise AssertionError("layer_height 0 was accepted")
+
+
+def test_spacing_too_large_for_the_bed_is_refused_quickly():
+    """A typo like 2000 mm must not rasterise a 8000 x 8000 halo per rotation (minutes, gigabytes)."""
+    import time
+
+    with tempfile.TemporaryDirectory() as d:
+        src = Path(d, "in.3mf")
+        simple_project(src, [box(0, 0, 10, 10)], [(0, tf(0, 5, 5))], {"printable_area": ["0x0", "60x0", "60x40", "0x40"]})
+        t0 = time.monotonic()
+        try:
+            sa.arrange_3mf(src, Path(d, "out.3mf"), sa.Params(spacing=2000, **sa.AUTO))
+        except sa.PlanError as e:
+            assert e.code == "spacing_large" and e.args_ == {"spacing": 2000, "limit": 20}, (e.code, e.args_)
+        else:
+            raise AssertionError("2000 mm spacing on a 60 x 40 bed was accepted")
+        assert time.monotonic() - t0 < 5
+        # just below the limit still runs: a part fits only if the bed is wider than twice the spacing
+        report = sa.arrange_3mf(src, Path(d, "out.3mf"), sa.Params(spacing=12, step=90))
+        assert report["placed"] == 1, report
+
+
+def test_spacing_limit_names_the_extruder_clearance_when_it_set_the_spacing():
+    """By object, the printer's clearance radius can raise the spacing past the limit; the
+    error must not blame the 2 mm the user typed."""
+    settings = {"printable_area": ["0x0", "120x0", "120x120", "0x120"],
+                "print_sequence": "by object", "extruder_clearance_radius": "65"}
+    with tempfile.TemporaryDirectory() as d:
+        src = Path(d, "in.3mf")
+        simple_project(src, [box(0, 0, 10, 10)], [(0, tf(0, 5, 5)), (0, tf(0, 30, 5))], settings)
+        try:
+            sa.arrange_3mf(src, Path(d, "out.3mf"), sa.Params(spacing=2, step=90))
+        except sa.PlanError as e:
+            assert e.code == "clearance_large" and e.args_ == {"clearance": 65, "limit": 60}, (e.code, e.args_)
+            why, nxt = sa.error_en(sa.error_args(e))
+            assert "extruder clearance radius" in why and "65" in why, why
+        else:
+            raise AssertionError("a 65 mm clearance radius on a 120 mm bed was accepted")
+
+
+def test_bad_rotation_step_and_grid_have_their_own_cause():
+    """A bad step or grid size is explained like a bad spacing, not as an unexpected error."""
+    for params, code in ((sa.Params(step=-1), "bad_step"), (sa.Params(step=math.nan), "bad_step"),
+                         (sa.Params(res=0), "bad_res"), (sa.Params(res="x"), "bad_res"),
+                         (sa.Params(spacing=-1), "bad_number")):
+        try:
+            sa.check_params(params)
+        except sa.PlanError as e:
+            assert e.code == code, (params, e.code)
+            why, nxt = sa.error_en(sa.error_args(e))
+            assert "{" not in why + nxt and why.endswith(".") and nxt.endswith("."), (why, nxt)
+        else:
+            raise AssertionError(f"{params} was accepted")
+
+
+def test_fill_stops_at_the_requested_number_of_copies():
+    """Fill adds at most `copies` copies, on the pattern path (identical parts) and the greedy path."""
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        make_project(src)  # plate 1: one 20 mm block, room for 5 more
+        for copies, added in ((3, 3), (1, 1), (sa.MAX_COPIES, 5)):
+            report = sa.arrange_3mf(src, dst, sa.Params(plate=1, spacing=2, step=90, fill=True, copies=copies))
+            assert report["added"] == added, (copies, report)
+            assert len(sa.Package(dst).items()) == 4 + added
+            msg = sa.result_msg(report, sa.Params(plate=1, spacing=2, fill=True, copies=copies))
+            assert msg["max"] == copies and msg["limit"] == (added == copies), msg
+        simple_project(src, [box(0, 0, 10, 10), box(0, 0, 6, 6)], [(0, tf(0, 5, 5)), (1, tf(0, 30, 5))],
+                       {"printable_area": ["0x0", "80x0", "80x80", "0x80"]})
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=2, step=90, fill=True, copies=7))
+        assert report["added"] == 7 and sum(report["added_by_object"].values()) == 7, report
+    for bad in (0, sa.MAX_COPIES + 1, 2.5, True, "3"):
+        try:
+            sa.check_params(sa.Params(fill=True, copies=bad))
+        except sa.PlanError as e:
+            assert e.code == "bad_copies" and e.args_ == {"max": sa.MAX_COPIES}, (bad, e.code, e.args_)
+        else:
+            raise AssertionError(f"copies={bad!r} was accepted")
+
+
+def xy_boxes(path: Path):
+    out = []
+    for it in sa.Package(path).items():
+        xy = np.concatenate([v[:, :2] for v, _ in it.parts])
+        out.append((xy.min(0), xy.max(0)))
+    return out
+
+
+def test_parts_that_do_not_fit_are_parked_clear_of_parts_already_parked():
+    """Leftovers go in a row above the plate grid. Parts parked there by an earlier run (or from
+    another plate in the same column) must not be stacked on by the next leftovers."""
+    plates = ('<?xml version="1.0" encoding="UTF-8"?>\n<config>'
+              '<plate><metadata key="plater_id" value="1"/></plate></config>')
+    settings = {"printable_area": ["0x0", "60x0", "60x60", "0x60"]}
+    items = [(0, tf(0, 2 + 15 * i, 2)) for i in range(3)] + [(1, tf(0, 0, 70))]  # last: parked earlier
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        simple_project(src, [box(0, 0, 40, 40), box(0, 0, 30, 30)], items, settings, plates)
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=2, step=90))
+        assert report["placed"] == 1 and len(report["unplaced"]) == 2, report
+        boxes = xy_boxes(dst)
+        assert np.allclose(boxes[3][0], (0, 70)), "the part parked earlier must not move"
+        parked = [b for b in boxes if b[0][1] >= 60]
+        assert len(parked) == 3, parked
+        for i in range(3):
+            for j in range(i + 1, 3):
+                (alo, ahi), (blo, bhi) = parked[i], parked[j]
+                assert (ahi <= blo).any() or (bhi <= alo).any(), f"parked parts overlap: {parked[i]} {parked[j]}"
+
+
+def convex_hull(points):
+    pts = sorted(set(map(tuple, np.round(points, 6).tolist())))
+
+    def chain(seq):
+        h = []
+        for p in seq:
+            while len(h) >= 2 and (h[-1][0] - h[-2][0]) * (p[1] - h[-2][1]) - (h[-1][1] - h[-2][1]) * (p[0] - h[-2][0]) <= 0:
+                h.pop()
+            h.append(p)
+        return h[:-1]
+    return np.array(chain(pts) + chain(pts[::-1]))
+
+
+def hull_gap(a, b, step=0.05):
+    """Smallest distance between two convex polygons (0 when they overlap), by dense boundary sampling."""
+    def inside(p, poly):
+        e = np.roll(poly, -1, axis=0) - poly
+        return bool(np.all(e[:, 0] * (p[1] - poly[:, 1]) - e[:, 1] * (p[0] - poly[:, 0]) >= -1e-9))
+
+    def boundary(poly):
+        out = []
+        for p, q in zip(poly, np.roll(poly, -1, axis=0)):
+            n = max(2, int(np.hypot(*(q - p)) / step))
+            out.append(p + np.linspace(0, 1, n, endpoint=False)[:, None] * (q - p))
+        return np.concatenate(out)
+    if inside(a[0], b) or inside(b[0], a):
+        return 0.0
+    pa, pb = boundary(a), boundary(b)
+    return float(np.sqrt(((pa[:, None] - pb[None]) ** 2).sum(-1)).min())
+
+
+def test_by_object_clearance_is_kept_between_convex_hulls():
+    """Orca checks print-by-object clearance between convex hulls, so concave parts must not nest
+    inside each other's hull even when their outlines are far enough apart."""
+    ell = merge(box(0, 0, 40, 8), box(0, 8, 8, 40))  # 40 x 40 L, 8 mm arms: a 32 x 32 notch
+    settings = {"printable_area": ["0x0", "100x0", "100x100", "0x100"],
+                "print_sequence": "by object", "extruder_clearance_radius": "5"}
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        simple_project(src, [ell], [(0, tf(0, 5, 5)), (0, tf(0, 55, 55))], settings)
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=1, step=90, res=0.5))
+        assert report["placed"] == 2 and report["spacing"] == 5, report
+        hulls = [convex_hull(np.concatenate([v[:, :2] for v, _ in it.parts])) for it in sa.Package(dst).items()]
+        gap = hull_gap(*hulls)
+        assert gap >= 5 - 0.05, f"convex hulls only {gap:.2f} mm apart"
+
+
 if __name__ == "__main__":
+    test_plate_beyond_1_without_plate_list_is_refused()
+    test_bad_project_setting_is_not_reported_as_bad_spacing()
+    test_spacing_too_large_for_the_bed_is_refused_quickly()
+    test_by_object_clearance_is_kept_between_convex_hulls()
+    test_parts_that_do_not_fit_are_parked_clear_of_parts_already_parked()
+    test_bad_rotation_step_and_grid_have_their_own_cause()
+    test_fill_stops_at_the_requested_number_of_copies()
+    test_spacing_limit_names_the_extruder_clearance_when_it_set_the_spacing()
     test_instances_follow_their_position_not_a_stale_plate_list()
     test_rotated_prime_tower_matches_orca_corners()
     test_fill_takes_turns_between_models_on_the_pattern_path()

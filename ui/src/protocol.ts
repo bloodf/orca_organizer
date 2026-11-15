@@ -14,6 +14,10 @@ export interface Cause {
   plates?: number;
   unit?: string;
   res?: number;
+  spacing?: number;
+  limit?: number;
+  clearance?: number;
+  max?: number;
 }
 
 export type MsgCode =
@@ -48,6 +52,7 @@ export interface JobMsg {
   tower?: boolean;
   clearance?: number | null;
   keep?: boolean;
+  right?: boolean;
   unplaced?: string[];
   open?: 'asked' | 'later' | 'failed' | 'none';
 }
@@ -75,14 +80,25 @@ export interface HostMessage {
   stale_ref?: StaleRef | null;
   lang?: string | null;
   relay?: string;
+  /** The settings of the last run, kept by the plugin across sessions. */
+  prefs?: Prefs | null;
 }
 
-export type Rotation = 'auto' | 'keep';
+/** Most copies one Fill adds (shape_arrange.py MAX_COPIES). */
+export const MAX_COPIES = 300;
+
+export type Rotation = 'auto' | 'right' | 'keep';
+
+export interface Prefs {
+  spacing?: number;
+  rotation?: Rotation;
+  copies?: number;
+}
 
 export type OutMessage =
   | { action: 'hello' }
   | { action: 'poll' }
-  | { action: 'arrange' | 'fill'; spacing: number; rotation: Rotation }
+  | { action: 'arrange' | 'fill'; spacing: number; rotation: Rotation; copies?: number }
   | { action: 'cancel' | 'open' | 'finish'; job: string | null };
 
 /** The bridge the host injects into the page. */

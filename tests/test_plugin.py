@@ -8,6 +8,7 @@ Every wait has a deadline, so a broken finish fails the test instead of hanging 
 """
 
 import hashlib
+import math
 import os
 import shutil
 import sys
@@ -214,6 +215,28 @@ def test_fill_button_adds_copies():
         pkg = sa.Package(out)
         assert len(pkg.items()) > 4
         pkg.close()
+
+
+def test_fill_takes_a_copy_limit_from_the_page():
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa, log, pending, opened, ui = load(tmp, project)
+        sa._current_plate = lambda: 1
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "fill", "spacing": 2, "copies": 0})
+        assert sa._session.job is None and log["page_posts"][-1][0]["msg"]["cause"] == {"code": "bad_copies", "max": 300}
+        page.on_message({"action": "fill", "spacing": 2, "copies": 2})
+        job = sa._session.job
+        assert job.p.copies == 2
+        drive_page(page, log, lambda: job.state == "done", ui)
+        assert job.done_msg["added"] == 2 and job.done_msg["limit"] and job.done_msg["max"] == 2, job.done_msg
+        assert "Stopped at the 2-copy limit." in job.summary, job.summary
+        page.on_message({"action": "fill", "spacing": 2})  # no limit sent: as many as fit, up to MAX_COPIES
+        assert sa._session.job.p.copies == sa.MAX_COPIES
+        drive_page(page, log, lambda: sa._session.job.state == "done", ui)
 
 
 def test_closed_panel_keeps_the_job_and_reopening_recovers_the_result():
@@ -707,6 +730,71 @@ def test_keep_orientation_option():
         drive_page(page, log, lambda: sa._session.job.state == "done", ui)
 
 
+def test_right_angle_rotation_option():
+    """'right' turns parts only in 90 degree steps: each part ends at its own angle or square to the bed."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)  # combs on plate 2 sit at 30 and -10 degrees
+        sa, log, pending, opened, ui = load(tmp, project)
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "arrange", "spacing": 1, "rotation": "right"})
+        job = sa._session.job
+        assert job.p.step == 90 and job.p.res == sa.AUTO["res"] and job.p.refine
+        drive_page(page, log, lambda: job.state == "done", ui)
+        assert "Rotation was limited to 90° steps." in job.summary, job.summary
+        assert job.done_msg["right"] and not job.done_msg["keep"]
+        before = {it.index: sa._z_angle(it.transform) for it in sa.Package(project).items()}
+        for it in sa.Package(job.path).items()[1:]:
+            a = sa._z_angle(it.transform)
+            assert min(abs(math.remainder(a, 90)), abs(math.remainder(a - before[it.index], 360))) < 1e-6, (it.name, a)
+
+
+def test_last_settings_are_remembered_for_the_next_session():
+    """The page opens with the spacing, rotation and copy limit of the last run, also after a restart."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa, log, pending, opened, ui = load(tmp, project)
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "hello"})
+        assert log["page_posts"][-1][0]["prefs"] == {}, "nothing remembered yet"
+        sa._current_plate = lambda: 1
+        page.on_message({"action": "fill", "spacing": 3.5, "rotation": "right", "copies": 2})
+        drive_page(page, log, lambda: sa._session.job.state == "done", ui)
+        saved = {"spacing": 3.5, "rotation": "right", "copies": 2}
+        assert log["page_posts"][-1][0]["prefs"] == saved
+        page.on_message({"action": "arrange", "spacing": 1, "rotation": "sideways"})  # refused: not remembered
+        page.on_message({"action": "poll"})
+        assert log["page_posts"][-1][0]["prefs"] == saved
+
+        sa, log, pending, opened, ui = load(tmp, project)  # OrcaSlicer restarted
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "hello"})
+        assert log["page_posts"][-1][0]["prefs"] == saved
+        page.on_message({"action": "arrange", "spacing": 1})  # arrange keeps the copy limit it did not use
+        drive_page(page, log, lambda: sa._session.job.state == "done", ui)
+        assert log["page_posts"][-1][0]["prefs"] == {"spacing": 1, "rotation": "auto", "copies": 2}
+
+        prefs = tmp / "storage" / "settings.json"
+        prefs.write_text('{"spacing": -1, "rotation": "x", "copies": 9999, "other": 1}')
+        sa, log, pending, opened, ui = load(tmp, project)
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "hello"})
+        assert log["page_posts"][-1][0]["prefs"] == {}, "invalid values are dropped"
+        prefs.write_text("{not json")
+        sa, log, pending, opened, ui = load(tmp, project)
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "hello"})
+        assert log["page_posts"][-1][0]["prefs"] == {} and not log["page_posts"][-1][0].get("error")
+
+
 def test_failed_run_is_flagged_as_error_for_the_page():
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d)
@@ -730,6 +818,40 @@ def test_failed_run_is_flagged_as_error_for_the_page():
         assert job.src.exists(), "snapshot of a failed run stays for diagnosis"
         page.on_message({"action": "arrange", "spacing": 1})  # a failed run does not block the next one
         assert sa._session.job is not job
+
+
+def test_old_failed_snapshots_are_pruned_but_never_a_running_job():
+    """Failed runs keep their snapshot for diagnosis, but only the newest few and only for a while."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa, log, pending, opened, ui = load(tmp, project)
+        jobs = tmp / "storage" / "jobs"
+        now = time.time()
+        for i in range(sa.JOBS_KEEP + 5):  # newest first: job00 is the newest
+            work = jobs / f"job{i:02d}"
+            work.mkdir(parents=True)
+            (work / "source.3mf").write_bytes(b"x")
+            os.utime(work, (now - 60 * i, now - 60 * i))
+        old = jobs / "ancient"
+        old.mkdir()
+        os.utime(old, (now - sa.JOBS_MAX_AGE - 60, now - sa.JOBS_MAX_AGE - 60))
+        started, release = gate(sa)
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "arrange", "spacing": 1})
+        job = sa._session.job
+        assert started.wait(DEADLINE)
+        left = sorted(p.name for p in jobs.iterdir())
+        assert job.id in left and "ancient" not in left, left
+        assert len(left) == sa.JOBS_KEEP, left
+        assert [n for n in left if n.startswith("job")] == [f"job{i:02d}" for i in range(sa.JOBS_KEEP - 1)], left
+        sa.JOBS_KEEP = 0  # even with nothing to keep, the running job's snapshot stays
+        sa._session._prune_jobs(jobs)
+        assert [p.name for p in jobs.iterdir()] == [job.id]
+        release.set()
+        drive_page(page, log, lambda: job.state == "done", ui)
 
 
 def test_unexpected_failure_keeps_the_raw_error_as_details():
@@ -823,7 +945,8 @@ def test_every_user_reachable_error_has_cause_and_next_step():
                  and getattr(c.func, "id", "") == "PlanError" and len(c.args) > 1 and isinstance(c.args[1], ast.Constant)}
         assert codes == set(sa.ERRORS_EN), (codes ^ set(sa.ERRORS_EN))
         for code in codes:
-            why, nxt = sa.error_en({"code": code, "plate": 3, "plates": 1, "unit": "inch", "res": 0.5})
+            why, nxt = sa.error_en({"code": code, "plate": 3, "plates": 1, "unit": "inch", "res": 0.5,
+                                      "spacing": 300, "limit": 37.5, "clearance": 65, "max": 300})
             assert why.endswith(".") and nxt.endswith(".") and "{" not in why + nxt, (code, why, nxt)
         assert sa.error_en({"code": "plate_gone", "plate": 3, "plates": 1})[0].endswith("the project has 1 plate.")
         assert isinstance(sa.PlanError("x", "plate_empty", plate=1), ValueError)  # old callers still catch ValueError
@@ -874,6 +997,7 @@ def test_start_error_is_explained_for_the_page():
 if __name__ == "__main__":
     test_arrange_runs_off_ui_thread_and_finishes_on_it()
     test_fill_button_adds_copies()
+    test_fill_takes_a_copy_limit_from_the_page()
     test_closed_panel_keeps_the_job_and_reopening_recovers_the_result()
     test_one_job_at_a_time_with_its_own_files_and_earlier_results_kept()
     test_cancel_while_running_writes_and_opens_nothing()
@@ -893,7 +1017,10 @@ if __name__ == "__main__":
     test_reloaded_tab_recovers_state_and_unload_stops_posts()
     test_context_reports_stale_runs_and_empty_projects()
     test_keep_orientation_option()
+    test_right_angle_rotation_option()
+    test_last_settings_are_remembered_for_the_next_session()
     test_failed_run_is_flagged_as_error_for_the_page()
+    test_old_failed_snapshots_are_pruned_but_never_a_running_job()
     test_unexpected_failure_keeps_the_raw_error_as_details()
     test_progress_is_structured_and_counts_only_real_totals()
     test_host_language_is_passed_to_the_page()
