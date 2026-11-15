@@ -3249,6 +3249,9 @@ class _Job:
             self.post(self.summary + tail, {**self.done_msg, **how}, path=str(self.path))
 
 
+JOBS_KEEP = 10  # job folders kept, the new run's included; only failed or interrupted runs leave one behind
+JOBS_MAX_AGE = 30 * 24 * 3600.0  # s: older job folders are removed whatever their count
+
 WATCH_GAP = 5.0  # s. A page that polls every second while a run is busy has watched it; a longer silence has not
 
 
@@ -3347,6 +3350,27 @@ class _Session:
             msg.update({k: v for k, v in self.job.snapshot().items() if v is not None})
         self.post(**msg)
 
+    def _prune_jobs(self, jobs: Path):
+        """Remove old job folders (snapshots kept for diagnosis): beyond the newest JOBS_KEEP - 1, or older
+        than JOBS_MAX_AGE. The running job's folder is never touched. A folder that cannot be removed is
+        logged and left; it must not stop the run."""
+        import shutil
+        import traceback
+
+        active = self.job.src.parent if self.job is not None and self.job.active else None
+        try:
+            found = [(d.stat().st_mtime, d) for d in jobs.iterdir() if d.is_dir() and d != active]
+        except FileNotFoundError:
+            return
+        found.sort(key=lambda t: t[0], reverse=True)
+        cutoff = time.time() - JOBS_MAX_AGE
+        for n, (mtime, folder) in enumerate(found):
+            if n >= JOBS_KEEP - 1 or mtime < cutoff:
+                try:
+                    shutil.rmtree(folder)
+                except OSError:
+                    traceback.print_exc()
+
     def start(self, action: str, data: dict):
         spacing = _number(data.get("spacing"), "spacing")
         rotation = data.get("rotation", "auto")
@@ -3359,6 +3383,7 @@ class _Session:
         stem = Path(project).stem if project else "untitled"
         job_id = uuid.uuid4().hex[:12]
         storage = Path(self.storage())
+        self._prune_jobs(storage / "jobs")
         work = storage / "jobs" / job_id
         work.mkdir(parents=True)  # fresh per job: no other job reads or writes here
         src = work / "source.3mf"

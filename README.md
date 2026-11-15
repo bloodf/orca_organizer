@@ -136,7 +136,10 @@ move, which fits fewer of them.
 
 Each run is saved as `<project>-arranged-<date>-<time>-<id>.3mf` in the
 plugin's storage folder, so earlier results stay. The plugin does not delete
-them; remove old ones by hand when you no longer need them.
+them; remove old ones by hand when you no longer need them. A run that fails
+keeps its project snapshot in `jobs/<id>/` of that folder for diagnosis; the
+plugin keeps the 10 newest of those and removes any older than 30 days when
+the next run starts.
 
 **Cancel** stops a run at the next checkpoint; nothing is written or
 opened. Only one run works at a time, whichever entry you use: the

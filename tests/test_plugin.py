@@ -732,6 +732,40 @@ def test_failed_run_is_flagged_as_error_for_the_page():
         assert sa._session.job is not job
 
 
+def test_old_failed_snapshots_are_pruned_but_never_a_running_job():
+    """Failed runs keep their snapshot for diagnosis, but only the newest few and only for a while."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa, log, pending, opened, ui = load(tmp, project)
+        jobs = tmp / "storage" / "jobs"
+        now = time.time()
+        for i in range(sa.JOBS_KEEP + 5):  # newest first: job00 is the newest
+            work = jobs / f"job{i:02d}"
+            work.mkdir(parents=True)
+            (work / "source.3mf").write_bytes(b"x")
+            os.utime(work, (now - 60 * i, now - 60 * i))
+        old = jobs / "ancient"
+        old.mkdir()
+        os.utime(old, (now - sa.JOBS_MAX_AGE - 60, now - sa.JOBS_MAX_AGE - 60))
+        started, release = gate(sa)
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "arrange", "spacing": 1})
+        job = sa._session.job
+        assert started.wait(DEADLINE)
+        left = sorted(p.name for p in jobs.iterdir())
+        assert job.id in left and "ancient" not in left, left
+        assert len(left) == sa.JOBS_KEEP, left
+        assert [n for n in left if n.startswith("job")] == [f"job{i:02d}" for i in range(sa.JOBS_KEEP - 1)], left
+        sa.JOBS_KEEP = 0  # even with nothing to keep, the running job's snapshot stays
+        sa._session._prune_jobs(jobs)
+        assert [p.name for p in jobs.iterdir()] == [job.id]
+        release.set()
+        drive_page(page, log, lambda: job.state == "done", ui)
+
+
 def test_unexpected_failure_keeps_the_raw_error_as_details():
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d)
@@ -895,6 +929,7 @@ if __name__ == "__main__":
     test_context_reports_stale_runs_and_empty_projects()
     test_keep_orientation_option()
     test_failed_run_is_flagged_as_error_for_the_page()
+    test_old_failed_snapshots_are_pruned_but_never_a_running_job()
     test_unexpected_failure_keeps_the_raw_error_as_details()
     test_progress_is_structured_and_counts_only_real_totals()
     test_host_language_is_passed_to_the_page()
