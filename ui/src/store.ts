@@ -111,6 +111,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   const countText = computed(() => (progress.value && hasCount.value ? s.value.count(progress.value) : ''));
 
   /** The running job as the job card shows it. The full sentence stays in the status region for screen readers. */
+  /** The app bar shows "Plate N · …" (see PanelHeader: offline, loading and a problem take its place). */
+  const barShowsPlate = (plate: number) => !!ctxShort.value && !state.offline && !loading.value && !ctxProblem.value && state.ctx?.plate === plate;
   const jobView = computed(() => {
     const src = state.status;
     const m = src?.kind === 'job' ? src.msg : null;
@@ -121,7 +123,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     return {
       phase: capital(prefix && first.startsWith(prefix) ? first.slice(prefix.length) : first),
       name: m?.stem || state.ctx?.name || s.value.untitledProject,
-      detail: [plate != null ? s.value.plateLabel({ plate }) : '', p ? (p.n != null ? p.subject : countText.value) : ''].filter(Boolean).join(' · '),
+      // The app bar already names the selected plate: repeat it only when the run is for another one.
+      detail: [plate != null && !barShowsPlate(plate) ? s.value.plateLabel({ plate }) : '', p ? (p.n != null ? p.subject : countText.value) : ''].filter(Boolean).join(' · '),
       figure: p && p.n != null ? s.value.countShort({ i: p.i, n: p.n }) : p && p.count != null ? '+' + numberFormat(lang.value)(p.count) : '',
     };
   });

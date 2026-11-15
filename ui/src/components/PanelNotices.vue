@@ -8,7 +8,7 @@ const { s, state, staleText, ctxProblem, retry } = useOrganizer();
 </script>
 
 <template>
-  <!-- Page-level states, each said once. Offline interrupts (alert); the others inform (status). -->
+  <!-- Page-level states, each said once. Offline and an unreadable project interrupt (alert); a stale result informs (status). -->
   <OuiBanner v-if="state.offline" id="offline" tone="error" :title="s.offline">
     <span id="offline-text">{{ s.offlineHelp }}</span>
     <template #actions>
@@ -17,7 +17,8 @@ const { s, state, staleText, ctxProblem, retry } = useOrganizer();
       </Button>
     </template>
   </OuiBanner>
-  <OuiBanner v-if="ctxProblem" class="context-problem" tone="warn" :title="ctxProblem" />
+  <!-- No project to arrange: it interrupts (alert), as it did before. -->
+  <OuiBanner v-if="ctxProblem" class="context-problem" tone="warn" role="alert" :title="ctxProblem" />
   <OuiBanner v-if="state.stale || state.staleRef" id="stale" tone="warn" :title="staleText" />
 </template>
 

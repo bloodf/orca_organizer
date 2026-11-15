@@ -17,7 +17,11 @@ const { s, state, ctxText, ctxShort, ctxProblem, projectName, loading, again } =
       <!-- One state for the page: no answer, reading, unreadable project, or the plate the buttons act on. -->
       <span id="context" class="context oui-truncate" :title="loading ? s.loadingLabel : ctxText" :aria-busy="loading">
         <OuiStatus v-if="state.offline" state="offline" :label="s.statusOffline" />
-        <OuiStatus v-else-if="loading" state="connecting" :label="s.statusReading" />
+        <template v-else-if="loading">
+          <OuiStatus state="connecting" :label="s.statusReading" />
+          <!-- The page is waiting for the plugin: an indeterminate progress indicator, as before, for screen readers. -->
+          <span id="loading" class="oui-sr" role="progressbar" :aria-label="s.loadingLabel" />
+        </template>
         <OuiStatus v-else-if="ctxProblem" state="warn" :label="s.statusProblem" />
         <template v-else-if="ctxShort">
           <span class="oui-sr">{{ ctxText }}</span>

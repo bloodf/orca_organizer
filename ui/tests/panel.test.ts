@@ -31,6 +31,9 @@ describe('loading, language and context', () => {
     expect(panel.q('#context .oui-status[data-state=connecting]')).not.toBeNull(); // loading state is visible, not only text
     expect(panel.q('#context')!.getAttribute('aria-busy')).toBe('true');
     expect(panel.q('#context')!.getAttribute('title')).toBe('Loading the project');
+    const loadingBar = panel.q('#context [role=progressbar]')!; // an accessible progress indicator, as before
+    expect(loadingBar.getAttribute('aria-label')).toBe('Loading the project');
+    expect(loadingBar.getAttribute('aria-valuenow')).toBeNull(); // indeterminate
     expect(document.documentElement.lang).toBe('en');
     expect(panel.text('h1')).toBe('Organizer'); // O01: name
     expect(panel.text('#subtitle')).toMatch(/^Shape-Aware Arrange/); // O01: Script name as subtitle
@@ -48,6 +51,7 @@ describe('loading, language and context', () => {
     expect(panel.status()).toMatch(/No objects found/);
     expect(panel.q('#status .oui-banner[data-tone=neutral]')).not.toBeNull();
     expect(panel.q('#context .oui-status')).toBeNull();
+    expect(panel.q('#context [role=progressbar]')).toBeNull(); // loaded: the progress indicator is gone
     expect(panel.q('#context')!.getAttribute('aria-busy')).toBe('false');
   });
 
@@ -84,7 +88,7 @@ describe('loading, language and context', () => {
     panel = await mountPanel();
     await panel.deliver(sync({ ctx: { plate: null, objects: null, name: null, problem: 'no project' } }));
     expect(panel.text('.context-problem')).toMatch(/Could not read the project: no project\. Open a project/);
-    expect(panel.q('.context-problem')!.getAttribute('role')).toBe('status');
+    expect(panel.q('.context-problem')!.getAttribute('role')).toBe('alert'); // interrupts, as before
     expect(panel.text('#context .oui-status[data-state=warn]')).toBe('No project'); // the bar carries the page's one state
     await panel.deliver(sync({ ctx: CTX }));
     expect(panel.q('.context-problem')).toBeNull();
@@ -186,7 +190,8 @@ describe('a run', () => {
     expect(panel.text('#job .oui-status')).toBe('Placing parts');
     expect(panel.text('.oui-job-name')).toBe('P');
     expect(panel.text('.oui-job-figure')).toBe('1 of 14');
-    expect(panel.text('.oui-job-detail')).toBe('Plate 2 · block');
+    expect(panel.text('.oui-job-detail')).toBe('block'); // the bar already says Plate 2
+    expect(panel.q('.oui-job-detail')!.getAttribute('title')).toBe('block'); // cut to one line: the whole text is its tooltip
     expect(bar().getAttribute('aria-valuetext')).toBe('1 of 14 · block'); // a screen reader hears the count, not only a percentage
     const live = panel.q('#status')!;
     const mutations: MutationRecord[] = [];
@@ -197,15 +202,16 @@ describe('a run', () => {
     observer.disconnect();
     expect(bar().getAttribute('aria-valuenow')).toBe('93'); // 13 of 14
     expect(panel.text('.oui-job-figure')).toBe('14 of 14');
-    expect(panel.text('.oui-job-detail')).toBe('Plate 2 · block 13');
+    expect(panel.text('.oui-job-detail')).toBe('block 13');
+    expect(panel.q('.oui-job-detail')!.getAttribute('title')).toBe('block 13');
     expect(bar().getAttribute('aria-valuetext')).toBe('14 of 14 · block 13');
     expect(mutations, 'the live region is not rewritten on every poll').toHaveLength(0);
     await prog(panel, 'fill', 1, null, { count: 1 });
     expect(bar().getAttribute('aria-valuenow')).toBeNull();
-    expect(panel.text('.oui-job-detail')).toBe('Plate 2 · 1 copy added');
+    expect(panel.text('.oui-job-detail')).toBe('1 copy added');
     await prog(panel, 'fill', 5, null, { count: 5 });
     expect(panel.text('.oui-job-figure')).toBe('+5');
-    expect(panel.text('.oui-job-detail')).toBe('Plate 2 · 5 copies added');
+    expect(panel.text('.oui-job-detail')).toBe('5 copies added');
     expect(bar().getAttribute('aria-valuetext')).toBe('5 copies added');
     expect(panel.text('#job .oui-status')).toBe('Adding copies');
     expect(panel.status()).toBe('P, plate 2: Adding copies');
@@ -213,7 +219,11 @@ describe('a run', () => {
     await panel.deliver(sync({ lang: 'pt_BR', job: 'j1', busy: true, text: 'EN', msg: { stem: 'P', plate: 2, action: 'fill', code: 'progress', phase: 'place', i: 6, n: 14, count: null, subject: 'b' } }));
     expect(panel.status()).toBe('P, placa 2: Posicionando as peças');
     expect(panel.text('.oui-job-figure')).toBe('7 de 14');
+    expect(panel.text('.oui-job-detail')).toBe('b');
+    // a run for another plate than the one selected names its plate
+    await panel.deliver(sync({ job: 'j1', busy: true, text: 'EN', ctx: { ...CTX, plate: 1 }, msg: { stem: 'P', plate: 2, action: 'fill', code: 'progress', phase: 'place', i: 6, n: 14, count: null, subject: 'b' } }));
     expect(panel.text('.oui-job-detail')).toBe('Placa 2 · b');
+    expect(panel.q('.oui-job-detail')!.getAttribute('title')).toBe('Placa 2 · b');
     expect(panel.text('#job .oui-status')).toBe('Posicionando as peças');
     await panel.deliver({ job: 'old', text: 'LATE', busy: false });
     expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(true);

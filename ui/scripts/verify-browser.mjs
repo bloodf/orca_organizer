@@ -169,7 +169,7 @@ try {
     await S[state](state === 'loading' ? undefined : hostLang);
     await delay(reducedMotionWait); // let enter transitions (Message) settle before measuring
     const expected = { offline: '#offline', error: '#status-error', errorUnknown: '#status-error', validation: '#spacing-error', stale: '#stale',
-      unreadable: '.context-problem', running: '#cancel', runningFill: '#cancel', done: '#result', loading: '#context .oui-status[data-state=connecting]', empty: '#status .oui-banner' };
+      unreadable: '.context-problem', running: '#cancel', runningFill: '#cancel', done: '#result', loading: '#context .oui-status[data-state=connecting] ~ [role=progressbar]', empty: '#status .oui-banner' };
     if (expected[state]) assert(await evaluate(`!!document.querySelector(${JSON.stringify(expected[state])})`), `${state}: ${expected[state]} is not on screen`);
     const m = await evaluate(MEASURE);
     const name = `organizer-${state}-${theme}-${langTag}-${wName}`;
@@ -250,6 +250,11 @@ try {
   await click('#adv'); await delay(300);
   interaction.advancedExpanded = await evaluate('document.querySelector("#adv").parentElement.open');
   assert.equal(interaction.advancedExpanded, true, 'Advanced opens');
+  await click('#help'); await delay(200);
+  interaction.helpExpanded = await evaluate('document.querySelector("#help").parentElement.open');
+  assert.equal(interaction.helpExpanded, true, 'How it works opens');
+  await click('#help'); await delay(200);
+  assert.equal(await evaluate('document.querySelector("#help").parentElement.open'), false, 'How it works closes again');
   await evaluate('document.querySelector("#rotation-auto").focus()');
   for (let i = 0; i < 2; i++) { // Automatic, Only 90° steps, Keep orientation
     for (const type of ['keyDown', 'keyUp']) await call('Input.dispatchKeyEvent', { type, key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40 });

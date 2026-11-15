@@ -7,9 +7,12 @@ import { useOrganizer } from '../useOrganizer';
 
 const { s, state, percent, jobView, countText, cancel } = useOrganizer();
 const root = ref<HTMLElement | null>(null);
-// foundation-gap: OuiJob needs a progressText prop. Until then the bar gets its spoken value here ("7 of 14 · part"),
-// as the page had before, instead of only a percentage.
+// foundation-gap: OuiJob needs a progressText prop and a title on its detail line. Until then the bar gets its spoken
+// value here ("7 of 14 · part"), as the page had before, instead of only a percentage, and the detail line, cut to one
+// line, gets its full text as a tooltip.
 watchEffect(() => {
+  const detail = root.value?.querySelector('.oui-job-detail');
+  if (detail) detail.setAttribute('title', jobView.value.detail);
   const bar = root.value?.querySelector('[role=progressbar]');
   void percent.value; // the bar may be redrawn when it turns determinate
   if (!bar) return;

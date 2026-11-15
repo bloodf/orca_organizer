@@ -61,7 +61,7 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
     </div>
 
     <details class="more">
-      <summary id="adv"><OuiIcon :icon="chevronRight" :size="14" />{{ s.adv }}<span class="oui-meta">{{ s.advMeta }}</span></summary>
+      <summary id="adv"><span class="sum"><OuiIcon :icon="chevronRight" :size="14" />{{ s.adv }}<span class="oui-meta">{{ s.advMeta }}</span></span></summary>
       <div class="more-body">
         <fieldset class="rotation" aria-describedby="rotation-help">
           <legend id="rotation-label">{{ s.rotationLabel }}</legend>
@@ -93,7 +93,7 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 
     <!-- What each control does, once, for those who ask: the controls point here with aria-describedby. -->
     <details class="more">
-      <summary id="help"><OuiIcon :icon="info" :size="14" />{{ s.help }}</summary>
+      <summary id="help"><span class="sum"><OuiIcon :icon="info" :size="14" />{{ s.help }}</span></summary>
       <div class="more-body">
         <p id="subtitle" class="oui-meta">{{ s.sub }}</p>
         <dl class="terms">
@@ -122,11 +122,13 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 /* A label that does not fit (200 % zoom in the dock) wraps between words: the name of an action is never cut. */
 .actions > .p-button { min-height: 40px; font-size: 14px; white-space: normal; }
 .actions :deep(.p-button-label) { flex: 0 1 auto; overflow-wrap: break-word; }
-.more > summary { display: flex; align-items: center; gap: 6px; min-height: 28px; font-weight: 600; cursor: pointer; list-style: none; border-radius: var(--oui-radius); }
+/* The summary stays display: list-item (a flex summary has failed to toggle in older WebKit); the row is the inner span. */
+.more > summary { display: list-item; font-weight: 600; cursor: pointer; list-style: none; border-radius: var(--oui-radius); }
+.more > summary > .sum { display: flex; align-items: center; gap: 6px; min-height: 28px; min-width: 0; }
 .more > summary::-webkit-details-marker { display: none; }
-.more > summary > .oui-icon { color: var(--oui-muted); transition: transform var(--oui-fast); }
-.more[open] > #adv > .oui-icon { transform: rotate(90deg); }
-.more > summary > .oui-meta { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sum > .oui-icon { color: var(--oui-muted); transition: transform var(--oui-fast); }
+.more[open] > #adv .sum > .oui-icon { transform: rotate(90deg); }
+.sum > .oui-meta { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .more + .more { margin-top: calc(-1 * var(--oui-s2)); }
 .more-body { display: grid; gap: var(--oui-s3); padding-top: var(--oui-s2); }
 .rotation { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: var(--oui-s2); }
