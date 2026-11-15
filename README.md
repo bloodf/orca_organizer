@@ -152,8 +152,6 @@ overflows takes about 20 seconds (18 snowflakes, 80 mm), because the finer
 retry runs too. The work runs in the background, so OrcaSlicer stays usable,
 and the panel shows progress.
 
-## Command line
-
 ## Organizer tab and the Script
 
 The plugin registers two entries that drive one run (they share state):
@@ -205,7 +203,7 @@ Pass `--bed 270x270` for plain 3MF files that carry no printer settings.
 
 ## Panel source
 
-The Organizer tab and the Script's dock panel are one Vue 3 + PrimeVue 4 app in `ui/` (see
+The Organizer tab and the Script's dock panel are one Vue 3 + PrimeVue 5 app in `ui/` (see
 `ui/README.md`). The plugin stays a single `.py` file: `cd ui && npm ci --ignore-scripts && npm run build`
 compiles the app into one offline HTML file and embeds it in `shape_arrange.py` (`PANEL_HTML`).
 Editing `ui/src` without rebuilding is caught by CI and by `tests/test_panel_js.py`. Python users who
@@ -215,6 +213,7 @@ only run or release the plugin need no Node: the built page is committed inside 
 
 ```sh
 uv run --python 3.12 --with numpy --with pillow python tests/test_shape_arrange.py
+uv run --python 3.12 --with numpy --with pillow python tests/test_packing.py
 uv run --python 3.12 --with numpy --with pillow python tests/test_plugin.py
 uv run --python 3.12 --with numpy --with pillow python tests/test_panel_js.py
 ```
