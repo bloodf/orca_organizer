@@ -112,7 +112,7 @@ try {
       goFont: gcs && gcs.fontSize, goRadius: gcs && gcs.borderRadius, goBg: gcs && gcs.backgroundColor, goColor: gcs && gcs.color, goHeight: go && Math.round(go.getBoundingClientRect().height),
       transitionOnGo: gcs && gcs.transitionDuration, violations: window.__violations.slice(),
       // what the user sees without scrolling: bottom edge of each action, and of the progress bar, against the viewport
-      fold: Object.fromEntries(['#go', '#fill', '#cancel', '#open', '[role=progressbar]'].map((sel) => { const el = document.querySelector(sel); return [sel, el && el.getClientRects().length ? Math.round(el.getBoundingClientRect().bottom) : null]; })),
+      fold: Object.fromEntries(['#go', '#fill', '#cancel', '#open', '#again', '#foot', '[role=progressbar]'].map((sel) => { const el = document.querySelector(sel); return [sel, el && el.getClientRects().length ? Math.round(el.getBoundingClientRect().bottom) : null]; })),
       clipped: [...document.querySelectorAll('.p-button')].filter((el) => el.getClientRects().length && el.scrollWidth > el.clientWidth + 1).map((el) => el.id || el.textContent.trim()) };
   })()`;
 
@@ -178,7 +178,9 @@ try {
     // The declared dock is 280 x 360: both actions, and a running job with its Cancel, are on screen without scrolling.
     if (wName === 'dock280' && state === 'idle') assert(m.fold['#go'] <= 360 && m.fold['#fill'] <= 360, `${name}: Arrange/Fill below the fold ${JSON.stringify(m.fold)}`);
     if (wName === 'dock280' && (state === 'running' || state === 'runningFill')) assert(m.fold['#cancel'] <= 360 && m.fold['[role=progressbar]'] <= 360, `${name}: Cancel or the progress bar below the fold ${JSON.stringify(m.fold)}`);
-    if (wName === 'dock280' && state === 'done') assert(m.fold['#open'] <= 360, `${name}: Open below the fold ${JSON.stringify(m.fold)}`);
+    if (wName === 'dock280' && state === 'done') assert(m.fold['#open'] <= 360 && m.fold['#again'] != null && m.fold['#again'] <= 360, `${name}: Open or New arrangement below the fold ${JSON.stringify(m.fold)}`);
+    // The safety note (brims, supports, check the plate) is rendered wherever the form is, never folded away.
+    if (state === 'idle') assert(m.fold['#foot'] != null, `${name}: the safety note is not rendered`);
     process.stdout.write(`${name} overflow=${m.horizontalOverflow} lowContrast=${m.lowContrast.length} violations=${m.violations.length}\n`);
   };
 
@@ -291,6 +293,7 @@ try {
   assert.deepEqual(summary.cspViolations, [], 'no CSP violation');
   assert.deepEqual(summary.consoleProblems, [], 'no console error or warning');
   assert.deepEqual(summary.networkRequestsToServer, ['/panel.html'], 'the page requests nothing but itself');
+  assert.deepEqual(summary.clippedButtons, [], 'no button label is cut');
 } finally {
   socket?.close();
   browser.kill('SIGTERM');

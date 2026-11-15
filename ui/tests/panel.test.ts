@@ -187,6 +187,7 @@ describe('a run', () => {
     expect(panel.text('.oui-job-name')).toBe('P');
     expect(panel.text('.oui-job-figure')).toBe('1 of 14');
     expect(panel.text('.oui-job-detail')).toBe('Plate 2 · block');
+    expect(bar().getAttribute('aria-valuetext')).toBe('1 of 14 · block'); // a screen reader hears the count, not only a percentage
     const live = panel.q('#status')!;
     const mutations: MutationRecord[] = [];
     const observer = new MutationObserver((records) => mutations.push(...records));
@@ -197,6 +198,7 @@ describe('a run', () => {
     expect(bar().getAttribute('aria-valuenow')).toBe('93'); // 13 of 14
     expect(panel.text('.oui-job-figure')).toBe('14 of 14');
     expect(panel.text('.oui-job-detail')).toBe('Plate 2 · block 13');
+    expect(bar().getAttribute('aria-valuetext')).toBe('14 of 14 · block 13');
     expect(mutations, 'the live region is not rewritten on every poll').toHaveLength(0);
     await prog(panel, 'fill', 1, null, { count: 1 });
     expect(bar().getAttribute('aria-valuenow')).toBeNull();
@@ -204,6 +206,7 @@ describe('a run', () => {
     await prog(panel, 'fill', 5, null, { count: 5 });
     expect(panel.text('.oui-job-figure')).toBe('+5');
     expect(panel.text('.oui-job-detail')).toBe('Plate 2 · 5 copies added');
+    expect(bar().getAttribute('aria-valuetext')).toBe('5 copies added');
     expect(panel.text('#job .oui-status')).toBe('Adding copies');
     expect(panel.status()).toBe('P, plate 2: Adding copies');
     expect(document.activeElement).toBe(panel.q('#cancel')); // polls do not move focus
@@ -293,6 +296,21 @@ describe('result', () => {
     for (const banner of document.querySelectorAll('#status .oui-banner')) expect(banner.getAttribute('role')).toBe('none');
   });
 
+  it('moves focus to Cancel when a run started elsewhere hides the control that had it', async () => {
+    for (const id of ['#spacing', '#adv', '#copies']) {
+      panel = await mountPanel();
+      await panel.deliver(sync({ ctx: CTX }));
+      panel.q<HTMLDetailsElement>('#adv')!.parentElement!.setAttribute('open', '');
+      panel.q<HTMLElement>(id)!.focus();
+      expect(document.activeElement, id).toBe(panel.q(id));
+      // the run was started from the other surface (the tab or the Script's panel): the plugin says so
+      await panel.deliver({ job: 'j1', start: true, busy: true, text: 'r', msg: { stem: 'P', plate: 2, action: 'arrange', code: 'reading' } });
+      expect(panel.q('.grid')!.getAttribute('data-view')).toBe('running');
+      expect(document.activeElement, id).toBe(panel.q('#cancel'));
+      if (id !== '#copies') panel.unmount(); // afterEach unmounts the last
+    }
+  });
+
   it('shows one thing at a time in the dock: form, running job or result, with a way back to the form', async () => {
     panel = await mountPanel();
     const view = () => panel.q('.grid')!.getAttribute('data-view');
@@ -304,7 +322,7 @@ describe('result', () => {
     await panel.deliver({ job: 'j1', start: true, busy: true, text: 'r', msg: { stem: 'P', plate: 2, action: 'arrange', code: 'reading' } });
     await panel.deliver({ job: 'j1', text: 'd', busy: false, done: true, path: '/s/P-arranged.3mf', msg: doneMsg });
     expect(view()).toBe('result');
-    expect(panel.text('#again')).toBe('New arrangement');
+    expect(panel.q('.oui-appbar-actions #again')!.getAttribute('aria-label')).toBe('New arrangement'); // in the bar: on screen however long the result is
     panel.q('#again')!.click();
     await panel.flush();
     expect(view()).toBe('form');
@@ -550,7 +568,10 @@ describe('structure and accessibility', () => {
     expect(panel.q('#go')!.getAttribute('aria-describedby')).toBe('go-help');
     expect(panel.q('#fill')!.getAttribute('aria-describedby')).toBe('fill-help');
     // What each control does is said once, under "How it works"; the controls point at it and show it as a tooltip.
-    for (const id of ['spacing-help', 'go-help', 'fill-help', 'subtitle', 'foot']) expect(panel.q(`details #${id}`), id).not.toBeNull();
+    for (const id of ['spacing-help', 'go-help', 'fill-help', 'subtitle']) expect(panel.q(`details #${id}`), id).not.toBeNull();
+    // the safety note is never folded away: not inside a disclosure, in the form the dock shows
+    expect(panel.q('#foot')!.closest('details'), 'foot is not in a disclosure').toBeNull();
+    expect(panel.q('#foot')!.closest('.pane-form')).not.toBeNull();
     expect(panel.text('#go-help')).toBe("Fits the plate's objects. Adds nothing.");
     expect(panel.q('#go')!.getAttribute('title')).toBe(panel.text('#go-help'));
     expect(panel.text('#fill-help')).toMatch(/up to 300/);

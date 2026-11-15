@@ -80,7 +80,6 @@ onBeforeUnmount(stop);
 @container oui-page (min-width: 621px) {
   .grid { grid-template-columns: minmax(280px, 360px) minmax(0, 560px); gap: var(--oui-s4); }
   .pane-form { padding: var(--oui-s4); border-radius: var(--oui-radius-lg); background: var(--oui-surface); box-shadow: inset 0 0 0 1px var(--oui-border), var(--oui-shadow-panel); }
-  .grid .again { display: none; }
   .grid .result .row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--oui-s2); }
   .grid .result .row > .p-button { white-space: nowrap; }
 }

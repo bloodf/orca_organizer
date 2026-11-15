@@ -1,8 +1,10 @@
 <script setup lang="ts">
-import { OuiAppBar, OuiStatus } from '../../shared/src/components';
+import Button from 'primevue/button';
+import { OuiAppBar, OuiIcon, OuiStatus } from '../../shared/src/components';
+import { arrange } from '../../shared/src/icons';
 import { useOrganizer } from '../useOrganizer';
 
-const { s, state, ctxText, ctxShort, ctxProblem, projectName, loading } = useOrganizer();
+const { s, state, ctxText, ctxShort, ctxProblem, projectName, loading, again } = useOrganizer();
 </script>
 
 <template>
@@ -24,6 +26,13 @@ const { s, state, ctxText, ctxShort, ctxProblem, projectName, loading } = useOrg
         <template v-else>{{ ctxText }}</template>
       </span>
     </template>
+    <!-- The dock's result view hides the form: the way back stays in the bar, on screen however long the result is.
+         A tab shows the form beside the result and does not need it. -->
+    <template v-if="state.resultVisible && !state.formOpen && !state.busy" #actions>
+      <Button id="again" class="again" :aria-label="s.again" :title="s.again" severity="secondary" size="small" @click="again()">
+        <template #icon><OuiIcon :icon="arrange" :size="14" /></template>
+      </Button>
+    </template>
   </OuiAppBar>
 </template>
 
@@ -33,5 +42,11 @@ const { s, state, ctxText, ctxShort, ctxProblem, projectName, loading } = useOrg
 /* The dock has room for the plate and the count; the project name joins them in a tab. */
 @container oui-appbar (max-width: 520px) {
   .context-name { display: none; }
+}
+/* Icon only: the name is its aria-label and tooltip. */
+#again .p-button-label { display: none; }
+#again { padding-inline: 0; }
+@container oui-appbar (min-width: 621px) {
+  .oui-appbar-actions:has(> #again) { display: none; }
 }
 </style>

@@ -104,12 +104,13 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
           <dt>{{ fillLabel }}</dt>
           <dd id="fill-help" class="oui-meta">{{ s.fillHelp }}</dd>
         </dl>
-        <p id="foot" class="oui-meta">{{ s.foot }}</p>
       </div>
     </details>
 
     <p v-if="state.busy" id="busy-hint" class="oui-meta">{{ s.busyHint }}</p>
     <p v-for="(line, index) in idleNote" :key="line.key" class="oui-meta" :data-i="index">{{ line.text }}</p>
+    <!-- The safety note is always on screen: what the spacing does not cover, and to check the plate before printing. -->
+    <p id="foot" class="oui-meta">{{ s.foot }}</p>
   </form>
 </template>
 
@@ -118,9 +119,9 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 .form p, .form label, .form legend, .form dt, .form dd { overflow-wrap: anywhere; }
 .actions { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--oui-s2); }
 /* The two things the page is for: larger than an ordinary control. */
-/* A label that does not fit (200 % zoom in the dock) wraps: the name of an action is never cut. */
+/* A label that does not fit (200 % zoom in the dock) wraps between words: the name of an action is never cut. */
 .actions > .p-button { min-height: 40px; font-size: 14px; white-space: normal; }
-.actions :deep(.p-button-label) { flex: 0 1 auto; overflow-wrap: anywhere; }
+.actions :deep(.p-button-label) { flex: 0 1 auto; overflow-wrap: break-word; }
 .more > summary { display: flex; align-items: center; gap: 6px; min-height: 28px; font-weight: 600; cursor: pointer; list-style: none; border-radius: var(--oui-radius); }
 .more > summary::-webkit-details-marker { display: none; }
 .more > summary > .oui-icon { color: var(--oui-muted); transition: transform var(--oui-fast); }

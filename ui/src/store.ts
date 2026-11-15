@@ -144,7 +144,9 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     state.busy = busy;
     if (!busy) state.cancelling = false;
     // Keep focus where the user can still act: Cancel while running, the result (or Arrange) afterwards.
-    if (busy && !was && (active === 'go' || active === 'fill')) requestFocus('cancel');
+    // The dock hides the form during a run: focus anywhere in it (spacing, Advanced, copies) goes to Cancel, not to the body.
+    const inForm = typeof document !== 'undefined' && !!document.activeElement?.closest('.pane-form');
+    if (busy && !was && (active === 'go' || active === 'fill' || inForm)) requestFocus('cancel');
     if (!busy && was && (active === 'cancel' || active === 'body')) requestFocus(state.resultVisible ? 'open' : 'go');
   }
 

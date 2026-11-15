@@ -2,10 +2,10 @@
 import Button from 'primevue/button';
 import { computed, ref } from 'vue';
 import { OuiIcon } from '../../shared/src/components';
-import { arrange, copy, external } from '../../shared/src/icons';
+import { copy, external } from '../../shared/src/icons';
 import { useOrganizer } from '../useOrganizer';
 
-const { s, state, statusView, open, copyPath, again } = useOrganizer();
+const { s, state, statusView, open, copyPath } = useOrganizer();
 const pathEl = ref<HTMLElement | null>(null);
 
 const fileName = computed(() => (state.path ?? '').split(/[\\/]/).pop() ?? '');
@@ -34,9 +34,6 @@ function selectPath() {
       <Button v-if="state.clipboard" id="copy" :label="s.copy" severity="secondary" text size="small" @click="copyPath(selectPath)">
         <template #icon><OuiIcon :icon="copy" :size="14" /></template>
       </Button>
-      <Button id="again" class="again" :label="s.again" severity="secondary" text size="small" @click="again()">
-        <template #icon><OuiIcon :icon="arrange" :size="14" /></template>
-      </Button>
     </div>
     <p v-if="state.pathNote" id="path-note" class="oui-meta" role="status">{{ state.pathNote === 'copied' ? s.copied : s.copyFail }}</p>
     <code id="path" ref="pathEl" class="path oui-mono">{{ state.path }}</code>
@@ -51,8 +48,14 @@ function selectPath() {
   box-shadow: inset 0 0 0 1px var(--oui-border), var(--oui-shadow-panel); }
 .file { font-weight: 600; }
 .row { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--oui-s1); min-width: 0; }
-.row > .p-button { white-space: normal; }
-.row :deep(.p-button-label) { flex: 0 1 auto; overflow-wrap: anywhere; }
+.row > .p-button { white-space: normal; flex-wrap: wrap; }
+/* Words wrap whole; a single word is split only when it is wider than the button on its own line. */
+.row :deep(.p-button-label) { flex: 0 1 auto; min-width: 0; overflow-wrap: break-word; }
+/* 200 % zoom in the dock: room for "OrcaSlicer" on one line. */
+@container oui-page (max-width: 200px) {
+  .result { padding: var(--oui-s2); }
+  .row > .p-button { padding-inline: var(--oui-s2); }
+}
 .path { display: block; overflow-wrap: anywhere; user-select: text; color: var(--oui-muted); }
 .notes { display: grid; gap: var(--oui-s1); padding-top: var(--oui-s2); border-top: 1px solid var(--oui-border); }
 .result p { overflow-wrap: anywhere; }
