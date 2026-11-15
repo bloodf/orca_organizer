@@ -762,10 +762,58 @@ def test_spacing_too_large_for_the_bed_is_refused_quickly():
         assert report["placed"] == 1, report
 
 
+def convex_hull(points):
+    pts = sorted(set(map(tuple, np.round(points, 6).tolist())))
+
+    def chain(seq):
+        h = []
+        for p in seq:
+            while len(h) >= 2 and (h[-1][0] - h[-2][0]) * (p[1] - h[-2][1]) - (h[-1][1] - h[-2][1]) * (p[0] - h[-2][0]) <= 0:
+                h.pop()
+            h.append(p)
+        return h[:-1]
+    return np.array(chain(pts) + chain(pts[::-1]))
+
+
+def hull_gap(a, b, step=0.05):
+    """Smallest distance between two convex polygons (0 when they overlap), by dense boundary sampling."""
+    def inside(p, poly):
+        e = np.roll(poly, -1, axis=0) - poly
+        return bool(np.all(e[:, 0] * (p[1] - poly[:, 1]) - e[:, 1] * (p[0] - poly[:, 0]) >= -1e-9))
+
+    def boundary(poly):
+        out = []
+        for p, q in zip(poly, np.roll(poly, -1, axis=0)):
+            n = max(2, int(np.hypot(*(q - p)) / step))
+            out.append(p + np.linspace(0, 1, n, endpoint=False)[:, None] * (q - p))
+        return np.concatenate(out)
+    if inside(a[0], b) or inside(b[0], a):
+        return 0.0
+    pa, pb = boundary(a), boundary(b)
+    return float(np.sqrt(((pa[:, None] - pb[None]) ** 2).sum(-1)).min())
+
+
+def test_by_object_clearance_is_kept_between_convex_hulls():
+    """Orca checks print-by-object clearance between convex hulls, so concave parts must not nest
+    inside each other's hull even when their outlines are far enough apart."""
+    ell = merge(box(0, 0, 40, 8), box(0, 8, 8, 40))  # 40 x 40 L, 8 mm arms: a 32 x 32 notch
+    settings = {"printable_area": ["0x0", "100x0", "100x100", "0x100"],
+                "print_sequence": "by object", "extruder_clearance_radius": "5"}
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        simple_project(src, [ell], [(0, tf(0, 5, 5)), (0, tf(0, 55, 55))], settings)
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=1, step=90, res=0.5))
+        assert report["placed"] == 2 and report["spacing"] == 5, report
+        hulls = [convex_hull(np.concatenate([v[:, :2] for v, _ in it.parts])) for it in sa.Package(dst).items()]
+        gap = hull_gap(*hulls)
+        assert gap >= 5 - 0.05, f"convex hulls only {gap:.2f} mm apart"
+
+
 if __name__ == "__main__":
     test_plate_beyond_1_without_plate_list_is_refused()
     test_bad_project_setting_is_not_reported_as_bad_spacing()
     test_spacing_too_large_for_the_bed_is_refused_quickly()
+    test_by_object_clearance_is_kept_between_convex_hulls()
     test_instances_follow_their_position_not_a_stale_plate_list()
     test_rotated_prime_tower_matches_orca_corners()
     test_fill_takes_turns_between_models_on_the_pattern_path()

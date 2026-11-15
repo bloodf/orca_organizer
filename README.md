@@ -76,7 +76,10 @@ It works with any model. Collisions are checked on all three axes:
 - **Print by object:** when the plate prints one object at a time, the
   print head drops between finished parts. Parts are then kept at least
   the printer's extruder clearance radius apart in X/Y, even if the spacing
-  you set is smaller. Height and print order are still checked by Orca.
+  you set is smaller. Orca checks this clearance between the parts' convex
+  hulls, so in this mode each part is arranged as its convex hull and
+  concave parts do not interlock. Height and print order are still checked
+  by Orca.
 
 The footprint is the model's geometry only: part brims, supports, skirts
 and travel moves are not included. The result is an arrangement, not a

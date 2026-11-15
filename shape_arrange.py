@@ -487,6 +487,25 @@ def _silhouette(parts) -> np.ndarray:
     return tris[np.abs(e1[:, 0] * e2[:, 1] - e1[:, 1] * e2[:, 0]) > 1e-12]
 
 
+def _hull_parts(parts) -> list:
+    """`parts` replaced by their XY convex hull as one flat part (monotone chain). Orca checks
+    print-by-object clearance between convex hulls, so nesting into a concave notch is refused there."""
+    pts = np.unique(np.round(np.concatenate([v[:, :2] for v, _ in parts]), 6), axis=0).tolist()  # sorted by x, y
+
+    def chain(seq):
+        h = []
+        for x, y in seq:
+            while len(h) >= 2 and (h[-1][0] - h[-2][0]) * (y - h[-2][1]) - (h[-1][1] - h[-2][1]) * (x - h[-2][0]) <= 0:
+                h.pop()
+            h.append((x, y))
+        return h[:-1]
+    ring = chain(pts) + chain(pts[::-1])
+    if len(ring) < 3:  # flat as a line: nothing to fill in
+        return parts
+    verts = np.c_[np.array(ring), np.zeros(len(ring))]
+    return [(verts, np.array([(0, i, i + 1) for i in range(1, len(ring) - 1)], dtype=np.int64))]
+
+
 def _slop_polygon(reach: float = math.sqrt(2) + 0.05, run: float = 0.5 + 0.05) -> np.ndarray:
     """Convex polygon (ccw, fine pixels) containing the disc of radius `reach` widened by `run`
     to each side along y: an octagon around the disc, shifted -run and +run, hulled."""
@@ -1292,6 +1311,9 @@ def _plan(pkg: Package, p: Params, bed, progress):
         raise PlanError(f"plate {p.plate} has no printable objects", "plate_empty", plate=p.plate)
 
     clearance = pkg.clearance(p.plate)
+    if clearance > 0:  # by object: Orca measures the clearance between convex hulls, not outlines
+        items = [replace(it, parts=_hull_parts(it.parts)) if it.parts else it for it in items]
+        movable = [it for it in items if it.index in {m.index for m in movable}]
     if clearance > p.spacing:
         p = replace(p, spacing=clearance)
     xs, ys = zip(*poly)
