@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { applyOrcaTheme } from '../shared/src';
+import { applyOrcaTheme, setOrcaAccent } from '../shared/src';
 import { detectHostTheme, luminance, parseColor } from '../src/hostTheme';
 
 afterEach(() => {
@@ -32,12 +32,19 @@ describe('host theme', () => {
     window.matchMedia = ((q: string) => ({ matches: false, media: q }) as MediaQueryList) as typeof window.matchMedia;
   });
 
-  it('applies the shared preset tokens to the document root, also for teleported dialogs', () => {
+  it('applies the shared tokens in the Organizer accent (sky) to the document root, also for teleported dialogs', () => {
+    const token = (name: string) => document.documentElement.style.getPropertyValue(name);
+    setOrcaAccent('sky');
     applyOrcaTheme('dark');
     expect(document.documentElement.classList.contains('orca-dark')).toBe(true);
-    expect(document.documentElement.style.getPropertyValue('--oui-primary')).toBe('#79d8c7');
+    expect(document.documentElement.dataset.orcaUiAccent).toBe('sky');
+    expect(token('--oui-primary')).toBe('#72cdf4');
+    expect(token('--oui-background')).toBe('#0b1a23'); // the page is tinted by the accent
+    expect(token('--oui-band')).toBe('#00628c');
     applyOrcaTheme('light');
     expect(document.documentElement.classList.contains('orca-dark')).toBe(false);
-    expect(document.documentElement.style.getPropertyValue('--oui-primary')).toBe('#00675b');
+    expect(token('--oui-primary')).toBe('#00628c');
+    expect(token('--oui-background')).toBe('#d6e2ea');
+    expect(token('--oui-band')).toBe('#00628c'); // the app bar is the same band in both themes
   });
 });

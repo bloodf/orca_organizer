@@ -232,7 +232,7 @@ Pass `--bed 270x270` for plain 3MF files that carry no printer settings.
 ## Panel source
 
 The Organizer tab and the Script's dock panel are one Vue 3 + PrimeVue 5 app in `ui/` (see
-`ui/README.md`). The plugin stays a single `.py` file: `cd ui && npm ci --ignore-scripts && npm run build`
+`ui/README.md`), built on the shared Orca UI foundation 4.0.1 in the Organizer's sky accent. The plugin stays a single `.py` file: `cd ui && npm ci --ignore-scripts && npm run build`
 compiles the app into one offline HTML file and embeds it in `shape_arrange.py` (`PANEL_HTML`).
 Editing `ui/src` without rebuilding is caught by CI and by `tests/test_panel_js.py`. Python users who
 only run or release the plugin need no Node: the built page is committed inside `shape_arrange.py`.
@@ -280,7 +280,9 @@ other file in the 3MF are unchanged.
   were chosen for contrast on the light and dark backgrounds it detects; the
   colors Orca really passes were not measured. The panel is a Vue 3 + PrimeVue app
   (`ui/`); it was exercised in headless Chrome with a mock host bridge, never in
-  OrcaSlicer's WebView.
+  OrcaSlicer's WebView. Its layout uses CSS container queries and `color-mix()`
+  and an embedded Manrope font; how the macOS, Windows and Linux WebViews draw
+  them was not checked.
 - Disabling or reloading the plugin during a run ends the run: its state
   lives in the plugin process. The project snapshot stays in the plugin's
   storage folder and earlier copies are untouched.

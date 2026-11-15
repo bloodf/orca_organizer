@@ -14,13 +14,22 @@ function en(num: Num) {
   return {
     title: 'Organizer',
     sub: "Shape-Aware Arrange: fits and fills the plate by each part's outline.",
-    spacingLabel: 'Spacing between parts (mm)',
+    spacingLabel: 'Spacing between parts',
     spacingHelp:
       "Gap kept between each part's top-down outline, the bed edge and excluded areas. When the plate prints one object at a time, Orca's extruder clearance can raise it; the result says so.",
     goHelp: "Fits the plate's objects. Adds nothing.",
     fillHelp: "Arranges, then adds copies of the plate's objects, taking turns, until nothing more fits (up to 300).",
     busyHint: 'A run is in progress. Wait for it to finish, or cancel it, to change these.',
     adv: 'Advanced',
+    advMeta: 'rotation, copies',
+    help: 'How it works',
+    result: 'Result',
+    nothingYet: 'Nothing arranged yet',
+    nothingYetText: "Arrange fits the plate's objects by their real outline. Fill then adds copies until nothing more fits.",
+    again: 'New arrangement',
+    statusOffline: 'No answer',
+    statusProblem: 'No project',
+    statusReading: 'Reading…',
     rotationLabel: 'Rotation',
     optAuto: 'Automatic (1° steps)',
     optRight: 'Only 90° steps',
@@ -55,8 +64,8 @@ function en(num: Num) {
     starting: 'Starting…',
     spacingErr: 'Enter a spacing of 0 mm or more.',
     stale: (a: { ref: string }) => 'The run below is for ' + a.ref + ', not the current selection.',
-    offline:
-      'No answer from the plugin. Check that it is still enabled in the Plugins window of OrcaSlicer, then try again. The page keeps asking by itself.',
+    offline: 'No answer from the plugin.',
+    offlineHelp: 'Check that it is still enabled in the Plugins window of OrcaSlicer, then try again. The page keeps asking by itself.',
     phase: {
       read: 'Reading the project…',
       footprint: 'Measuring part outlines',
@@ -64,6 +73,10 @@ function en(num: Num) {
       patterns: 'Trying repeating patterns',
       fill: 'Adding copies',
     } as Record<string, string>,
+    plateLabel: (a: { plate: number }) => 'Plate ' + a.plate,
+    ctxShort: (a: { plate: number; objects: number | null }) =>
+      'Plate ' + a.plate + (a.objects == null ? '' : ' · ' + num(a.objects) + ' ' + one(a.objects, 'object', 'objects')),
+    countShort: (a: { i: number; n: number }) => num(a.i + 1) + ' of ' + num(a.n),
     count: (a: { i: number; n: number | null; count: number | null; subject: string }) =>
       a.n != null
         ? num(a.i + 1) + ' of ' + num(a.n) + (a.subject ? ' · ' + a.subject : '')
@@ -148,13 +161,22 @@ function ptBR(num: Num): Strings {
   return {
     title: 'Organizer',
     sub: 'Shape-Aware Arrange: encaixa e preenche a placa pelo contorno de cada peça.',
-    spacingLabel: 'Espaçamento entre peças (mm)',
+    spacingLabel: 'Espaçamento entre peças',
     spacingHelp:
       'Folga mantida entre o contorno de cada peça visto de cima, a borda da mesa e as áreas excluídas. Se a placa imprime um objeto por vez, a folga da extrusora do Orca pode aumentá-la; o resultado avisa.',
     goHelp: 'Encaixa os objetos da placa. Não adiciona nada.',
     fillHelp: 'Arruma e depois adiciona cópias dos objetos da placa, em rodízio, até não caber mais nada (até 300).',
     busyHint: 'Uma execução está em andamento. Aguarde o fim, ou cancele, para alterar estes campos.',
     adv: 'Avançado',
+    advMeta: 'rotação, cópias',
+    help: 'Como funciona',
+    result: 'Resultado',
+    nothingYet: 'Nada arrumado ainda',
+    nothingYetText: 'Arrumar encaixa os objetos da placa pelo contorno real. Preencher depois adiciona cópias até não caber mais nada.',
+    again: 'Nova arrumação',
+    statusOffline: 'Sem resposta',
+    statusProblem: 'Sem projeto',
+    statusReading: 'Lendo…',
     rotationLabel: 'Rotação',
     optAuto: 'Automática (passos de 1°)',
     optRight: 'Só passos de 90°',
@@ -189,8 +211,8 @@ function ptBR(num: Num): Strings {
     starting: 'Iniciando…',
     spacingErr: 'Informe um espaçamento de 0 mm ou mais.',
     stale: (a) => 'A execução abaixo é de ' + a.ref + ', não da seleção atual.',
-    offline:
-      'Sem resposta do plugin. Confira se ele continua ativado na janela de Plugins do OrcaSlicer e tente novamente. A página continua perguntando sozinha.',
+    offline: 'Sem resposta do plugin.',
+    offlineHelp: 'Confira se ele continua ativado na janela de Plugins do OrcaSlicer e tente novamente. A página continua perguntando sozinha.',
     phase: {
       read: 'Lendo o projeto…',
       footprint: 'Medindo o contorno das peças',
@@ -198,6 +220,9 @@ function ptBR(num: Num): Strings {
       patterns: 'Testando padrões repetidos',
       fill: 'Adicionando cópias',
     },
+    plateLabel: (a) => 'Placa ' + a.plate,
+    ctxShort: (a) => 'Placa ' + a.plate + (a.objects == null ? '' : ' · ' + num(a.objects) + ' ' + one(a.objects, 'objeto', 'objetos')),
+    countShort: (a) => num(a.i + 1) + ' de ' + num(a.n),
     count: (a) =>
       a.n != null
         ? num(a.i + 1) + ' de ' + num(a.n) + (a.subject ? ' · ' + a.subject : '')

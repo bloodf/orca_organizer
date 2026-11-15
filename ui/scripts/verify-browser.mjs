@@ -27,7 +27,7 @@ const sha = createHash('sha256').update(html).digest('hex');
 const py = await readFile(join(root, '..', 'shape_arrange.py'), 'utf8');
 assert.equal(/PANEL_HTML_SHA256 = "([0-9a-f]{64})"/.exec(py)[1], sha, 'dist/index.html is not the embedded page: run npm run build');
 
-const CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; connect-src 'none'";
+const CSP = "default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'";
 const requests = [];
 const server = createServer((req, res) => {
   requests.push(req.url);
@@ -110,7 +110,10 @@ try {
       theme: doc.dataset.orcaUiTheme, lang: doc.lang, title: document.title, fontFamily: getComputedStyle(document.body).fontFamily,
       fontSizes: sizes, textBelow12px: tooSmall, lowContrast: low,
       goFont: gcs && gcs.fontSize, goRadius: gcs && gcs.borderRadius, goBg: gcs && gcs.backgroundColor, goColor: gcs && gcs.color, goHeight: go && Math.round(go.getBoundingClientRect().height),
-      transitionOnGo: gcs && gcs.transitionDuration, violations: window.__violations.slice() };
+      transitionOnGo: gcs && gcs.transitionDuration, violations: window.__violations.slice(),
+      // what the user sees without scrolling: bottom edge of each action, and of the progress bar, against the viewport
+      fold: Object.fromEntries(['#go', '#fill', '#cancel', '#open', '[role=progressbar]'].map((sel) => { const el = document.querySelector(sel); return [sel, el && el.getClientRects().length ? Math.round(el.getBoundingClientRect().bottom) : null]; })),
+      clipped: [...document.querySelectorAll('.p-button')].filter((el) => el.getClientRects().length && el.scrollWidth > el.clientWidth + 1).map((el) => el.id || el.textContent.trim()) };
   })()`;
 
   // ---- scenarios (the host's real protocol, delivered by the driver)
@@ -146,29 +149,36 @@ try {
 
   const THEMES = ['light', 'dark'];
   const LANGS = [['en', 'en_US'], ['pt-BR', 'pt_BR']];
-  const WIDTHS = [['dock280', { width: 280, scale: 1 }], ['tab800', { width: 800, height: 700, scale: 1 }], ['zoom200-dock', { width: 140, height: 360, scale: 2 }], ['zoom200-tab', { width: 400, height: 700, scale: 2 }]];
+  const WIDTHS = [['dock280', { width: 280, scale: 1 }], ['tab1280', { width: 1280, height: 720, scale: 1 }], ['tab1900', { width: 1900, height: 1000, scale: 1 }], ['zoom200-dock', { width: 140, height: 360, scale: 2 }], ['zoom200-tab', { width: 640, height: 360, scale: 2 }]];
   const MATRIX_STATES = ['idle', 'running', 'done', 'error'];
   const EXTRA_STATES = ['loading', 'empty', 'unreadable', 'stale', 'validation', 'runningFill', 'errorUnknown', 'offline'];
   const results = [];
   const reducedMotionWait = 500;
-  const shot = async (name, label) => {
-    const metrics = await evaluate('(() => ({ w: document.documentElement.scrollWidth, h: document.documentElement.scrollHeight }))()');
-    const r = await call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: 0, width: Math.max(metrics.w, 1), height: Math.min(Math.max(metrics.h, 1), 4000), scale: 1 } });
-    await writeFile(join(out, `MOCK-${name}.png`), Buffer.from(r.data, 'base64'));
-    return label;
+  const shot = async (name) => {
+    const metrics = await evaluate('(() => ({ w: document.documentElement.scrollWidth, h: document.documentElement.scrollHeight, vh: innerHeight }))()');
+    const view = await call('Page.captureScreenshot', { format: 'png' });
+    await writeFile(join(out, `MOCK-${name}.png`), Buffer.from(view.data, 'base64'));
+    if (metrics.h > metrics.vh + 1) {
+      const full = await call('Page.captureScreenshot', { format: 'png', captureBeyondViewport: true, clip: { x: 0, y: 0, width: Math.max(metrics.w, 1), height: Math.min(metrics.h, 4000), scale: 1 } });
+      await writeFile(join(out, `MOCK-${name}-full.png`), Buffer.from(full.data, 'base64'));
+    }
   };
   const run = async (state, theme, [langTag, hostLang], [wName, w]) => {
     await open({ theme, language: langTag === 'en' ? 'en-US' : 'pt-BR', ...w });
     if (langTag === 'pt-BR' && state === 'loading') { /* browser language fallback is what is exercised here */ }
     await S[state](state === 'loading' ? undefined : hostLang);
-    await delay(reducedMotionWait); // let enter transitions (Message, Accordion) settle before measuring
+    await delay(reducedMotionWait); // let enter transitions (Message) settle before measuring
     const expected = { offline: '#offline', error: '#status-error', errorUnknown: '#status-error', validation: '#spacing-error', stale: '#stale',
-      unreadable: '.context-problem', running: '#cancel', runningFill: '#cancel', done: '#result', loading: '[role=progressbar]', empty: '#status' };
+      unreadable: '.context-problem', running: '#cancel', runningFill: '#cancel', done: '#result', loading: '#context .oui-status[data-state=connecting]', empty: '#status .oui-banner' };
     if (expected[state]) assert(await evaluate(`!!document.querySelector(${JSON.stringify(expected[state])})`), `${state}: ${expected[state]} is not on screen`);
     const m = await evaluate(MEASURE);
     const name = `organizer-${state}-${theme}-${langTag}-${wName}`;
     await shot(name);
     results.push({ name, state, theme, lang: langTag, width: wName, ...m });
+    // The declared dock is 280 x 360: both actions, and a running job with its Cancel, are on screen without scrolling.
+    if (wName === 'dock280' && state === 'idle') assert(m.fold['#go'] <= 360 && m.fold['#fill'] <= 360, `${name}: Arrange/Fill below the fold ${JSON.stringify(m.fold)}`);
+    if (wName === 'dock280' && (state === 'running' || state === 'runningFill')) assert(m.fold['#cancel'] <= 360 && m.fold['[role=progressbar]'] <= 360, `${name}: Cancel or the progress bar below the fold ${JSON.stringify(m.fold)}`);
+    if (wName === 'dock280' && state === 'done') assert(m.fold['#open'] <= 360, `${name}: Open below the fold ${JSON.stringify(m.fold)}`);
     process.stdout.write(`${name} overflow=${m.horizontalOverflow} lowContrast=${m.lowContrast.length} violations=${m.violations.length}\n`);
   };
 
@@ -232,14 +242,17 @@ try {
   interaction.copyButtonShown = await evaluate('!!document.querySelector("#copy")');
   if (interaction.copyButtonShown) { await click('#copy'); await delay(300); interaction.copyNote = await evaluate('document.querySelector("#path-note")?.textContent ?? null'); }
 
-  // keyboard: Advanced, the Select, focus returns to it after choosing
+  // keyboard: Advanced, the rotation radio group
   await open({ theme: 'light', width: 280, language: 'en-US' });
   await S.idle('en_US');
   await click('#adv'); await delay(300);
-  interaction.advancedExpanded = await evaluate('document.querySelector("#adv")?.getAttribute("aria-expanded")');
+  interaction.advancedExpanded = await evaluate('document.querySelector("#adv").parentElement.open');
+  assert.equal(interaction.advancedExpanded, true, 'Advanced opens');
   await evaluate('document.querySelector("#rotation-auto").focus()');
-  for (const type of ['keyDown', 'keyUp']) await call('Input.dispatchKeyEvent', { type, key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40 });
-  await delay(250);
+  for (let i = 0; i < 2; i++) { // Automatic, Only 90° steps, Keep orientation
+    for (const type of ['keyDown', 'keyUp']) await call('Input.dispatchKeyEvent', { type, key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40 });
+    await delay(250);
+  }
   interaction.focusAfterSelect = await active();
   interaction.rotationLabel = await evaluate('document.querySelector("#rotation-keep").checked ? "keep" : "auto"');
   await evaluate('window.__posts.length = 0');
@@ -250,8 +263,11 @@ try {
 
   // browser language fallback (no host lang): pt-BR browser shows Portuguese
   await open({ theme: 'light', width: 280, language: 'pt-BR' });
-  interaction.browserLanguagePt = await evaluate('document.documentElement.lang + "|" + document.querySelector("#context").textContent');
-  assert.equal(interaction.browserLanguagePt, 'pt-BR|Lendo o projeto…');
+  interaction.browserLanguagePt = await evaluate('document.documentElement.lang + "|" + document.querySelector("#context").textContent.trim()');
+  assert.equal(interaction.browserLanguagePt, 'pt-BR|Lendo…');
+  // the embedded face is the one that renders (under a policy without font-src data: the page falls back to the system font)
+  interaction.manropeLoaded = await evaluate('document.fonts.ready.then(() => document.fonts.check("13px Manrope"))');
+  assert.equal(interaction.manropeLoaded, true, 'Manrope is embedded and loaded');
   // reduced motion
   await open({ theme: 'light', width: 280, language: 'en-US', reducedMotion: true });
   await S.idle('en_US');
@@ -267,9 +283,14 @@ try {
     cspViolations: allViolations, consoleProblems, networkRequestsToServer: [...new Set(requests.map((r) => r.split('?')[0]))],
     interaction,
   };
+  summary.clippedButtons = results.filter((r) => r.clipped.length).map((r) => ({ name: r.name, clipped: r.clipped }));
   await writeFile(join(out, 'results.json'), JSON.stringify({ summary, results }, null, 1));
   await writeFile(join(out, 'summary.json'), JSON.stringify(summary, null, 1));
   console.log(JSON.stringify(summary, null, 1));
+  assert.deepEqual(summary.overflowCases, [], 'no page scrolls sideways');
+  assert.deepEqual(summary.cspViolations, [], 'no CSP violation');
+  assert.deepEqual(summary.consoleProblems, [], 'no console error or warning');
+  assert.deepEqual(summary.networkRequestsToServer, ['/panel.html'], 'the page requests nothing but itself');
 } finally {
   socket?.close();
   browser.kill('SIGTERM');

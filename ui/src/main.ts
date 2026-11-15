@@ -20,5 +20,5 @@ syncTheme();
 // The store registers the bridge handler before mounting: nothing the plugin posts is missed.
 const organizer = createOrganizer(hostBridge(), { onTick: syncTheme });
 const app = createApp(App, { organizer });
-installOrcaUI(app, organizer.lang.value);
+installOrcaUI(app, organizer.lang.value, 'sky');
 app.mount('#app');

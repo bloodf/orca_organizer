@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- Organizer mark: a build plate seen from above with four parts packed on it. White on the plugin's sky band. -->
+  <rect width="1024" height="1024" rx="224" fill="#00628c"/>
+  <g transform="translate(152 152) scale(30)" fill="#ffffff">
+    <path fill-rule="evenodd" d="M5.5 2.2h13a3.3 3.3 0 0 1 3.3 3.3v13a3.3 3.3 0 0 1-3.3 3.3h-13a3.3 3.3 0 0 1-3.3-3.3v-13a3.3 3.3 0 0 1 3.3-3.3zm0 1.5a1.8 1.8 0 0 0-1.8 1.8v13a1.8 1.8 0 0 0 1.8 1.8h13a1.8 1.8 0 0 0 1.8-1.8v-13a1.8 1.8 0 0 0-1.8-1.8z"/>
+    <rect x="4.7" y="4.7" width="9.3" height="9.5"/>
+    <rect x="14.8" y="4.7" width="4.5" height="9.5"/>
+    <rect x="4.7" y="15" width="4.5" height="4.3"/>
+    <rect x="10" y="15" width="9.3" height="4.3"/>
+  </g>
+</svg>
