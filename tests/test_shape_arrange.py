@@ -762,6 +762,24 @@ def test_spacing_too_large_for_the_bed_is_refused_quickly():
         assert report["placed"] == 1, report
 
 
+def test_spacing_limit_names_the_extruder_clearance_when_it_set_the_spacing():
+    """By object, the printer's clearance radius can raise the spacing past the limit; the
+    error must not blame the 2 mm the user typed."""
+    settings = {"printable_area": ["0x0", "120x0", "120x120", "0x120"],
+                "print_sequence": "by object", "extruder_clearance_radius": "65"}
+    with tempfile.TemporaryDirectory() as d:
+        src = Path(d, "in.3mf")
+        simple_project(src, [box(0, 0, 10, 10)], [(0, tf(0, 5, 5)), (0, tf(0, 30, 5))], settings)
+        try:
+            sa.arrange_3mf(src, Path(d, "out.3mf"), sa.Params(spacing=2, step=90))
+        except sa.PlanError as e:
+            assert e.code == "clearance_large" and e.args_ == {"clearance": 65, "limit": 60}, (e.code, e.args_)
+            why, nxt = sa.error_en(sa.error_args(e))
+            assert "extruder clearance radius" in why and "65" in why, why
+        else:
+            raise AssertionError("a 65 mm clearance radius on a 120 mm bed was accepted")
+
+
 def convex_hull(points):
     pts = sorted(set(map(tuple, np.round(points, 6).tolist())))
 
@@ -814,6 +832,7 @@ if __name__ == "__main__":
     test_bad_project_setting_is_not_reported_as_bad_spacing()
     test_spacing_too_large_for_the_bed_is_refused_quickly()
     test_by_object_clearance_is_kept_between_convex_hulls()
+    test_spacing_limit_names_the_extruder_clearance_when_it_set_the_spacing()
     test_instances_follow_their_position_not_a_stale_plate_list()
     test_rotated_prime_tower_matches_orca_corners()
     test_fill_takes_turns_between_models_on_the_pattern_path()

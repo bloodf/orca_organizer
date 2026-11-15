@@ -5,6 +5,7 @@
   "bad_unit",
   "bed_small",
   "build_layout",
+  "clearance_large",
   "no_build",
   "no_model",
   "plate_empty",
@@ -26,7 +27,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -46,7 +48,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -63,7 +66,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -83,7 +87,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -103,7 +108,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -120,7 +126,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -140,7 +147,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -160,7 +168,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -177,7 +186,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -197,7 +207,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -217,7 +228,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -234,7 +246,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -254,7 +267,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -274,7 +288,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -291,7 +306,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -311,7 +327,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -331,7 +348,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -348,7 +366,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -368,7 +387,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -388,7 +408,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -405,7 +426,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -425,7 +447,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -445,7 +468,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -462,7 +486,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -482,7 +507,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -502,7 +528,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -519,7 +546,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -539,7 +567,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -559,7 +588,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -576,7 +606,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -596,7 +627,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -616,7 +648,8 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
@@ -633,11 +666,72 @@
      "unit": "inch",
      "res": 0.5,
      "spacing": 300,
-     "limit": 37.5
+     "limit": 37.5,
+     "clearance": 65
     },
     "detail": "d"
    },
    "text": "Could not start: A spacing of 300 mm leaves no room on this bed.\nNext: Enter a spacing below 37.5 mm and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "clearance_large",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nThe plate prints by object, and the printer's extruder clearance radius of 65 mm leaves no room on this bed.\nNext: Set the extruder clearance radius below 37.5 mm in the printer settings, or print layer by layer, and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "clearance_large",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nThe plate prints by object, and the printer's extruder clearance radius of 65 mm leaves no room on this bed.\nNext: Set the extruder clearance radius below 37.5 mm in the printer settings, or print layer by layer, and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "clearance_large",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: The plate prints by object, and the printer's extruder clearance radius of 65 mm leaves no room on this bed.\nNext: Set the extruder clearance radius below 37.5 mm in the printer settings, or print layer by layer, and try again.",
    "error": true
   },
   {

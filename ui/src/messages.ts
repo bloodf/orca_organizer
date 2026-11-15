@@ -99,6 +99,10 @@ function en(num: Num) {
         'A spacing of ' + num(a.spacing) + ' mm leaves no room on this bed.',
         'Enter a spacing below ' + num(a.limit) + ' mm and try again.',
       ],
+      clearance_large: (a: { clearance: number; limit: number }): Cause => [
+        "The plate prints by object, and the printer's extruder clearance radius of " + num(a.clearance) + ' mm leaves no room on this bed.',
+        'Set the extruder clearance radius below ' + num(a.limit) + ' mm in the printer settings, or print layer by layer, and try again.',
+      ],
       unexpected: ['Something unexpected went wrong.', 'Try again. If it keeps happening, the details below help to diagnose it.'] as Cause,
     } as Record<string, Cause | ((a: never) => Cause)>,
     saveFailed: (a: { ref: string; detail: string }) =>
@@ -217,6 +221,10 @@ function ptBR(num: Num): Strings {
       spacing_large: (a: { spacing: number; limit: number }): Cause => [
         'Um espaçamento de ' + num(a.spacing) + ' mm não deixa espaço nesta mesa.',
         'Digite um espaçamento menor que ' + num(a.limit) + ' mm e tente novamente.',
+      ],
+      clearance_large: (a: { clearance: number; limit: number }): Cause => [
+        'A placa imprime um objeto por vez, e o raio de folga da extrusora da impressora, de ' + num(a.clearance) + ' mm, não deixa espaço nesta mesa.',
+        'Defina o raio de folga da extrusora abaixo de ' + num(a.limit) + ' mm nas configurações da impressora, ou imprima camada por camada, e tente novamente.',
       ],
       unexpected: ['Algo inesperado deu errado.', 'Tente novamente. Se continuar, o detalhe técnico abaixo ajuda a diagnosticar.'],
     },

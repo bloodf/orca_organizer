@@ -16,6 +16,7 @@ export interface Cause {
   res?: number;
   spacing?: number;
   limit?: number;
+  clearance?: number;
 }
 
 export type MsgCode =

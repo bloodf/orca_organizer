@@ -3,7 +3,7 @@
 ## Unreleased
 
 - Print by object: parts are arranged as their convex hulls, because Orca checks the extruder clearance between convex hulls. Concave parts no longer nest into each other's notches and then fail Orca's "too close" check when slicing.
-- A spacing of half the bed's smaller side or more fails at once with a clear message ("A spacing of 2000 mm leaves no room on this bed. Enter a spacing below 128 mm"). Before, nothing could fit and the run worked for minutes.
+- A spacing of half the bed's smaller side or more fails at once with a clear message ("A spacing of 2000 mm leaves no room on this bed. Enter a spacing below 128 mm"). Before, nothing could fit and the run worked for minutes. When the plate prints by object and the printer's extruder clearance radius is what set that spacing, the message names the clearance radius instead.
 - An invalid printer or prime tower setting in the project (for example a layer height of 0) is reported with the setting's name instead of "Spacing must be a number".
 - Arranging plate 2 or later of a plain 3MF without a plate list is refused; Orca puts all of its objects on plate 1, and the parts used to be moved off every plate.
 - CLI: `--preview` closes the arranged file after drawing it.
