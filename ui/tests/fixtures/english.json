@@ -1,7 +1,9 @@
 {
  "error_codes": [
   "bad_number",
+  "bad_res",
   "bad_rotation",
+  "bad_step",
   "bad_unit",
   "bed_small",
   "build_layout",
@@ -72,6 +74,126 @@
     "detail": "d"
    },
    "text": "Could not start: Spacing must be a number, 0 mm or more.\nNext: Enter a value such as 2 and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "bad_step",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nThe rotation step must be a number, 0° or more.\nNext: Use a step such as 15, or 0 to keep each part's orientation, and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "bad_step",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nThe rotation step must be a number, 0° or more.\nNext: Use a step such as 15, or 0 to keep each part's orientation, and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "bad_step",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: The rotation step must be a number, 0° or more.\nNext: Use a step such as 15, or 0 to keep each part's orientation, and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "arrange",
+    "code": "failed",
+    "cause": {
+     "code": "bad_res",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not arrange.\nThe grid size must be a number above 0 mm.\nNext: Use a grid size such as 0.5 and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "failed",
+    "cause": {
+     "code": "bad_res",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65
+    },
+    "detail": "d"
+   },
+   "text": "P, plate 2: could not fill.\nThe grid size must be a number above 0 mm.\nNext: Use a grid size such as 0.5 and try again.",
+   "error": true
+  },
+  {
+   "msg": {
+    "code": "start_failed",
+    "cause": {
+     "code": "bad_res",
+     "plate": 3,
+     "plates": 2,
+     "unit": "inch",
+     "res": 0.5,
+     "spacing": 300,
+     "limit": 37.5,
+     "clearance": 65
+    },
+    "detail": "d"
+   },
+   "text": "Could not start: The grid size must be a number above 0 mm.\nNext: Use a grid size such as 0.5 and try again.",
    "error": true
   },
   {

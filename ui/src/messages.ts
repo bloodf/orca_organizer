@@ -74,6 +74,8 @@ function en(num: Num) {
     details: 'Details: ',
     err: {
       bad_number: ['Spacing must be a number, 0 mm or more.', 'Enter a value such as 2 and try again.'] as Cause,
+      bad_step: ['The rotation step must be a number, 0° or more.', "Use a step such as 15, or 0 to keep each part's orientation, and try again."] as Cause,
+      bad_res: ['The grid size must be a number above 0 mm.', 'Use a grid size such as 0.5 and try again.'] as Cause,
       bad_rotation: ['Rotation must be automatic or keep orientation.', 'Choose one of the two options.'] as Cause,
       no_model: ['The project file has no 3D model.', 'Save the project again in OrcaSlicer and retry.'] as Cause,
       bad_unit: (a: { unit: string }): Cause => [
@@ -197,6 +199,8 @@ function ptBR(num: Num): Strings {
     details: 'Detalhe técnico: ',
     err: {
       bad_number: ['O espaçamento deve ser um número de 0 mm ou mais.', 'Digite um valor como 2 e tente novamente.'],
+      bad_step: ['O passo de rotação deve ser um número de 0° ou mais.', 'Use um passo como 15, ou 0 para manter a orientação de cada peça, e tente novamente.'],
+      bad_res: ['O tamanho da grade deve ser um número acima de 0 mm.', 'Use um tamanho de grade como 0,5 e tente novamente.'],
       bad_rotation: ['A rotação deve ser automática ou manter a orientação.', 'Escolha uma das duas opções.'],
       no_model: ['O arquivo do projeto não tem modelo 3D.', 'Salve o projeto de novo no OrcaSlicer e tente novamente.'],
       bad_unit: (a: { unit: string }): Cause => [

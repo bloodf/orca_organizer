@@ -780,6 +780,21 @@ def test_spacing_limit_names_the_extruder_clearance_when_it_set_the_spacing():
             raise AssertionError("a 65 mm clearance radius on a 120 mm bed was accepted")
 
 
+def test_bad_rotation_step_and_grid_have_their_own_cause():
+    """A bad step or grid size is explained like a bad spacing, not as an unexpected error."""
+    for params, code in ((sa.Params(step=-1), "bad_step"), (sa.Params(step=math.nan), "bad_step"),
+                         (sa.Params(res=0), "bad_res"), (sa.Params(res="x"), "bad_res"),
+                         (sa.Params(spacing=-1), "bad_number")):
+        try:
+            sa.check_params(params)
+        except sa.PlanError as e:
+            assert e.code == code, (params, e.code)
+            why, nxt = sa.error_en(sa.error_args(e))
+            assert "{" not in why + nxt and why.endswith(".") and nxt.endswith("."), (why, nxt)
+        else:
+            raise AssertionError(f"{params} was accepted")
+
+
 def xy_boxes(path: Path):
     out = []
     for it in sa.Package(path).items():
@@ -863,6 +878,7 @@ if __name__ == "__main__":
     test_spacing_too_large_for_the_bed_is_refused_quickly()
     test_by_object_clearance_is_kept_between_convex_hulls()
     test_parts_that_do_not_fit_are_parked_clear_of_parts_already_parked()
+    test_bad_rotation_step_and_grid_have_their_own_cause()
     test_spacing_limit_names_the_extruder_clearance_when_it_set_the_spacing()
     test_instances_follow_their_position_not_a_stale_plate_list()
     test_rotated_prime_tower_matches_orca_corners()
