@@ -727,8 +727,24 @@ def test_plate_beyond_1_without_plate_list_is_refused():
         assert not dst.exists()
 
 
+def test_bad_project_setting_is_not_reported_as_bad_spacing():
+    """The page explains `bad_number` as a spacing error; a broken printer setting must not claim that."""
+    blocks = [(0, tf(0, 5, 5)), (1, tf(0, 20, 5))]
+    with tempfile.TemporaryDirectory() as d:
+        src = Path(d, "in.3mf")
+        simple_project(src, [box(0, 0, 10, 10)] * 2, blocks, {**TOWER, "layer_height": "0"}, filament_settings(1, 2))
+        try:
+            sa.arrange_3mf(src, Path(d, "out.3mf"), sa.Params(spacing=1, step=90))
+        except ValueError as e:
+            assert sa.error_args(e)["code"] != "bad_number", sa.error_args(e)
+            assert "layer_height" in str(e)
+        else:
+            raise AssertionError("layer_height 0 was accepted")
+
+
 if __name__ == "__main__":
     test_plate_beyond_1_without_plate_list_is_refused()
+    test_bad_project_setting_is_not_reported_as_bad_spacing()
     test_instances_follow_their_position_not_a_stale_plate_list()
     test_rotated_prime_tower_matches_orca_corners()
     test_fill_takes_turns_between_models_on_the_pattern_path()

@@ -88,8 +88,10 @@ def _number(value, name: str, minimum: float = 0.0, strict: bool = False) -> flo
         v = math.nan
     if not math.isfinite(v) or v < minimum or (strict and v == minimum):
         bound = f" {'>' if strict else '>='} {minimum:g}" if math.isfinite(minimum) else ""
-        raise PlanError(f"{name} must be a finite number{bound}, got {value!r}", "bad_number", name=name,
-                        minimum=minimum, strict=strict)
+        message = f"{name} must be a finite number{bound}, got {value!r}"
+        if name != "spacing":  # the page explains bad_number as a spacing typo; project settings keep the raw text
+            raise ValueError(message)
+        raise PlanError(message, "bad_number", name=name, minimum=minimum, strict=strict)
     return v
 
 
