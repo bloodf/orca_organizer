@@ -520,6 +520,24 @@ describe('structure and accessibility', () => {
     expect(panel.q<HTMLInputElement>('#copies')!.disabled).toBe(true);
   });
 
+  it('opens with the remembered settings once, and never over what the user changed', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX, prefs: { spacing: 3.5, rotation: 'right', copies: 12 } }));
+    expect(panel.organizer.state.spacing).toBe(3.5);
+    expect(panel.organizer.state.rotation).toBe('right');
+    expect(panel.organizer.state.copies).toBe(12);
+    await panel.typeSpacing('1');
+    await panel.deliver(sync({ ctx: CTX, prefs: { spacing: 7, rotation: 'keep', copies: 3 } }));
+    expect(panel.organizer.state.spacing).toBe(1);
+    expect(panel.organizer.state.rotation).toBe('right');
+    panel.unmount();
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX, prefs: { spacing: -2, rotation: 'sideways', copies: 2.5 } }));
+    expect(panel.organizer.state.spacing).toBe(2);
+    expect(panel.organizer.state.rotation).toBe('auto');
+    expect(panel.organizer.state.copies).toBe(null);
+  });
+
   it('renders no raw HTML from messages (project and path names are text)', async () => {
     panel = await mountPanel();
     await panel.deliver(sync({ ctx: { plate: 1, objects: 1, name: '<img src=x onerror=alert(1)>', problem: null } }));

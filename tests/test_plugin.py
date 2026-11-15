@@ -751,6 +751,50 @@ def test_right_angle_rotation_option():
             assert min(abs(math.remainder(a, 90)), abs(math.remainder(a - before[it.index], 360))) < 1e-6, (it.name, a)
 
 
+def test_last_settings_are_remembered_for_the_next_session():
+    """The page opens with the spacing, rotation and copy limit of the last run, also after a restart."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa, log, pending, opened, ui = load(tmp, project)
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "hello"})
+        assert log["page_posts"][-1][0]["prefs"] == {}, "nothing remembered yet"
+        sa._current_plate = lambda: 1
+        page.on_message({"action": "fill", "spacing": 3.5, "rotation": "right", "copies": 2})
+        drive_page(page, log, lambda: sa._session.job.state == "done", ui)
+        saved = {"spacing": 3.5, "rotation": "right", "copies": 2}
+        assert log["page_posts"][-1][0]["prefs"] == saved
+        page.on_message({"action": "arrange", "spacing": 1, "rotation": "sideways"})  # refused: not remembered
+        page.on_message({"action": "poll"})
+        assert log["page_posts"][-1][0]["prefs"] == saved
+
+        sa, log, pending, opened, ui = load(tmp, project)  # OrcaSlicer restarted
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "hello"})
+        assert log["page_posts"][-1][0]["prefs"] == saved
+        page.on_message({"action": "arrange", "spacing": 1})  # arrange keeps the copy limit it did not use
+        drive_page(page, log, lambda: sa._session.job.state == "done", ui)
+        assert log["page_posts"][-1][0]["prefs"] == {"spacing": 1, "rotation": "auto", "copies": 2}
+
+        prefs = tmp / "storage" / "settings.json"
+        prefs.write_text('{"spacing": -1, "rotation": "x", "copies": 9999, "other": 1}')
+        sa, log, pending, opened, ui = load(tmp, project)
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "hello"})
+        assert log["page_posts"][-1][0]["prefs"] == {}, "invalid values are dropped"
+        prefs.write_text("{not json")
+        sa, log, pending, opened, ui = load(tmp, project)
+        page = page_of(sa, log)
+        page.get_ui()
+        page.on_message({"action": "hello"})
+        assert log["page_posts"][-1][0]["prefs"] == {} and not log["page_posts"][-1][0].get("error")
+
+
 def test_failed_run_is_flagged_as_error_for_the_page():
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d)
@@ -974,6 +1018,7 @@ if __name__ == "__main__":
     test_context_reports_stale_runs_and_empty_projects()
     test_keep_orientation_option()
     test_right_angle_rotation_option()
+    test_last_settings_are_remembered_for_the_next_session()
     test_failed_run_is_flagged_as_error_for_the_page()
     test_old_failed_snapshots_are_pruned_but_never_a_running_job()
     test_unexpected_failure_keeps_the_raw_error_as_details()

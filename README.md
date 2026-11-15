@@ -138,6 +138,10 @@ are square to the bed stay square to it (each part may also keep its current
 angle), and *Keep each part's orientation* turns rotation off: parts only
 move. Both fit fewer parts than automatic rotation.
 
+The panel remembers the spacing, rotation and copy limit of the last run you
+started, also after OrcaSlicer restarts (`settings.json` in the plugin's
+storage folder).
+
 Each run is saved as `<project>-arranged-<date>-<time>-<id>.3mf` in the
 plugin's storage folder, so earlier results stay. The plugin does not delete
 them; remove old ones by hand when you no longer need them. A run that fails

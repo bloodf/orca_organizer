@@ -80,12 +80,20 @@ export interface HostMessage {
   stale_ref?: StaleRef | null;
   lang?: string | null;
   relay?: string;
+  /** The settings of the last run, kept by the plugin across sessions. */
+  prefs?: Prefs | null;
 }
 
 /** Most copies one Fill adds (shape_arrange.py MAX_COPIES). */
 export const MAX_COPIES = 300;
 
 export type Rotation = 'auto' | 'right' | 'keep';
+
+export interface Prefs {
+  spacing?: number;
+  rotation?: Rotation;
+  copies?: number;
+}
 
 export type OutMessage =
   | { action: 'hello' }

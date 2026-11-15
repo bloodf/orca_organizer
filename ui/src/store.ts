@@ -1,6 +1,6 @@
 import { computed, reactive } from 'vue';
 import { pickLang, strings, type Lang } from './messages';
-import type { Bridge, Ctx, HostMessage, Rotation, StaleRef } from './protocol';
+import { MAX_COPIES, type Bridge, type Ctx, type HostMessage, type Prefs, type Rotation, type StaleRef } from './protocol';
 import { describe, jobRef, splitLines, translate, type StatusLine, type StatusSource, type StatusView } from './status';
 
 const BUSY_POLL_MS = 1000;
@@ -55,6 +55,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   let last = now();
   let retryAt = 0;
   let focusSeq = 0;
+  let prefsApplied = false;
   let alive = true;
   let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -124,6 +125,14 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     if (!busy && was && (active === 'cancel' || active === 'body')) requestFocus(state.resultVisible ? 'open' : 'go');
   }
 
+  /** The plugin's remembered settings, once per page and only before the user changed anything. */
+  function applyPrefs(p: Prefs) {
+    prefsApplied = true;
+    if (typeof p.spacing === 'number' && Number.isFinite(p.spacing) && p.spacing >= 0) state.spacing = p.spacing;
+    if (p.rotation === 'auto' || p.rotation === 'right' || p.rotation === 'keep') state.rotation = p.rotation;
+    if (Number.isInteger(p.copies) && p.copies! >= 1 && p.copies! <= MAX_COPIES) state.copies = p.copies!;
+  }
+
   function onMessage(m: HostMessage) {
     if (!alive) return;
     last = now();
@@ -134,6 +143,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     if (m.lang) state.hostLang = m.lang;
     if ('context' in m) state.context = m.context || '';
     if (m.ctx) state.ctx = m.ctx;
+    if (m.prefs && !prefsApplied && !state.busy) applyPrefs(m.prefs);
     if ('stale' in m) {
       state.stale = m.stale || '';
       state.staleRef = m.stale_ref || null;
@@ -165,6 +175,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   }
 
   function run(action: 'arrange' | 'fill') {
+    prefsApplied = true;
     const v = state.spacing;
     if (v == null || !Number.isFinite(v) || v < 0) {
       state.validation = true;
@@ -183,12 +194,19 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   }
 
   function setSpacing(value: number | null) {
+    prefsApplied = true;
     state.spacing = value;
     state.spacingInvalid = false;
     state.validation = false;
   }
 
+  function setRotation(value: Rotation) {
+    prefsApplied = true;
+    state.rotation = value;
+  }
+
   function setCopies(value: number | null) {
+    prefsApplied = true;
     state.copies = value;
   }
 
@@ -271,7 +289,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
 
   return {
     state, lang, s, t, loading, ctxText, ctxProblem, goLabel, fillLabel, staleText, statusView, progress, hasCount, percent, countText,
-    run, setSpacing, setCopies, cancel, open, copyPath, retry, start, stop, onMessage,
+    run, setSpacing, setRotation, setCopies, cancel, open, copyPath, retry, start, stop, onMessage,
   };
 }
 

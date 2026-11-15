@@ -11,7 +11,7 @@ import { computed } from 'vue';
 import { MAX_COPIES, type Rotation } from '../protocol';
 import { useOrganizer } from '../useOrganizer';
 
-const { s, lang, state, goLabel, fillLabel, run, setSpacing, setCopies } = useOrganizer();
+const { s, lang, state, goLabel, fillLabel, run, setSpacing, setRotation, setCopies } = useOrganizer();
 
 const locale = computed(() => (lang.value === 'pt-BR' ? 'pt-BR' : 'en-US'));
 const rotations = computed<{ value: Rotation; label: string }[]>(() => [
@@ -65,7 +65,7 @@ const spacingPt = computed(() => ({
           <fieldset class="rotation" aria-describedby="rotation-help">
             <legend id="rotation-label">{{ s.rotationLabel }}</legend>
             <div v-for="option in rotations" :key="option.value" class="choice">
-              <RadioButton v-model="state.rotation" :input-id="'rotation-' + option.value" name="rotation" :value="option.value" :disabled="state.busy" />
+              <RadioButton :model-value="state.rotation" :input-id="'rotation-' + option.value" name="rotation" :value="option.value" :disabled="state.busy" @update:model-value="setRotation" />
               <label :for="'rotation-' + option.value">{{ option.label }}</label>
             </div>
             <p id="rotation-help" class="oui-meta">{{ s.rotationHelp }}</p>
