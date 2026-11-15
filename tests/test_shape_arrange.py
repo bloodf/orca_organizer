@@ -713,7 +713,22 @@ def test_instances_follow_their_position_not_a_stale_plate_list():
             assert np.allclose(b.transform, a.transform)
 
 
+def test_plate_beyond_1_without_plate_list_is_refused():
+    """A plain 3MF has no plate list: Orca puts everything on plate 1, so plate 2 must not be invented."""
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        simple_project(src, [box(0, 0, 10, 10)], [(0, tf(0, 5, 5))], {"printable_area": ["0x0", "60x0", "60x60", "0x60"]})
+        try:
+            sa.arrange_3mf(src, dst, sa.Params(plate=2, spacing=1, step=90))
+        except sa.PlanError as e:
+            assert e.code == "plate_gone" and e.args_ == {"plate": 2, "plates": 1}, (e.code, e.args_)
+        else:
+            raise AssertionError("plate 2 of a project without plates was arranged")
+        assert not dst.exists()
+
+
 if __name__ == "__main__":
+    test_plate_beyond_1_without_plate_list_is_refused()
     test_instances_follow_their_position_not_a_stale_plate_list()
     test_rotated_prime_tower_matches_orca_corners()
     test_fill_takes_turns_between_models_on_the_pattern_path()

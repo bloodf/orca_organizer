@@ -1283,6 +1283,8 @@ def _plan(pkg: Package, p: Params, bed, progress):
             raise PlanError(f"plate {p.plate} does not exist (project has {len(plates)})", "plate_gone",
                             plate=p.plate, plates=len(plates))
         items = [it for it in items if _plate_of(it, poly, len(plates)) == p.plate]
+    elif p.plate != 1:  # no plate list: Orca puts every item on plate 1
+        raise PlanError(f"plate {p.plate} does not exist (project has 1)", "plate_gone", plate=p.plate, plates=1)
     movable = [it for it in items if it.printable and it.parts and len(_silhouette(it.parts))]
     if not movable:
         raise PlanError(f"plate {p.plate} has no printable objects", "plate_empty", plate=p.plate)
