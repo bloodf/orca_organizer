@@ -1296,7 +1296,7 @@ def _plan(pkg: Package, p: Params, bed, progress):
         progress(0, 1, Phase("Reading project", "read", counted=False))
     poly, excludes = pkg.bed()
     poly = check_bed(poly or bed or DEFAULT_BED)
-    items = pkg.items()
+    items = everything = pkg.items()
 
     plates = pkg.settings["plates"]
     if plates:
@@ -1357,13 +1357,24 @@ def _plan(pkg: Package, p: Params, bed, progress):
     by_index = {it.index: it for it in movable}
     new = {idx: d @ by_index[idx].transform for idx, d in moves.items()}
     copies = [(it.object_id, d @ it.transform) for it, d in added]
-    # parts that did not fit go in a row above the plate grid, where no plate is
-    cursor, top = origin[0] + min(xs), max(ys) + 10
-    for it in failed:
+    # parts that did not fit go in a row above the plate grid, where no plate is, clear of every part
+    # that stays put (parked by an earlier run, or left over from another plate in this column)
+    def xy_box(it):
         xy = np.concatenate([v[:, :2] for v, _ in it.parts])
-        lo, hi = xy.min(0), xy.max(0)
-        new[it.index] = _delta(0, lo, np.array([cursor, top])) @ it.transform
-        cursor += hi[0] - lo[0] + max(p.spacing, 5)
+        return xy.min(0), xy.max(0)
+    taken = [xy_box(it) for it in everything if it.index not in moving and it.parts]
+    gap, top = max(p.spacing, 5), max(ys) + 10
+    for it in failed:
+        lo, hi = xy_box(it)
+        size, x = hi - lo, origin[0] + min(xs)
+        while True:  # slide right past whatever is in the way; x only grows, so this ends
+            hit = [b for b in taken if b[0][0] < x + size[0] + gap and x < b[1][0] + gap
+                   and b[0][1] < top + size[1] + gap and top < b[1][1] + gap]
+            if not hit:
+                break
+            x = max(b[1][0] for b in hit) + gap
+        new[it.index] = _delta(0, lo, np.array([x, top])) @ it.transform
+        taken.append((np.array([x, top]), np.array([x, top]) + size))
     by_object: dict[str, int] = {}
     for it, _ in added:
         by_object[it.name] = by_object.get(it.name, 0) + 1

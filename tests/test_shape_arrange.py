@@ -780,6 +780,36 @@ def test_spacing_limit_names_the_extruder_clearance_when_it_set_the_spacing():
             raise AssertionError("a 65 mm clearance radius on a 120 mm bed was accepted")
 
 
+def xy_boxes(path: Path):
+    out = []
+    for it in sa.Package(path).items():
+        xy = np.concatenate([v[:, :2] for v, _ in it.parts])
+        out.append((xy.min(0), xy.max(0)))
+    return out
+
+
+def test_parts_that_do_not_fit_are_parked_clear_of_parts_already_parked():
+    """Leftovers go in a row above the plate grid. Parts parked there by an earlier run (or from
+    another plate in the same column) must not be stacked on by the next leftovers."""
+    plates = ('<?xml version="1.0" encoding="UTF-8"?>\n<config>'
+              '<plate><metadata key="plater_id" value="1"/></plate></config>')
+    settings = {"printable_area": ["0x0", "60x0", "60x60", "0x60"]}
+    items = [(0, tf(0, 2 + 15 * i, 2)) for i in range(3)] + [(1, tf(0, 0, 70))]  # last: parked earlier
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        simple_project(src, [box(0, 0, 40, 40), box(0, 0, 30, 30)], items, settings, plates)
+        report = sa.arrange_3mf(src, dst, sa.Params(spacing=2, step=90))
+        assert report["placed"] == 1 and len(report["unplaced"]) == 2, report
+        boxes = xy_boxes(dst)
+        assert np.allclose(boxes[3][0], (0, 70)), "the part parked earlier must not move"
+        parked = [b for b in boxes if b[0][1] >= 60]
+        assert len(parked) == 3, parked
+        for i in range(3):
+            for j in range(i + 1, 3):
+                (alo, ahi), (blo, bhi) = parked[i], parked[j]
+                assert (ahi <= blo).any() or (bhi <= alo).any(), f"parked parts overlap: {parked[i]} {parked[j]}"
+
+
 def convex_hull(points):
     pts = sorted(set(map(tuple, np.round(points, 6).tolist())))
 
@@ -832,6 +862,7 @@ if __name__ == "__main__":
     test_bad_project_setting_is_not_reported_as_bad_spacing()
     test_spacing_too_large_for_the_bed_is_refused_quickly()
     test_by_object_clearance_is_kept_between_convex_hulls()
+    test_parts_that_do_not_fit_are_parked_clear_of_parts_already_parked()
     test_spacing_limit_names_the_extruder_clearance_when_it_set_the_spacing()
     test_instances_follow_their_position_not_a_stale_plate_list()
     test_rotated_prime_tower_matches_orca_corners()
