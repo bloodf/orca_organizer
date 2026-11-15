@@ -32,7 +32,7 @@ def english_fixtures() -> list[dict]:
     label, ref = "P, plate 2", {"stem": "P", "plate": 2}
     out = []
     for code in sa.ERRORS_EN:
-        cause = {"code": code, "plate": 3, "plates": 2, "unit": "inch", "res": 0.5}
+        cause = {"code": code, "plate": 3, "plates": 2, "unit": "inch", "res": 0.5, "spacing": 300, "limit": 37.5}
         for action in ("arrange", "fill"):
             out.append({"msg": {**ref, "action": action, "code": "failed", "cause": cause, "detail": "d"},
                         "text": sa.failure_text(action, label, cause, "d"), "error": True})

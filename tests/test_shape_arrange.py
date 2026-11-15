@@ -742,9 +742,30 @@ def test_bad_project_setting_is_not_reported_as_bad_spacing():
             raise AssertionError("layer_height 0 was accepted")
 
 
+def test_spacing_too_large_for_the_bed_is_refused_quickly():
+    """A typo like 2000 mm must not rasterise a 8000 x 8000 halo per rotation (minutes, gigabytes)."""
+    import time
+
+    with tempfile.TemporaryDirectory() as d:
+        src = Path(d, "in.3mf")
+        simple_project(src, [box(0, 0, 10, 10)], [(0, tf(0, 5, 5))], {"printable_area": ["0x0", "60x0", "60x40", "0x40"]})
+        t0 = time.monotonic()
+        try:
+            sa.arrange_3mf(src, Path(d, "out.3mf"), sa.Params(spacing=2000, **sa.AUTO))
+        except sa.PlanError as e:
+            assert e.code == "spacing_large" and e.args_ == {"spacing": 2000, "limit": 20}, (e.code, e.args_)
+        else:
+            raise AssertionError("2000 mm spacing on a 60 x 40 bed was accepted")
+        assert time.monotonic() - t0 < 5
+        # just below the limit still runs: a part fits only if the bed is wider than twice the spacing
+        report = sa.arrange_3mf(src, Path(d, "out.3mf"), sa.Params(spacing=12, step=90))
+        assert report["placed"] == 1, report
+
+
 if __name__ == "__main__":
     test_plate_beyond_1_without_plate_list_is_refused()
     test_bad_project_setting_is_not_reported_as_bad_spacing()
+    test_spacing_too_large_for_the_bed_is_refused_quickly()
     test_instances_follow_their_position_not_a_stale_plate_list()
     test_rotated_prime_tower_matches_orca_corners()
     test_fill_takes_turns_between_models_on_the_pattern_path()

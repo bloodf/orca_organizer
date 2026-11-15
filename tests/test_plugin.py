@@ -823,7 +823,8 @@ def test_every_user_reachable_error_has_cause_and_next_step():
                  and getattr(c.func, "id", "") == "PlanError" and len(c.args) > 1 and isinstance(c.args[1], ast.Constant)}
         assert codes == set(sa.ERRORS_EN), (codes ^ set(sa.ERRORS_EN))
         for code in codes:
-            why, nxt = sa.error_en({"code": code, "plate": 3, "plates": 1, "unit": "inch", "res": 0.5})
+            why, nxt = sa.error_en({"code": code, "plate": 3, "plates": 1, "unit": "inch", "res": 0.5,
+                                      "spacing": 300, "limit": 37.5})
             assert why.endswith(".") and nxt.endswith(".") and "{" not in why + nxt, (code, why, nxt)
         assert sa.error_en({"code": "plate_gone", "plate": 3, "plates": 1})[0].endswith("the project has 1 plate.")
         assert isinstance(sa.PlanError("x", "plate_empty", plate=1), ValueError)  # old callers still catch ValueError

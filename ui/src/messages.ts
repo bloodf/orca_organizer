@@ -95,6 +95,10 @@ function en(num: Num) {
         'The bed is smaller than the ' + num(a.res) + ' mm grid used to place parts.',
         "Check the printer's bed shape in OrcaSlicer.",
       ],
+      spacing_large: (a: { spacing: number; limit: number }): Cause => [
+        'A spacing of ' + num(a.spacing) + ' mm leaves no room on this bed.',
+        'Enter a spacing below ' + num(a.limit) + ' mm and try again.',
+      ],
       unexpected: ['Something unexpected went wrong.', 'Try again. If it keeps happening, the details below help to diagnose it.'] as Cause,
     } as Record<string, Cause | ((a: never) => Cause)>,
     saveFailed: (a: { ref: string; detail: string }) =>
@@ -209,6 +213,10 @@ function ptBR(num: Num): Strings {
       bed_small: (a: { res: number }): Cause => [
         'A mesa é menor que a grade de ' + num(a.res) + ' mm usada para posicionar as peças.',
         'Confira o formato da mesa da impressora no OrcaSlicer.',
+      ],
+      spacing_large: (a: { spacing: number; limit: number }): Cause => [
+        'Um espaçamento de ' + num(a.spacing) + ' mm não deixa espaço nesta mesa.',
+        'Digite um espaçamento menor que ' + num(a.limit) + ' mm e tente novamente.',
       ],
       unexpected: ['Algo inesperado deu errado.', 'Tente novamente. Se continuar, o detalhe técnico abaixo ajuda a diagnosticar.'],
     },

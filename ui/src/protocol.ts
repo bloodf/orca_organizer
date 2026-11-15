@@ -14,6 +14,8 @@ export interface Cause {
   plates?: number;
   unit?: string;
   res?: number;
+  spacing?: number;
+  limit?: number;
 }
 
 export type MsgCode =
