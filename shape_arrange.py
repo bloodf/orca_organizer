@@ -3519,6 +3519,7 @@ def _preview(dst: Path, png: Path, p: Params, bed=None):
             px[:, 1] = img.height - px[:, 1]
             for tri in px[t].tolist():
                 draw.polygon([tuple(q) for q in tri], fill=color)
+    pkg.close()
     img.save(png)
 
 
