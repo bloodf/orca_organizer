@@ -22,6 +22,7 @@ const { s, state, staleText, ctxProblem, retry } = useOrganizer();
 </template>
 
 <style scoped>
-/* A banner with more than its headline reads from the top, not from the middle (as the status banners). */
+/* foundation-gap: OuiBanner centres its icon; 4.0.2 could add a top-aligned variant for multi-line banners.
+   A banner with more than its headline reads from the top, not from the middle (as the status banners). */
 #offline { align-items: flex-start; }
 </style>

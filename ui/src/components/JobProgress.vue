@@ -25,5 +25,6 @@ const { s, state, percent, jobView, cancel } = useOrganizer();
 /* One line each: the project and the part being placed can be long. */
 .job :deep(.oui-job-detail) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .job :deep(.p-button) { white-space: normal; }
+/* foundation-gap: no card surface for an OuiJob outside an OuiPanel (the reference draws the same box locally). */
 .job { border-radius: var(--oui-radius-lg); background: var(--oui-surface); box-shadow: inset 0 0 0 1px var(--oui-border), var(--oui-shadow-panel); overflow: hidden; }
 </style>

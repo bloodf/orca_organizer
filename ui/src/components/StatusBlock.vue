@@ -43,6 +43,7 @@ const warnings = computed(() => lines.value.filter((l) => l.kind === 'warn'));
 .line { display: block; overflow-wrap: anywhere; }
 .line.detail { font-family: var(--oui-mono); font-size: var(--oui-text-sm); }
 :deep(.oui-banner-text) { overflow-wrap: anywhere; }
-/* A banner with more than its headline reads from the top, not from the middle. */
+/* foundation-gap: OuiBanner centres its icon; 4.0.2 could add a top-aligned variant for multi-line banners.
+   A banner with more than its headline reads from the top, not from the middle. */
 :deep(.oui-banner.tall), .oui-banner.tall { align-items: flex-start; }
 </style>
