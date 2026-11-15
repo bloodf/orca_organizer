@@ -40,5 +40,6 @@ embedded page so that releases need only Python.
 
 ## Third-party code in the embedded page
 
-Vue 3.5.45 (MIT), PrimeVue 5.0.5 (PrimeUI Community License), @primeuix/themes 3.1.1 (MIT), Lucide icons (ISC), Manrope font (OFL-1.1). Licenses: `shared/licenses/`. Dev tools
+Vue 3.5.45 (MIT), PrimeVue 5.0.5 (PrimeUI Community License), @primeuix/themes 3.1.1 (MIT), Lucide icons (ISC), Manrope font (OFL-1.1). Licenses: `shared/licenses/`; `scripts/embed.mjs` copies them as comments into the `PANEL_HTML` block of
+`../shape_arrange.py`, so they ship with the plugin file (`check:embedded` fails if they are stale). Dev tools
 (Vite, vitest, jsdom, TypeScript) are not shipped.

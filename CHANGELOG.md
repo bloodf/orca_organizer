@@ -10,6 +10,7 @@
 - Spacing has the unit in the field and +/- buttons. Rotation and the copy limit stay under **Advanced**; what each control does is under **How it works** and in each control's tooltip.
 - Errors, "no answer from the plugin" and "the run below is for another plate" are banners with their own icon and colour.
 - New plugin icon with the Organizer mark.
+- The plugin file now carries the licence notices of the code and font bundled in its page (Vue, PrimeVue, Lucide icons, Manrope).
 
 ## 0.11.0 (2026-11-14)
 

@@ -116,6 +116,19 @@ def test_embedded_page_is_offline_and_needs_no_unsafe_eval():
     assert "bootstrap" not in html.lower() and "cdn." not in html.lower()
 
 
+def test_shipped_file_carries_the_bundled_licence_notices():
+    # The release uploads this very file; the page in it bundles Manrope (SIL OFL 1.1) and Lucide icons (ISC),
+    # whose notices must travel with every copy, and Vue and PrimeVue.
+    shipped = Path(sa.__file__).read_text(encoding="utf-8")
+    block = shipped[shipped.index("# >>> PANEL_HTML"):shipped.index("# <<< PANEL_HTML")]
+    assert "SIL Open Font License, Version 1.1" in block and "Copyright 2018 The Manrope Project Authors" in block
+    assert "Copyright (c) 2026 Lucide Icons and Contributors" in block and "ISC License" in block
+    assert "# ---- Vue " in block and "# ---- PrimeVue " in block and "# ---- PrimeUIX " in block
+    for name in ("Lucide", "Manrope", "PrimeUIX", "PrimeVue", "Vue"):  # verbatim, line by line
+        text = (UI / "shared" / "licenses" / f"{name}.txt").read_text(encoding="utf-8").rstrip()
+        assert "\n".join(("# " + l) if l else "#" for l in text.splitlines()) in block, name
+
+
 def test_vue_component_tests_pass():
     assert (UI / "node_modules").is_dir(), "run `npm ci` in ui/ first"
     r = subprocess.run([tool("npm"), "test", "--silent"], cwd=UI, capture_output=True, text=True, timeout=300)
@@ -132,5 +145,6 @@ if __name__ == "__main__":
     test_english_fixtures_are_current()
     test_embedded_page_is_the_built_page()
     test_embedded_page_is_offline_and_needs_no_unsafe_eval()
+    test_shipped_file_carries_the_bundled_licence_notices()
     test_vue_component_tests_pass()
     print("ok")
