@@ -78,22 +78,22 @@ Organize as peças pelo contorno real e encha a mesa com mais cópias.
 ## O que você precisa
 
 - OrcaSlicer 2.5 ou mais novo
-- Um projeto em milímetros com pelo menos um objeto na placa
+- Um projeto em milímetros com pelo menos um objeto na mesa
 - Mais nada: `numpy` e `pillow` são instalados pelo OrcaSlicer na primeira instalação do plugin
 
 ## O que faz
 
-- Arruma a placa pelo contorno real de cada objeto visto de cima, não pelo fecho convexo, então peças côncavas se encaixam e cabem mais.
+- Arruma a mesa pelo contorno real de cada objeto visto de cima, não pelo fecho convexo, então peças côncavas se encaixam e cabem mais.
 - Testa cada peça nas 360 rotações, em passos de 1°. Dá para limitar a passos de 90° ou desligar a rotação.
-- **Preencher** adiciona cópias dos objetos da placa, um objeto por vez, até não caber mais nada ou até o número que você definir (até 300 por execução).
-- Mantém o espaçamento definido em relação às outras peças, à borda da mesa, às áreas excluídas e, em placas multicoloridas, à torre de limpeza.
-- Salva o resultado em um arquivo de projeto novo e o abre. Cores, pintura, modificadores, ajustes por objeto e as outras placas são mantidos.
+- **Preencher** adiciona cópias dos objetos da mesa, um objeto por vez, até não caber mais nada ou até o número que você definir (até 300 por execução).
+- Mantém o espaçamento definido em relação às outras peças, à borda da mesa, às áreas excluídas e, em mesas multicoloridas, à torre de limpeza.
+- Salva o resultado em um arquivo de projeto novo e o abre. Cores, pintura, modificadores, ajustes por objeto e as outras mesas são mantidos.
 
-![Preencha a placa com cópias](https://raw.githubusercontent.com/bloodf/orca_organizer/main/assets/orca-cloud/orca_organizer-feature-02-fill-pt-BR.png)
+![Preencha a mesa com cópias](https://raw.githubusercontent.com/bloodf/orca_organizer/main/assets/orca-cloud/orca_organizer-feature-02-fill-pt-BR.png)
 
 ## Como começar
 
-1. Selecione uma placa e clique na aba **Organizer** da janela principal.
+1. Selecione uma mesa e clique na aba **Organizer** da janela principal.
 2. Ajuste o **Espaçamento entre peças** e clique em **Arrumar placa N**, ou em **Preencher placa N** para também adicionar cópias.
 3. Aceite o pedido de permissão na primeira vez, confira a cópia arrumada que abre e fatie.
 
@@ -105,9 +105,9 @@ Onde o OrcaSlicer não tem abas de plugin, clique em **Run** no *Shape-Aware Arr
 
 Tudo roda no seu computador, e o plugin não faz nenhuma conexão de rede. Ele grava só na própria pasta de armazenamento: as cópias arrumadas, os últimos ajustes usados e uma cópia do projeto de uma execução que falhou. O seu arquivo de projeto original nunca é alterado, e as cópias arrumadas anteriores nunca são sobrescritas nem apagadas.
 
-O contorno é só a geometria do modelo: brim, suportes e skirt não entram na conta, e a torre de limpeza é uma estimativa. Confira a placa no OrcaSlicer antes de imprimir.
+O contorno é só a geometria do modelo: brim, suportes e skirt não entram na conta, e a torre de limpeza é uma estimativa. Confira a mesa no OrcaSlicer antes de imprimir.
 
-![Revise a placa organizada](https://raw.githubusercontent.com/bloodf/orca_organizer/main/assets/orca-cloud/orca_organizer-feature-04-review-pt-BR.png)
+![Revise a mesa organizada](https://raw.githubusercontent.com/bloodf/orca_organizer/main/assets/orca-cloud/orca_organizer-feature-04-review-pt-BR.png)
 
 ## Idiomas
 

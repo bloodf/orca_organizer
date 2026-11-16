@@ -21,7 +21,7 @@
 
 ## ✨ O que faz
 
-O Organizar do próprio OrcaSlicer trata cada objeto como o seu fecho convexo, então peças côncavas como flocos de neve, estrelas, pentes e letras ficam espaçadas como se fossem discos ou caixas. O Organizer arruma a placa pelo contorno real de cada objeto visto de cima, então braços e dentes se encaixam e cabem mais peças. **Preencher** depois adiciona cópias dos objetos da placa até não caber mais nada. O resultado é salvo em um arquivo de projeto novo e aberto no OrcaSlicer; o seu arquivo original nunca é alterado.
+O Organizar do próprio OrcaSlicer trata cada objeto como o seu fecho convexo, então peças côncavas como flocos de neve, estrelas, pentes e letras ficam espaçadas como se fossem discos ou caixas. O Organizer arruma a mesa pelo contorno real de cada objeto visto de cima, então braços e dentes se encaixam e cabem mais peças. **Preencher** depois adiciona cópias dos objetos da mesa até não caber mais nada. O resultado é salvo em um arquivo de projeto novo e aberto no OrcaSlicer; o seu arquivo original nunca é alterado.
 
 <p align="center">
   <picture>
@@ -60,7 +60,7 @@ Os nomes de menu acima são os do OrcaSlicer em inglês.
     </td>
     <td width="50%" valign="top">
       <img alt="Preencha a placa com cópias: o painel adicionando cópias, 17 até agora" src="assets/orca-cloud/orca_organizer-feature-02-fill-pt-BR.png" width="100%">
-      <p><b>Preencha a placa com cópias</b><br>Preencher adiciona cópias dos objetos da placa, um objeto por vez, até não caber mais nada ou até o número que você definir.</p>
+      <p><b>Preencha a mesa com cópias</b><br>Preencher adiciona cópias dos objetos da mesa, um objeto por vez, até não caber mais nada ou até o número que você definir.</p>
     </td>
   </tr>
   <tr>
@@ -70,7 +70,7 @@ Os nomes de menu acima são os do OrcaSlicer em inglês.
     </td>
     <td width="50%" valign="top">
       <img alt="Revise a placa organizada: o resultado com 14 objetos posicionados e a cópia salva" src="assets/orca-cloud/orca_organizer-feature-04-review-pt-BR.png" width="100%">
-      <p><b>Revise a placa organizada</b><br>O resultado abre como um arquivo de projeto novo, e o painel lista o que foi posicionado e o que não coube.</p>
+      <p><b>Revise a mesa organizada</b><br>O resultado abre como um arquivo de projeto novo, e o painel lista o que foi posicionado e o que não coube.</p>
     </td>
   </tr>
 </table>
@@ -79,24 +79,24 @@ Os nomes de menu acima são os do OrcaSlicer em inglês.
 |---|---|---|
 | | Balanços | Cada contorno é o modelo 3D inteiro projetado para baixo, então nada é colocado embaixo do balanço de outra peça. |
 | | Borda da mesa e áreas excluídas | O espaçamento também vale para a borda da mesa e para as áreas excluídas da impressora. |
-| | Torre de limpeza | Em placas multicoloridas com a torre de limpeza (prime tower) ligada, a área dela fica livre, com o brim. A profundidade é uma estimativa até fatiar. |
+| | Torre de limpeza | Em mesas multicoloridas com a torre de limpeza (prime tower) ligada, a área dela fica livre, com o brim. A profundidade é uma estimativa até fatiar. |
 | | Impressão por objeto | As peças ficam afastadas pelo menos o raio de folga da extrusora e são arrumadas como fechos convexos, porque é isso que o Orca confere. |
 | | Padrões repetidos | Para cópias da mesma peça, o plugin mede o quanto duas cópias se encaixam, cobre a mesa com esse padrão e encaixa o resto nos vãos. |
-| | Nova tentativa mais fina | Se sobrarem peças, a placa é tentada mais uma vez em uma grade de 0,25 mm, que deixa formas justas se encaixarem. |
-| | Quantidade do pedido | *Máximo de cópias ao preencher* para o Preencher em um número definido, 12 para um pedido de 12. Vazio preenche a placa, até 300 cópias por execução. |
+| | Nova tentativa mais fina | Se sobrarem peças, a mesa é tentada mais uma vez em uma grade de 0,25 mm, que deixa formas justas se encaixarem. |
+| | Quantidade do pedido | *Máximo de cópias ao preencher* para o Preencher em um número definido, 12 para um pedido de 12. Vazio preenche a mesa, até 300 cópias por execução. |
 | | Ajustes lembrados | O espaçamento, a rotação e o máximo de cópias da última execução voltam depois de reiniciar o OrcaSlicer. |
 | | Progresso e Cancelar | A execução mostra a fase e a contagem. **Cancelar** para no próximo ponto de verificação, e nada é gravado nem aberto. |
-| | O resto não muda | Cores, pintura, modificadores, ajustes por objeto e as outras placas ficam como estão. |
+| | O resto não muda | Cores, pintura, modificadores, ajustes por objeto e as outras mesas ficam como estão. |
 | | Linha de comando | O núcleo de encaixe também roda em arquivos 3MF fora do OrcaSlicer. Veja [como funciona](docs/how-it-works.md#command-line) (em inglês). |
 
 ## 🛠️ Como usar
 
-1. Selecione no OrcaSlicer a placa que você quer arrumar.
-2. Clique na aba **Organizer** da janela principal. Ela mostra o projeto, a placa selecionada e a contagem de objetos, e acompanha a sua seleção.
+1. Selecione no OrcaSlicer a mesa que você quer arrumar.
+2. Clique na aba **Organizer** da janela principal. Ela mostra o projeto, a mesa selecionada e a contagem de objetos, e acompanha a sua seleção.
 3. Ajuste o **Espaçamento entre peças** e clique em **Arrumar placa N**. Para também adicionar cópias, clique em **Preencher placa N**.
 4. Aceite o pedido de permissão para abrir programas na primeira vez. É assim que o plugin abre a cópia arrumada.
-5. Leia o resultado. Ele diz quantas peças foram posicionadas, lista as que não couberam (elas vão para uma fileira acima da placa) e mostra onde a cópia foi salva, com **Abrir esta cópia no OrcaSlicer** e **Copiar caminho**.
-6. Fatie e confira a placa no OrcaSlicer antes de imprimir.
+5. Leia o resultado. Ele diz quantas peças foram posicionadas, lista as que não couberam (elas vão para uma fileira acima da mesa) e mostra onde a cópia foi salva, com **Abrir esta cópia no OrcaSlicer** e **Copiar caminho**.
+6. Fatie e confira a mesa no OrcaSlicer antes de imprimir.
 
 <p align="center">
   <picture>
@@ -132,19 +132,19 @@ Os plugins do OrcaSlicer 2.5 conseguem ler o modelo, mas não mover objetos. O p
 <details>
 <summary>A folga entre as peças ficou maior do que o espaçamento que eu defini.</summary>
 
-O espaçamento é um mínimo. As peças ficam em uma grade de 0,5 mm, então a folga real costuma ser cerca de 1 mm maior, até cerca de 2 mm em bordas inclinadas. Quando a placa imprime um objeto por vez, o raio de folga da extrusora substitui um espaçamento menor, e o resultado avisa.
+O espaçamento é um mínimo. As peças ficam em uma grade de 0,5 mm, então a folga real costuma ser cerca de 1 mm maior, até cerca de 2 mm em bordas inclinadas. Quando a mesa imprime um objeto por vez, o raio de folga da extrusora substitui um espaçamento menor, e o resultado avisa.
 </details>
 
 <details>
 <summary>Algumas peças não couberam. Onde elas estão?</summary>
 
-Elas vão para uma fileira acima da placa e aparecem na lista do resultado. Diminua o espaçamento, permita a rotação automática ou passe algumas peças para outra placa.
+Elas vão para uma fileira acima da mesa e aparecem na lista do resultado. Diminua o espaçamento, permita a rotação automática ou passe algumas peças para outra mesa.
 </details>
 
 <details>
 <summary>As peças se sobrepuseram quando um objeto tinha várias instâncias.</summary>
 
-Era um defeito das versões anteriores à 0.9.5. As peças da placa eram lidas de uma lista que o OrcaSlicer salva no projeto e que fica desatualizada quando instâncias são adicionadas ou removidas. Desde a 0.9.5 o plugin pega toda peça cuja posição está na placa selecionada. Atualize para a versão mais nova.
+Era um defeito das versões anteriores à 0.9.5. As peças da mesa eram lidas de uma lista que o OrcaSlicer salva no projeto e que fica desatualizada quando instâncias são adicionadas ou removidas. Desde a 0.9.5 o plugin pega toda peça cuja posição está na mesa selecionada. Atualize para a versão mais nova.
 </details>
 
 <details>
@@ -168,13 +168,13 @@ Na pasta de armazenamento do plugin. O resultado mostra o caminho completo, e <b
 <details>
 <summary>Quanto tempo leva uma execução?</summary>
 
-Uma placa em que todas as peças cabem leva alguns segundos. Uma placa cheia, em que sobram peças, leva cerca de 20 segundos (18 flocos de neve de 80 mm), porque a tentativa mais fina também roda. O trabalho roda em segundo plano, e o OrcaSlicer continua utilizável.
+Uma mesa em que todas as peças cabem leva alguns segundos. Uma mesa cheia, em que sobram peças, leva cerca de 20 segundos (18 flocos de neve de 80 mm), porque a tentativa mais fina também roda. O trabalho roda em segundo plano, e o OrcaSlicer continua utilizável.
 </details>
 
 <details>
 <summary>Ele considera brim, suportes e a torre de limpeza?</summary>
 
-Brim, suportes e skirt não entram no contorno. A área da torre de limpeza fica livre em placas multicoloridas, mas a profundidade dela só é conhecida depois de fatiar, então o plugin reserva uma estimativa pelo menos tão funda quanto a torre é larga. Confira a placa no OrcaSlicer depois de fatiar.
+Brim, suportes e skirt não entram no contorno. A área da torre de limpeza fica livre em mesas multicoloridas, mas a profundidade dela só é conhecida depois de fatiar, então o plugin reserva uma estimativa pelo menos tão funda quanto a torre é larga. Confira a mesa no OrcaSlicer depois de fatiar.
 </details>
 
 <details>
