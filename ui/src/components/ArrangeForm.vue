@@ -13,6 +13,23 @@ import { useOrganizer } from '../useOrganizer';
 const { s, lang, state, goLabel, fillLabel, statusView, ready, run, setSpacing, setRotation, setCopies } = useOrganizer();
 
 const locale = computed(() => localeOf(lang.value));
+// PrimeVue takes only the locale's decimal sign and drops '.' where it groups thousands (de, es, pt-BR): "2.5" became 25.
+// A point is always a decimal in a spacing, so a typed '.' becomes the locale's sign and a pasted "2.5" is read as 2.5.
+const decimal = computed(() => new Intl.NumberFormat(locale.value).formatToParts(1.5).find((p) => p.type === 'decimal')?.value ?? '.');
+function onSpacingKey(event: KeyboardEvent) {
+  if (event.key !== '.' || decimal.value === '.') return;
+  event.preventDefault();
+  event.stopPropagation();
+  event.target?.dispatchEvent(new KeyboardEvent('keypress', { key: decimal.value, bubbles: true, cancelable: true }));
+}
+function onSpacingPaste(event: ClipboardEvent) {
+  const text = (event.clipboardData?.getData('text') ?? '').replace(/mm/i, '').trim();
+  const value = /^\d*\.\d+$|^\d+\.?$/.test(text) ? Number(text) : Number(text.split(decimal.value).map((part) => part.replace(/\D/g, '')).join('.'));
+  if (!/[.,]/.test(text) || text.includes('-') || !Number.isFinite(value)) return; // integers and negatives: PrimeVue's own paste
+  event.preventDefault();
+  event.stopPropagation();
+  setSpacing(value);
+}
 const rotations = computed<{ value: Rotation; label: string }[]>(() => [
   { value: 'auto', label: s.value.optAuto },
   { value: 'right', label: s.value.optRight },
@@ -30,7 +47,7 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 
 <template>
   <form class="form" novalidate @submit.prevent>
-    <div class="oui-field">
+    <div class="oui-field" @keypress.capture="onSpacingKey" @paste.capture="onSpacingPaste">
       <label id="spacing-label" for="spacing">{{ s.spacingLabel }}</label>
       <InputNumber
         input-id="spacing"
