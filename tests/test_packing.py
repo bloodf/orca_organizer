@@ -392,6 +392,17 @@ def test_fill_reaches_the_best_pattern_for_round_parts():
         sa._try_place, sa._fill = real, real_fill
 
 
+def test_fine_pattern_keeps_the_spacing_around_obstacles_and_other_parts():
+    """The fine pattern places copies at fractions of a cell (_phase). With an asymmetric part, a second
+    object filling the gaps and an obstacle, every exact gap still holds the spacing."""
+    obstacle = [rect(100, 90, 150, 140)]
+    for spec, step in (([("tri40", 1), ("disc12", 1)], 1.0), ([("L40", 1), ("sq20", 1)], 0.0)):
+        p = sa.Params(spacing=2.0, fill=True, copies=60, **dict(sa.AUTO, step=step))
+        parts, copies, failed, _ = run_nest(spec, p, obstacles=obstacle, bed=180.0)
+        assert not failed and len(copies) >= 20, (spec, len(copies))
+        check_layout(list(parts.values()) + copies, 2.0, obstacles=obstacle, bed=180.0)
+
+
 def check_round_layout(parts, copies, d, spacing, bed):
     """check_layout for many round parts: exact gaps only between neighbours (centers closer than the
     pitch plus 1 mm); the others are farther apart than the spacing already (the n-gon lies in its circle)."""
@@ -418,4 +429,5 @@ if __name__ == "__main__":
     test_half_turn_pairs_fill_more_triangles()
     test_fill_with_rotation_off_never_turns_parts()
     test_fill_reaches_the_best_pattern_for_round_parts()
+    test_fine_pattern_keeps_the_spacing_around_obstacles_and_other_parts()
     print("ok")

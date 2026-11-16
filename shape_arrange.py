@@ -1030,6 +1030,8 @@ def _lattice_layout(prepared, blocked, p: Params, progress=None):
         return None
     mine = np.zeros(occ.shape, bool)  # cells of pattern copies: they keep the spacing by the pattern's pitch
 
+    # Copies of one pattern are not checked against each other here: they are spaced by the pattern itself
+    # (_bases/_clear on the coarse or fine outline), and every spot comes from that one pattern.
     def fits(s, x, y):  # spots are valid by construction; this guard keeps out every other part and obstacle
         kh, kw = s.kernel.shape
         ok = not ((occ[y:y + kh, x:x + kw] > 0) & ~mine[y:y + kh, x:x + kw])[s.kernel].any()
@@ -1094,9 +1096,11 @@ def _lattice(shapes: list[Shape], occ: np.ndarray, need: int, progress=None, twi
     # fit more copies to win: with as many, the looser pattern leaves more room for parts placed after it.
     fine, fine_spots = (best[0] + 1, -math.inf), []
     for n in list(dict.fromkeys(n for _, n in sorted(ranked, reverse=True)))[:FINE_TOP]:
+        if best[0] >= need or (fine_spots and fine[0] >= need):  # enough copies already
+            break
         if shapes[n].fine is not None:
             key, found = _fine_lattice(shapes[n], occ_f, occ.shape, need, tick)
-            if key >= fine:
+            if key > fine:
                 fine, fine_spots = key, found
     return fine_spots or spots
 
@@ -1144,6 +1148,8 @@ def _fine_lattice(s: Shape, occ_f, occ_shape, need: int, tick=None):
         key = (min(len(found), need), -area / (k * k))
         if key > best:
             best, spots = key, found
+        if best[0] >= need:
+            break
     out = []
     for Y, X in spots:
         ph, r0, c0 = phases[Y % k, X % k]
