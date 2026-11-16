@@ -18,7 +18,7 @@ export function es(num: Num, plural: Plural): Strings {
     advMeta: 'rotación, copias',
     help: 'Cómo funciona',
     result: 'Resultado',
-    nothingYet: 'Aún no se organizó nada',
+    nothingYet: 'Todavía no hay nada organizado',
     nothingYetText: 'Organizar acomoda los objetos de la cama según su contorno real. Llenar añade después copias hasta que no quepa nada más.',
     again: 'Nueva organización',
     statusOffline: 'Sin respuesta',
@@ -125,24 +125,24 @@ export function es(num: Num, plural: Plural): Strings {
     saveFailed: (a) => a.ref + ': no se pudo guardar la copia organizada: ' + a.detail + '\nNo se abrió nada; las copias anteriores no cambiaron.',
     res: {
       placed: (a) => a.ref + ': ' + num(a.placed) + ' ' + plural(a.placed, 'objeto colocado', 'objetos colocados') + '.',
-      added: (a) => 'Cama llenada con ' + num(a.added) + ' ' + plural(a.added, 'copia extra', 'copias extra') + (a.per ? ' (' + a.per + ').' : '.'),
+      added: (a) => 'Se llenó la cama con ' + num(a.added) + ' ' + plural(a.added, 'copia más', 'copias más') + (a.per ? ' (' + a.per + ').' : '.'),
       limit: (a) => 'Se detuvo en el límite de ' + num(a.max) + ' copias.',
       tower: 'Se dejó libre un área estimada para la torre de purga, borde de adherencia incluido. Su tamaño real solo se conoce después de laminar: revísalo en Orca.',
       clearance: (a) =>
-        'La secuencia de impresión es Por objeto: se mantuvo un margen XY de ' + num(a.clearance) + ' mm entre las piezas. Orca aún comprueba la altura y el orden de impresión.',
+        'La secuencia de impresión es “Por objeto”: se mantuvo un margen XY de ' + num(a.clearance) + ' mm entre las piezas. Orca aún comprueba la altura y el orden de impresión.',
       keep: 'Rotación desactivada: cada pieza mantuvo su orientación.',
       right: 'La rotación se limitó a pasos de 90°.',
       unplaced: (a) => 'No cupieron (se movieron fuera de la cama): ' + a.names,
       foot: 'Organizado a partir del proyecto tal como estaba cuando hiciste clic.',
     },
     open_: {
-      asked: 'Se pidió a OrcaSlicer que abriera la copia. Si no aparece nada, usa Abrir esta copia en OrcaSlicer.',
-      later: 'Terminó con el panel cerrado. Usa Abrir esta copia en OrcaSlicer para cargarla.',
+      asked: 'Se pidió a OrcaSlicer que abriera la copia. Si no aparece nada, usa “Abrir esta copia en OrcaSlicer”.',
+      later: 'Terminó con el panel cerrado. Usa “Abrir esta copia en OrcaSlicer” para cargarla.',
       failed: (a: { detail: string }) =>
-        'No se pudo pedir a OrcaSlicer que abriera la copia (' + a.detail + '). Usa Abrir esta copia en OrcaSlicer o abre el archivo manualmente.',
+        'No se pudo pedir a OrcaSlicer que abriera la copia (' + a.detail + '). Usa “Abrir esta copia en OrcaSlicer” o abre el archivo manualmente.',
       none: 'No se encontró ningún lanzador de OrcaSlicer: abre la copia guardada manualmente.',
     },
     copied: 'Ruta copiada.',
-    copyFail: 'No se pudo copiar automáticamente. La ruta está seleccionada: presiona Ctrl+C (⌘C en Mac).',
+    copyFail: 'No se pudo copiar automáticamente. La ruta está seleccionada: usa Ctrl+C (⌘C en Mac).',
   };
 }

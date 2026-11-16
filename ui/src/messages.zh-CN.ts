@@ -58,7 +58,7 @@ export function zhCN(num: Num): Strings {
     spacingErr: '请输入不小于 0 mm 的间距。',
     stale: (a) => '下方的任务属于“' + a.ref + '”，不属于当前选择。',
     offline: '插件无响应。',
-    offlineHelp: '请确认它在 OrcaSlicer 的“插件”窗口中仍处于启用状态，然后重试。页面会自动继续询问。',
+    offlineHelp: '请确认它在 OrcaSlicer 的“插件”窗口中仍处于启用状态，然后重试。页面会自动继续尝试连接。',
     phase: {
       read: '正在读取项目…',
       footprint: '正在测量零件轮廓',
@@ -108,7 +108,7 @@ export function zhCN(num: Num): Strings {
       added: (a) => '已用 ' + num(a.added) + ' 个额外副本铺满该盘' + (a.per ? '（' + a.per + '）。' : '。'),
       limit: (a) => '已达到 ' + num(a.max) + ' 个副本的上限，停止添加。',
       tower: '已为擦拭塔预留估算区域（含 Brim）。其实际大小要在切片后才能确定，请在 Orca 中检查。',
-      clearance: (a) => '打印顺序为“逐件”：零件之间保留了 ' + num(a.clearance) + ' mm 的 XY 间隙。高度和打印次序仍由 Orca 检查。',
+      clearance: (a) => '打印顺序为“逐件”：零件之间保留了 ' + num(a.clearance) + ' mm 的 XY 间隙。高度和打印顺序仍由 Orca 检查。',
       keep: '旋转已关闭：每个零件都保持了原有朝向。',
       right: '旋转仅限 90° 步长。',
       unplaced: (a) => '放不下（已移到盘外）：' + a.names,

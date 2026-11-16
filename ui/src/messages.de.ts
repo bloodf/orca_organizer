@@ -27,7 +27,7 @@ export function de(num: Num, plural: Plural): Strings {
     rotationLabel: 'Drehung',
     optAuto: 'Automatisch (1°-Schritte)',
     optRight: 'Nur 90°-Schritte',
-    copiesLabel: 'Höchstzahl der Kopien beim Füllen',
+    copiesLabel: 'Maximale Anzahl Kopien beim Füllen',
     copiesHelp: 'Füllen endet nach dieser Anzahl von Kopien oder früher, wenn die Platte voll ist. Leer lassen, um die Platte zu füllen (höchstens 300).',
     optKeep: 'Ausrichtung jedes Teils beibehalten',
     rotationHelp:
@@ -79,7 +79,7 @@ export function de(num: Num, plural: Plural): Strings {
     cancelled: (a) => a.ref + ': abgebrochen. Es wurde nichts gespeichert oder geöffnet.',
     saving: (a) => a.ref + ': angeordnete Kopie wird gespeichert…',
     act: { arrange: 'Anordnen', fill: 'Füllen' },
-    failed: (a) => a.ref + ': ' + a.act + ' fehlgeschlagen.',
+    failed: (a) => a.ref + ': ' + a.act + ' ist fehlgeschlagen.',
     startFailed: (a) => 'Start nicht möglich: ' + a.why,
     next: 'Nächster Schritt: ',
     details: 'Details: ',
@@ -124,7 +124,7 @@ export function de(num: Num, plural: Plural): Strings {
       ],
       clearance_large: (a: { clearance: number; limit: number }): Cause => [
         'Die Platte wird nach Objekt gedruckt, und der Radius des Extruder-Freiraums des Druckers von ' + num(a.clearance) + ' mm lässt auf diesem Druckbett keinen Platz.',
-        'Stellen Sie den Radius des Extruder-Freiraums in den Drucker-Einstellungen unter ' + num(a.limit) + ' mm ein oder drucken Sie nach Schicht, und versuchen Sie es erneut.',
+        'Stellen Sie den Radius des Extruder-Freiraums in den Drucker-Einstellungen unter ' + num(a.limit) + ' mm ein oder drucken Sie „Nach Ebene“, und versuchen Sie es erneut.',
       ],
       unexpected: ['Etwas Unerwartetes ist schiefgegangen.', 'Versuchen Sie es erneut. Tritt der Fehler weiter auf, helfen die Details unten bei der Diagnose.'],
     },
@@ -136,10 +136,10 @@ export function de(num: Num, plural: Plural): Strings {
       tower: 'Eine geschätzte Fläche für den Reinigungsturm wurde freigehalten, Rand (Brim) eingeschlossen. Seine tatsächliche Größe steht erst nach dem Slicen fest: Prüfen Sie sie in Orca.',
       clearance: (a) =>
         'Die Druckreihenfolge ist „Nach Objekt“: Zwischen den Teilen wurden ' + num(a.clearance) + ' mm XY-Freiraum eingehalten. Höhe und Reihenfolge der Objekte prüft Orca weiterhin.',
-      keep: 'Drehung war aus: Jedes Teil hat seine Ausrichtung behalten.',
+      keep: 'Die Drehung war deaktiviert: Jedes Teil hat seine Ausrichtung behalten.',
       right: 'Die Drehung war auf 90°-Schritte begrenzt.',
       unplaced: (a) => 'Kein Platz (neben die Platte verschoben): ' + a.names,
-      foot: 'Angeordnet nach dem Stand des Projekts beim Klick.',
+      foot: 'Angeordnet wurde der Projektstand zum Zeitpunkt des Klicks.',
     },
     open_: {
       asked: 'OrcaSlicer wurde gebeten, die Kopie zu öffnen. Falls nichts erscheint, verwenden Sie „Kopie in OrcaSlicer öffnen“.',

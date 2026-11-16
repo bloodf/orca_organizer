@@ -141,7 +141,7 @@ describe('messages', () => {
     expect([0, 1, 2].map((n) => es.ctxShort({ plate: 1, objects: n }))).toEqual(['Cama 1 · 0 objetos', 'Cama 1 · 1 objeto', 'Cama 1 · 2 objetos']);
     expect([1, 2].map((n) => es.count({ i: 0, n: null, count: n, subject: '' }))).toEqual(['1 copia añadida', '2 copias añadidas']);
     expect([1, 2].map((n) => es.res.placed({ ref: 'r', placed: n }))).toEqual(['r: 1 objeto colocado.', 'r: 2 objetos colocados.']);
-    expect([1, 5].map((n) => es.res.added({ added: n, per: '' }))).toEqual(['Cama llenada con 1 copia extra.', 'Cama llenada con 5 copias extra.']);
+    expect([1, 5].map((n) => es.res.added({ added: n, per: '' }))).toEqual(['Se llenó la cama con 1 copia más.', 'Se llenó la cama con 5 copias más.']);
 
     expect([0, 1, 2].map((n) => de.ctxShort({ plate: 1, objects: n }))).toEqual(['Platte 1 · 0 Objekte', 'Platte 1 · 1 Objekt', 'Platte 1 · 2 Objekte']);
     expect([1, 2].map((n) => de.count({ i: 0, n: null, count: n, subject: '' }))).toEqual(['1 Kopie hinzugefügt', '2 Kopien hinzugefügt']);
