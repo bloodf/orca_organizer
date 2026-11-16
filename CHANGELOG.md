@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.13.0 (2026-11-16)
+
+- Fill packs small parts across the whole bed. Round parts used to stop a row short: 24 mm parts on a 220 mm bed filled 8 rows from the front, left a band at the back and dropped one part alone in a corner (61 parts); now 9 full rows fit (68). The distance between copies in the repeating pattern was measured on the 0.5 mm grid, which adds up to about 1 mm to every step between parts, so on a full bed a row or column was lost. It is now measured on pixels up to 8 times finer, and the pattern is tried in every direction, not only the densest few on paper. The spacing you set is still never undercut, also from the bed edge.
+- More parts per Fill (2 mm spacing): round parts on a 220 mm bed 22 mm 72 to 85, 15 mm 141 to 168, 28 mm 46 to 52; on a 270 mm bed 22 mm 111 to 126; 20 mm squares on a 256 mm bed 113 to 118, hexagons 156 to 168. With rotation off: U-channels 35 to 42, right triangles 34 to 36. L-brackets, T-parts, triangles and rings with rotation on stay as they were. Arrange uses the same pattern when parts are left over: 68 round 24 mm parts on a 220 mm bed all fit now (64 before).
+- Fill takes about 1 to 3 seconds longer per run.
+- Checked again for "parts overlap with instances": that was fixed in 0.9.5 (released the day after the report). New tests build objects whose instances are each mirrored, scaled or turned on their own, stacked on each other, spread over two plates and missing from the plate list; Arrange and Fill leave no two parts overlapping, keep each instance's mirror and scale, and OrcaSlicer reopens the result with every part where it was placed.
+
 ## 0.12.0 (2026-11-15)
 
 - New look for the Organizer tab and the Script's panel, on the shared Orca UI foundation 4.0.1: a sky-blue bar with the new Organizer mark, the project, plate and object count, and icons on every action. Arranging and filling work as before.
