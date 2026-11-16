@@ -192,7 +192,7 @@ Não. As peças mantêm a altura e ficam na mesa. Elas só se movem em X e Y e g
 
 ## 🌍 Idiomas
 
-Inglês e português do Brasil. O painel segue o idioma do OrcaSlicer e mostra inglês em qualquer outro.
+Inglês, português do Brasil, espanhol, alemão e chinês simplificado. O painel segue o idioma do OrcaSlicer e mostra inglês em qualquer outro.
 
 ## 🧩 Mais plugins do bloodf
 

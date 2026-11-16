@@ -124,7 +124,7 @@ The plugin registers two entries that drive one run (they share state):
 - **Shape-Aware Arrange** is the Script (File > Plugins > Run). It stays for
   hosts and workflows that use it, and opens the same controls docked.
 
-**Language.** The panel is in English and Brazilian Portuguese (pt-BR). It
+**Language.** The panel is in English, Brazilian Portuguese (pt-BR), Spanish, German and Simplified Chinese. It
 uses the language OrcaSlicer's UI runs in (`orca.host.app_language()`, from
 Orca's Host API) and falls back to the browser's language when the host does
 not offer it. Any other language shows English. Part and file names, paths and
@@ -175,7 +175,7 @@ Pass `--bed 270x270` for plain 3MF files that carry no printer settings.
   plugins, so none is used. How a real host delivers `post_message`, when it
   calls `get_ui()` again after a reload and how it lays out the tab were
   not tested in OrcaSlicer; the plugin recovers by asking for state.
-- Only English and pt-BR exist, and the pt-BR wording was not reviewed by a
+- Five languages exist (en, pt-BR, es, de, zh-CN), and the wording of the last four was not reviewed by a
   native speaker beyond the author. The panel's own colors (buttons, errors)
   were chosen for contrast on the light and dark backgrounds it detects; the
   colors Orca really passes were not measured. The panel is a Vue 3 + PrimeVue app

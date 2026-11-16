@@ -141,6 +141,51 @@ describe('spacing validation', () => {
     await panel.flush();
     expect(panel.takeRequests()).toEqual([{ action: 'arrange', spacing: 2.5, rotation: 'auto' }]);
   });
+
+  // Key by key, as a keyboard does: PrimeVue reads keypress, not input.
+  async function keys(text: string) {
+    const input = panel.q<HTMLInputElement>('#spacing')!;
+    input.focus();
+    input.value = '';
+    for (const key of text) {
+      const end = input.value.replace(/ mm$/, '').length; // the caret stays before the unit
+      input.setSelectionRange(end, end);
+      const event = new KeyboardEvent('keypress', { key, bubbles: true, cancelable: true });
+      if (input.dispatchEvent(event)) input.setRangeText(key, input.selectionStart!, input.selectionEnd!, 'end');
+    }
+    input.dispatchEvent(new Event('blur')); // PrimeVue commits the value on blur
+    await panel.flush();
+  }
+  async function paste(text: string) {
+    const input = panel.q<HTMLInputElement>('#spacing')!;
+    input.focus();
+    input.select();
+    const event = new Event('paste', { bubbles: true, cancelable: true });
+    Object.defineProperty(event, 'clipboardData', { value: { getData: () => text } });
+    input.dispatchEvent(event);
+    await panel.flush();
+  }
+
+  it.each(['de', 'es', 'pt-BR', 'en'])('%s: a point is a decimal, typed or pasted', async (language) => {
+    panel = await mountPanel({ language });
+    await panel.deliver(sync({ ctx: CTX }));
+    await keys('2.5');
+    expect(panel.organizer.state.spacing).toBe(2.5);
+    await paste('2.5');
+    expect(panel.organizer.state.spacing).toBe(2.5);
+    await paste('3.25 mm');
+    expect(panel.organizer.state.spacing).toBe(3.25);
+    expect(panel.q<HTMLInputElement>('#spacing')!.value).toBe(language === 'en' ? '3.25 mm' : '3,25 mm'); // shown as the language writes it
+  });
+
+  it('de: the comma is still the decimal, typed or pasted', async () => {
+    panel = await mountPanel({ language: 'de' });
+    await panel.deliver(sync({ ctx: CTX }));
+    await keys('2,5');
+    expect(panel.organizer.state.spacing).toBe(2.5);
+    await paste('1,5');
+    expect(panel.organizer.state.spacing).toBe(1.5);
+  });
 });
 
 describe('a run', () => {

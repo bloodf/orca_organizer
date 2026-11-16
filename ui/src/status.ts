@@ -70,12 +70,12 @@ export function describe(lang: Lang, ref: (m: JobMsg) => string, m: JobMsg): Des
   const args = { ref: r };
   switch (m.code) {
     case 'reading':
-      return { lines: split('info', 'info', r + ': ' + t.reading), progress: null };
+      return { lines: split('info', 'info', r + t.sep + t.reading), progress: null };
     case 'progress': {
       const phase = m.phase && ENGLISH.phase[m.phase] ? t.phase[m.phase] : null;
       if (!phase) return null;
       return {
-        lines: split('info', 'info', r + ': ' + phase),
+        lines: split('info', 'info', r + t.sep + phase),
         progress: { i: m.i ?? 0, n: m.n ?? null, count: m.count ?? null, subject: m.subject ?? '' },
       };
     }
@@ -109,7 +109,7 @@ export function describe(lang: Lang, ref: (m: JobMsg) => string, m: JobMsg): Des
       if (m.added) {
         const per = Object.entries(m.by_object ?? {})
           .map(([name, count]) => name + ' ×' + num(count))
-          .join(', ');
+          .join(t.list);
         out.push(['info', t.res.added({ added: m.added, per })]);
         if (m.limit) out.push(['info', t.res.limit({ max: m.max ?? 0 })]);
       }
@@ -117,7 +117,7 @@ export function describe(lang: Lang, ref: (m: JobMsg) => string, m: JobMsg): Des
       if (m.clearance != null) out.push(['note', t.res.clearance({ clearance: m.clearance })]);
       if (m.keep) out.push(['note', t.res.keep]);
       if (m.right) out.push(['note', t.res.right]);
-      if (m.unplaced && m.unplaced.length) out.push(['warn', t.res.unplaced({ names: m.unplaced.join(', ') })]);
+      if (m.unplaced && m.unplaced.length) out.push(['warn', t.res.unplaced({ names: m.unplaced.join(t.list) })]);
       out.push(['note', t.res.foot]);
       if (m.open) {
         const open = t.open_[m.open];
@@ -132,7 +132,7 @@ export function describe(lang: Lang, ref: (m: JobMsg) => string, m: JobMsg): Des
 /** The reference of a job in prose: "<project>, plate <n>". */
 export function jobRef(lang: Lang, m: { stem?: string | null; plate?: number }): string {
   const t = strings(lang);
-  return (m.stem || t.untitled) + ', ' + t.plate + ' ' + m.plate;
+  return t.ref({ name: m.stem || t.untitled, plate: m.plate as number });
 }
 
 export const joinLines = (lines: readonly StatusLine[]): string => lines.map((l) => l.text).join('\n');

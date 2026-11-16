@@ -26,4 +26,8 @@ const { s, state, staleText, ctxProblem, retry } = useOrganizer();
 /* foundation-gap: OuiBanner centres its icon; 4.0.2 could add a top-aligned variant for multi-line banners.
    A banner with more than its headline reads from the top, not from the middle (as the status banners). */
 #offline { align-items: flex-start; }
+/* "Tentar novamente" / "Erneut versuchen" at the dock zoomed to 200 % (140 px): the label wraps instead of overflowing. */
+#offline :deep(.oui-banner-actions) { min-width: 0; max-width: 100%; }
+#retry { white-space: normal; }
+#retry :deep(.p-button-label) { flex: 0 1 auto; min-width: 0; overflow-wrap: break-word; }
 </style>

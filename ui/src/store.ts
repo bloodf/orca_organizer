@@ -116,7 +116,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   const jobView = computed(() => {
     const src = state.status;
     const m = src?.kind === 'job' ? src.msg : null;
-    const prefix = m && m.plate != null ? ref(m) + ': ' : '';
+    const prefix = m && m.plate != null ? ref(m) + s.value.sep : '';
     const first = statusView.value.lines[0]?.text ?? '';
     const plate = m?.plate ?? state.ctx?.plate ?? null;
     const p = progress.value;

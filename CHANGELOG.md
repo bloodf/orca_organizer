@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.14.0 (2026-11-16)
+
+- Organizer now speaks Spanish, German and Simplified Chinese, next to English and Brazilian Portuguese. It follows the language OrcaSlicer runs in (Español, Deutsch, 简体中文); Traditional Chinese shows Simplified, and any other language shows English. There is no language setting in the plugin: change OrcaSlicer's language and the tab and the dock follow.
+- Everything the panel says is translated: the buttons and their tooltips, the settings under **Advanced**, **How it works**, the progress of a run, the result and its fine print, every error with its next step, "no answer from the plugin", and what a screen reader announces. The Script's own answer, "Panel opened", is in OrcaSlicer's language too (also in Portuguese now).
+- The words are OrcaSlicer's own: *cama*, *Platte* and 盘 for the plate, *torre de purga*, *Reinigungsturm* and 擦拭塔 for the prime tower, *Por objeto*, *Nach Objekt* and 逐件 for the print sequence. German addresses you formally (Sie).
+- Numbers are written as the language writes them: a spacing of 2,5 mm in Spanish and German, 2.5 mm in Chinese. When you type or paste the spacing, a point is always read as the decimal sign, so 2.5 and 2,5 both mean two and a half millimetres in Spanish and German (and in Portuguese, where a typed point used to be dropped). Where a language is written differently by country, the system's region decides (2.5 in Mexico, 1’234.5 in Switzerland). Counts use each language's plural ("1 objeto", "2 objetos"; Chinese has none), and Chinese uses full-width punctuation.
+- Chinese text is drawn with the system's Chinese font, its quotation marks and ellipsis included (they were narrow Latin marks); the font built into the page has Latin letters only.
+- With the dock zoomed to 200 %, "Try again" under "No answer from the plugin" wraps onto two lines instead of running off the edge (it did in Portuguese and German).
+- The Spanish, German and Chinese wording was written without a native speaker's review. Corrections are welcome as issues.
+
 ## 0.13.0 (2026-11-16)
 
 - Fill packs small parts across the whole bed. Round parts used to stop a row short: 24 mm parts on a 220 mm bed filled 8 rows from the front, left a band at the back and dropped one part alone in a corner (61 parts); now 9 full rows fit (68). The distance between copies in the repeating pattern was measured on the 0.5 mm grid, which adds up to about 1 mm to every step between parts, so on a full bed a row or column was lost. It is now measured on pixels up to 8 times finer, and the pattern is tried in every direction, not only the densest few on paper. The spacing you set is still never undercut, also from the bed edge.

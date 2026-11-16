@@ -45,7 +45,7 @@ The footprint is the model's geometry only: brims, supports and skirts are not i
 
 ## Languages
 
-English and Brazilian Portuguese, following OrcaSlicer's language.
+English, Brazilian Portuguese, Spanish, German and Simplified Chinese, following OrcaSlicer's language.
 
 ## More plugins by bloodf
 
@@ -105,7 +105,7 @@ O contorno é só a geometria do modelo: brim, suportes e skirt não entram na c
 
 ## Idiomas
 
-Inglês e português do Brasil, seguindo o idioma do OrcaSlicer.
+Inglês, português do Brasil, espanhol, alemão e chinês simplificado, seguindo o idioma do OrcaSlicer.
 
 ## Mais plugins do bloodf
 

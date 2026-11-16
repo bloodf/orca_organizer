@@ -1,12 +1,20 @@
-// Every user-visible string of the panel, in the two supported languages. The plugin's Python writes the
-// English wording too (`text`); this table is what the page shows when the structured `msg` is present.
-// tests/english-parity.test.ts keeps the English entries equal to what Python produces.
+// Every user-visible string of the panel, in the five supported languages: English and Brazilian Portuguese here,
+// Spanish, German and Simplified Chinese in messages.<lang>.ts. The plugin's Python writes the English wording too
+// (`text`); these tables are what the page shows when the structured `msg` is present.
+// tests/english-parity.test.ts keeps the English entries equal to what Python produces; tests/messages.test.ts keeps
+// every language complete (same keys, same arguments used, nothing left in English).
+import { de } from './messages.de';
+import { es } from './messages.es';
+import { zhCN } from './messages.zh-CN';
 
-export type Lang = 'en' | 'pt-BR';
+export const LANGS = ['en', 'pt-BR', 'es', 'de', 'zh-CN'] as const;
+export type Lang = (typeof LANGS)[number];
 export type Num = (n: number) => string;
+/** The form of a word for `n`, by the language's own plural rule. */
+export type Plural = (n: number, one: string, other: string) => string;
 
 /** [cause, next step] of an error the panel can explain. */
-type Cause = [string, string];
+export type Cause = [string, string];
 
 const one = (n: number, singular: string, plural: string): string => (n === 1 ? singular : plural);
 
@@ -54,7 +62,9 @@ function en(num: Num) {
     fillNone: 'Fill current plate',
     untitled: 'untitled',
     untitledProject: 'Untitled project',
-    plate: 'plate',
+    ref: (a: { name: string; plate: number }) => a.name + ', plate ' + a.plate,
+    sep: ': ',
+    list: ', ',
     ctx: (a: { name: string; plate: number; objects: number | null }) =>
       a.name + ' · plate ' + a.plate + ' selected' + (a.objects == null ? '' : ' · ' + num(a.objects) + ' ' + one(a.objects, 'object', 'objects') + ' in the project'),
     ctxProblem: (a: { problem: string }) => 'Could not read the project: ' + a.problem + '. Open a project in OrcaSlicer, then try again.',
@@ -201,7 +211,9 @@ function ptBR(num: Num): Strings {
     fillNone: 'Preencher placa atual',
     untitled: 'sem título',
     untitledProject: 'Projeto sem título',
-    plate: 'placa',
+    ref: (a) => a.name + ', placa ' + a.plate,
+    sep: ': ',
+    list: ', ',
     ctx: (a) =>
       a.name + ' · placa ' + a.plate + ' selecionada' + (a.objects == null ? '' : ' · ' + num(a.objects) + ' ' + one(a.objects, 'objeto', 'objetos') + ' no projeto'),
     ctxProblem: (a) => 'Não foi possível ler o projeto: ' + a.problem + '. Abra um projeto no OrcaSlicer e tente novamente.',
@@ -300,26 +312,50 @@ function ptBR(num: Num): Strings {
   };
 }
 
-/** Only English and Brazilian Portuguese exist; any `pt*` host or browser language is Portuguese. */
-export const pickLang = (language: string | null | undefined): Lang => (/^pt/i.test(language || '') ? 'pt-BR' : 'en');
+const BY_PRIMARY = new Map<string, Lang>([['pt', 'pt-BR'], ['es', 'es'], ['de', 'de'], ['zh', 'zh-CN']]);
+/**
+ * The supported language of a host (`pt_BR`, `es`, `zh_CN`) or browser (`pt-BR`, `es-MX`, `zh-Hans-CN`) language, by its
+ * primary part: any Portuguese is pt-BR and any Chinese, Traditional included, is Simplified. Everything else is English.
+ */
+export const pickLang = (language: string | null | undefined): Lang => BY_PRIMARY.get((language || '').toLowerCase().split(/[-_]/)[0]) ?? 'en';
+
+const LOCALES: Record<Lang, string> = { en: 'en-US', 'pt-BR': 'pt-BR', es: 'es', de: 'de', 'zh-CN': 'zh-CN' };
+/**
+ * The locale numbers are written in. Spanish and German are written differently by country (2,5 in Spain and Argentina,
+ * 2.5 in Mexico; 1.234,5 in Germany, 1’234.5 in Switzerland), so a system region of the same language is used.
+ */
+export function localeOf(lang: Lang): string {
+  if (lang === 'es' || lang === 'de') {
+    const system = typeof navigator !== 'undefined' ? navigator.languages ?? [] : [];
+    const regional = system.find((l) => l.toLowerCase().startsWith(lang + '-'));
+    if (regional && Intl.NumberFormat.supportedLocalesOf(regional).length) return regional;
+  }
+  return LOCALES[lang];
+}
 
 const formatters = new Map<Lang, Intl.NumberFormat>();
 export function numberFormat(lang: Lang): Num {
   let nf = formatters.get(lang);
   if (!nf) {
-    nf = new Intl.NumberFormat(lang === 'pt-BR' ? 'pt-BR' : 'en-US', { maximumFractionDigits: 2 });
+    nf = new Intl.NumberFormat(localeOf(lang), { maximumFractionDigits: 2 });
     formatters.set(lang, nf);
   }
   const format = nf;
   return (n) => format.format(n);
 }
 
+/** CLDR plural rules (Intl): `one` only where the language says so. Chinese has no plural and needs none of this. */
+function pluralOf(lang: Lang): Plural {
+  const rules = new Intl.PluralRules(LOCALES[lang]);
+  return (n, singular, other) => (rules.select(n) === 'one' ? singular : other);
+}
+
+const TABLES: Record<Lang, (num: Num, plural: Plural) => Strings> = { en, 'pt-BR': ptBR, es, de, 'zh-CN': zhCN };
 const tables = new Map<Lang, Strings>();
 export function strings(lang: Lang): Strings {
   let t = tables.get(lang);
   if (!t) {
-    const num = numberFormat(lang);
-    t = lang === 'pt-BR' ? ptBR(num) : en(num);
+    t = TABLES[lang](numberFormat(lang), pluralOf(lang));
     tables.set(lang, t);
   }
   return t;
@@ -327,4 +363,3 @@ export function strings(lang: Lang): Strings {
 
 /** English table, for the "is this cause known" test and the parity checks. */
 export const ENGLISH: Strings = strings('en');
-export const PORTUGUESE: Strings = strings('pt-BR');

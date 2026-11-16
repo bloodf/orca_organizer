@@ -30,7 +30,8 @@ const portugueseLocale = {
 watchEffect(() => {
   document.documentElement.lang = lang.value;
   document.title = s.value.title;
-  // PrimeVue's own labels follow the language; the shared table only has pt-BR, English is the default.
+  // PrimeVue's own labels: the shared table has pt-BR, English is the default. The controls used here (button, number
+  // field, radio, message) show none of them, so the other languages need no table (tests/languages.test.ts checks).
   prime.config.locale = lang.value === 'pt-BR' ? portugueseLocale : englishLocale;
 });
 
@@ -65,6 +66,15 @@ onBeforeUnmount(stop);
 </template>
 
 <style>
+/* Chinese punctuation from the system's Chinese font. Manrope has the Latin quotes and ellipsis, so “逐件” and …
+   came out as narrow Latin marks in Chinese text; letters and figures stay Manrope's. */
+@font-face {
+  font-family: 'OuiCJKPunct';
+  src: local('PingFang SC'), local('PingFangSC-Regular'), local('Hiragino Sans GB'), local('HiraginoSansGB-W3'),
+    local('Microsoft YaHei'), local('Noto Sans CJK SC'), local('NotoSansCJKsc-Regular'), local('Noto Sans SC');
+  unicode-range: U+2018-201F, U+2026, U+3000-303F, U+FF00-FFEF;
+}
+:root:lang(zh) { --oui-font: 'OuiCJKPunct', 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 .panel { padding: var(--oui-s3); }
 .panel > * { min-width: 0; }
 .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--oui-s3); align-items: start; min-width: 0; }
