@@ -30,7 +30,8 @@ const portugueseLocale = {
 watchEffect(() => {
   document.documentElement.lang = lang.value;
   document.title = s.value.title;
-  // PrimeVue's own labels follow the language; the shared table only has pt-BR, English is the default.
+  // PrimeVue's own labels: the shared table has pt-BR, English is the default. The controls used here (button, number
+  // field, radio, message) show none of them, so the other languages need no table (tests/languages.test.ts checks).
   prime.config.locale = lang.value === 'pt-BR' ? portugueseLocale : englishLocale;
 });
 

@@ -6,12 +6,13 @@ import RadioButton from 'primevue/radiobutton';
 import { computed } from 'vue';
 import { OuiIcon } from '../../shared/src/components';
 import { arrange, chevronRight, fill, info } from '../../shared/src/icons';
+import { localeOf } from '../messages';
 import { MAX_COPIES, type Rotation } from '../protocol';
 import { useOrganizer } from '../useOrganizer';
 
 const { s, lang, state, goLabel, fillLabel, statusView, ready, run, setSpacing, setRotation, setCopies } = useOrganizer();
 
-const locale = computed(() => (lang.value === 'pt-BR' ? 'pt-BR' : 'en-US'));
+const locale = computed(() => localeOf(lang.value));
 const rotations = computed<{ value: Rotation; label: string }[]>(() => [
   { value: 'auto', label: s.value.optAuto },
   { value: 'right', label: s.value.optRight },

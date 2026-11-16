@@ -3,7 +3,9 @@
 // requestAnimationFrame transitions). Writes MOCK screenshots and measurements into --out.
 //
 //   node scripts/verify-browser.mjs --out /path/to/evidence [--chrome "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
+//   ... --only 'done-light-de-dock280|idle-.*-zh-CN'   draws only the screenshots whose name matches (while working on one)
 //
+// Every state is drawn in the five languages (en, pt-BR, es, de, zh-CN), light and dark, at the dock and tab sizes.
 // Not Orca: no real WebView, theme, app_language(), clipboard permission or plugin. Those stay with the user.
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -18,6 +20,7 @@ const args = process.argv.slice(2);
 const opt = (name, fallback) => (args.includes(name) ? args[args.indexOf(name) + 1] : fallback);
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const out = resolve(opt('--out', join(root, 'evidence')));
+const only = new RegExp(opt('--only', ''));
 const chromePath = opt('--chrome', '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome');
 await mkdir(out, { recursive: true });
 
@@ -113,7 +116,11 @@ try {
       transitionOnGo: gcs && gcs.transitionDuration, violations: window.__violations.slice(),
       // what the user sees without scrolling: bottom edge of each action, and of the progress bar, against the viewport
       fold: Object.fromEntries(['#go', '#fill', '#cancel', '#open', '#again', '#foot', '[role=progressbar]'].map((sel) => { const el = document.querySelector(sel); return [sel, el && el.getClientRects().length ? Math.round(el.getBoundingClientRect().bottom) : null]; })),
-      clipped: [...document.querySelectorAll('.p-button')].filter((el) => el.getClientRects().length && el.scrollWidth > el.clientWidth + 1).map((el) => el.id || el.textContent.trim()) };
+      clipped: [...document.querySelectorAll('.p-button')].filter((el) => el.getClientRects().length && el.scrollWidth > el.clientWidth + 1).map((el) => el.id || el.textContent.trim()),
+      // text cut with an ellipsis or by its box. Long names and paths are cut on purpose (they carry their full text as a title);
+      // the page's own wording never is.
+      cut: [...new Set([...document.querySelectorAll('body *')].filter((el) => { if (!el.getClientRects().length || el.closest('.oui-sr') || el.hasAttribute('title') || !el.textContent.trim()) return false; const cs = getComputedStyle(el); const hides = (v) => v === 'hidden' || v === 'clip';
+        return (hides(cs.overflowX) && el.scrollWidth > el.clientWidth + 1) || (hides(cs.overflowY) && el.scrollHeight > el.clientHeight + 1); }).map((el) => el.id || (typeof el.className === 'string' && el.className) || el.tagName))].sort() };
   })()`;
 
   // ---- scenarios (the host's real protocol, delivered by the driver)
@@ -148,7 +155,7 @@ try {
   };
 
   const THEMES = ['light', 'dark'];
-  const LANGS = [['en', 'en_US'], ['pt-BR', 'pt_BR']];
+  const LANGS = [['en', 'en_US'], ['pt-BR', 'pt_BR'], ['es', 'es'], ['de', 'de'], ['zh-CN', 'zh_CN']]; // [page language, what Orca's app_language() says]
   const WIDTHS = [['dock280', { width: 280, scale: 1 }], ['tab1280', { width: 1280, height: 720, scale: 1 }], ['tab1900', { width: 1900, height: 1000, scale: 1 }], ['zoom200-dock', { width: 140, height: 360, scale: 2 }], ['zoom200-tab', { width: 640, height: 360, scale: 2 }]];
   const MATRIX_STATES = ['idle', 'running', 'done', 'error'];
   const EXTRA_STATES = ['loading', 'empty', 'unreadable', 'stale', 'validation', 'runningFill', 'errorUnknown', 'offline'];
@@ -164,14 +171,15 @@ try {
     }
   };
   const run = async (state, theme, [langTag, hostLang], [wName, w]) => {
-    await open({ theme, language: langTag === 'en' ? 'en-US' : 'pt-BR', ...w });
-    if (langTag === 'pt-BR' && state === 'loading') { /* browser language fallback is what is exercised here */ }
+    if (!only.test(`organizer-${state}-${theme}-${langTag}-${wName}`)) return;
+    await open({ theme, language: langTag === 'en' ? 'en-US' : langTag, ...w }); // `loading` has no host language yet: the browser's shows
     await S[state](state === 'loading' ? undefined : hostLang);
     await delay(reducedMotionWait); // let enter transitions (Message) settle before measuring
     const expected = { offline: '#offline', error: '#status-error', errorUnknown: '#status-error', validation: '#spacing-error', stale: '#stale',
       unreadable: '.context-problem', running: '#cancel', runningFill: '#cancel', done: '#result', loading: '#context .oui-status[data-state=connecting] ~ [role=progressbar]', empty: '#status .oui-banner' };
     if (expected[state]) assert(await evaluate(`!!document.querySelector(${JSON.stringify(expected[state])})`), `${state}: ${expected[state]} is not on screen`);
     const m = await evaluate(MEASURE);
+    assert.equal(m.lang, langTag, `${state}: the page is in ${m.lang}, not ${langTag}`);
     const name = `organizer-${state}-${theme}-${langTag}-${wName}`;
     await shot(name);
     results.push({ name, state, theme, lang: langTag, width: wName, ...m });
@@ -188,7 +196,7 @@ try {
     for (const theme of THEMES) for (const lang of LANGS) for (const w of WIDTHS) for (const state of MATRIX_STATES) await run(state, theme, lang, w);
     for (const theme of THEMES) for (const lang of LANGS) for (const state of EXTRA_STATES) await run(state, theme, lang, WIDTHS[0]);
     // the widest stress: dock at zoom 200% with the long states
-    for (const theme of THEMES) for (const state of ['errorUnknown', 'done', 'offline']) await run(state, theme, LANGS[1], WIDTHS[2]);
+    for (const theme of THEMES) for (const lang of LANGS.slice(1)) for (const state of ['errorUnknown', 'done', 'offline']) await run(state, theme, lang, WIDTHS[3]);
   }
 
   // ---- interaction (real browser focus semantics)
@@ -268,10 +276,27 @@ try {
   assert.equal(interaction.rotationSent[0].rotation, 'keep', 'the chosen rotation is sent');
   assert.equal(interaction.focusAfterSelect, 'rotation-keep', 'arrow keys move between the radio buttons');
 
-  // browser language fallback (no host lang): pt-BR browser shows Portuguese
-  await open({ theme: 'light', width: 280, language: 'pt-BR' });
-  interaction.browserLanguagePt = await evaluate('document.documentElement.lang + "|" + document.querySelector("#context").textContent.trim()');
-  assert.equal(interaction.browserLanguagePt, 'pt-BR|Lendo…');
+  // browser language fallback (no host lang): the page speaks the browser's language, by its primary part
+  interaction.browserLanguage = {};
+  for (const [browser, want] of [['pt-BR', 'pt-BR|Lendo…'], ['es-MX', 'es|Leyendo…'], ['de-AT', 'de|Wird gelesen…'], ['zh-TW', 'zh-CN|读取中…'], ['fr-FR', 'en|Reading…']]) {
+    await open({ theme: 'light', width: 280, language: browser });
+    interaction.browserLanguage[browser] = await evaluate('document.documentElement.lang + "|" + document.querySelector("#context").textContent.trim()');
+    assert.equal(interaction.browserLanguage[browser], want);
+  }
+  // Chinese is drawn by a system font that has the glyphs (the embedded Manrope is Latin only): no missing-glyph boxes
+  await open({ theme: 'light', width: 280, language: 'zh-CN' });
+  await S.done('zh_CN');
+  await call('DOM.enable'); await call('CSS.enable');
+  const { root: domRoot } = await call('DOM.getDocument');
+  interaction.chineseFonts = {};
+  for (const sel of ['#context', '#saved-label', '#open .p-button-label', '#status .oui-banner-text', '#notes']) {
+    const { nodeId } = await call('DOM.querySelector', { nodeId: domRoot.nodeId, selector: sel });
+    const { fonts } = await call('CSS.getPlatformFontsForNode', { nodeId });
+    interaction.chineseFonts[sel] = fonts.map((f) => `${f.familyName} (${f.glyphCount})`);
+    assert(fonts.length && !fonts.some((f) => /last ?resort/i.test(f.familyName)), `${sel}: a glyph has no font: ${JSON.stringify(fonts)}`);
+    assert(fonts.some((f) => f.familyName !== 'Manrope'), `${sel}: no system font was used for Chinese: ${JSON.stringify(fonts)}`);
+  }
+  await call('CSS.disable'); await call('DOM.disable');
   // the embedded face is the one that renders (under a policy without font-src data: the page falls back to the system font)
   interaction.manropeLoaded = await evaluate('document.fonts.ready.then(() => document.fonts.check("13px Manrope"))');
   assert.equal(interaction.manropeLoaded, true, 'Manrope is embedded and loaded');
@@ -291,6 +316,11 @@ try {
     interaction,
   };
   summary.clippedButtons = results.filter((r) => r.clipped.length).map((r) => ({ name: r.name, clipped: r.clipped }));
+  // A translation may not cut text that English shows whole. What English cuts too is a long name or path, cut on purpose.
+  const english = new Map(results.filter((r) => r.lang === 'en').map((r) => [r.name.replace('-en-', '-*-'), r.cut]));
+  summary.cutByTranslation = results.filter((r) => r.lang !== 'en' && english.has(r.name.replace(`-${r.lang}-`, '-*-')))
+    .map((r) => ({ name: r.name, cut: r.cut.filter((c) => !english.get(r.name.replace(`-${r.lang}-`, '-*-')).includes(c)) })).filter((r) => r.cut.length);
+  summary.languages = Object.fromEntries(LANGS.map(([tag]) => [tag, results.filter((r) => r.lang === tag).length]));
   await writeFile(join(out, 'results.json'), JSON.stringify({ summary, results }, null, 1));
   await writeFile(join(out, 'summary.json'), JSON.stringify(summary, null, 1));
   console.log(JSON.stringify(summary, null, 1));
@@ -299,6 +329,7 @@ try {
   assert.deepEqual(summary.consoleProblems, [], 'no console error or warning');
   assert.deepEqual(summary.networkRequestsToServer, ['/panel.html'], 'the page requests nothing but itself');
   assert.deepEqual(summary.clippedButtons, [], 'no button label is cut');
+  assert.deepEqual(summary.cutByTranslation, [], 'no translation is cut where English is shown whole');
 } finally {
   socket?.close();
   browser.kill('SIGTERM');

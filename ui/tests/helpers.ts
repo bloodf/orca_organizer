@@ -39,7 +39,7 @@ export async function mountPanel(options: OrganizerOptions & { language?: string
   };
   const organizer = createOrganizer(bridge, { navigatorLanguage: options.language ?? 'en-US', ...options });
   const app: VueApp = createApp(AppRoot, { organizer });
-  installOrcaUI(app, organizer.lang.value, 'sky');
+  installOrcaUI(app, organizer.lang.value === 'pt-BR' ? 'pt-BR' : 'en', 'sky');
   app.mount('#app');
   const flush = async () => {
     await nextTick();

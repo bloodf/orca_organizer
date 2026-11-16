@@ -11,10 +11,10 @@ at run time, nothing is downloaded, and the page needs no `unsafe-eval` (templat
 | `src/App.vue`, `src/components/*.vue` | app bar, notices, form, job card, status banners, saved copy, first-run panel |
 | `src/assets/organizer-plate.webp` | the first-run illustration (copied from ui-foundation `assets/illustrations/`) |
 | `src/store.ts` | all reactive state, polling, focus requests; the plugin owns the job, the page only shows it |
-| `src/messages.ts`, `src/status.ts` | pt-BR / en strings, structured `msg` to text lines |
+| `src/messages.ts`, `src/messages.<lang>.ts`, `src/status.ts` | strings in en, pt-BR, es, de and zh-CN (language detection, number and plural rules), structured `msg` to text lines |
 | `src/protocol.ts`, `src/hostTheme.ts` | message types and the host bridge; light/dark detection |
 | `shared/` | vendored ui-foundation 4.0.1 (see `shared/manifest.json`). Do not edit; `npm run check:shared` |
-| `tests/` | vitest + jsdom component tests (`panel`, `messages`, `english-parity`, `theme`) |
+| `tests/` | vitest + jsdom component tests (`panel`, `messages`, `languages`, `english-parity`, `theme`) |
 | `scripts/embed.mjs` | embeds `dist/index.html` into `shape_arrange.py` (`--check` for CI) |
 | `scripts/verify-browser.mjs` | production page under CSP in headless Chrome with a MOCK host bridge, screenshots |
 
@@ -31,7 +31,10 @@ npm run check:embedded # CI: rebuild and fail if shape_arrange.py is stale
 
 After changing wording in Python (`ERRORS_EN`, `OPEN_EN`, summaries), run
 `uv run --with numpy --with pillow python tests/test_panel_js.py --write-fixtures` and update `src/messages.ts`; the
-parity test fails until both match. Run `node scripts/verify-browser.mjs --out <dir>` to refresh MOCK screenshots
+parity test fails until both match. A new or changed string goes into every language table: the type check fails on a
+missing or extra key, `tests/messages.test.ts` on a dropped argument or a string left in English, and
+`tests/languages.test.ts` on any state of the page that still shows an English sentence. Words shared with OrcaSlicer
+(plate, bed, prime tower, print sequence) are taken from its own translation (`OrcaSlicer.mo` of that language). Run `node scripts/verify-browser.mjs --out <dir>` to refresh MOCK screenshots
 (always with `--use-mock-keychain --password-store=basic`, already in the script).
 
 `vite.config.ts` must keep `define: { __VUE_OPTIONS_API__: true }`: PrimeVue uses the Options API internally.
