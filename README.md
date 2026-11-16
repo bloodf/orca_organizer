@@ -72,7 +72,10 @@ Illustrative project artwork. [Credits and licenses](docs/related-plugins/README
    If parts are left over, or when filling, it also tries a repeating
    pattern for copies of the same part: it finds how tightly two copies nest,
    also as pairs with one copy turned half a turn (when rotation is on),
-   tiles the bed with that pattern and fits the rest into the gaps. The
+   tiles the bed with that pattern and fits the rest into the gaps. For the
+   most promising rotations the distance between copies is measured again on
+   pixels up to 8 times finer than the grid, and the pattern is tried in
+   every direction, so rows of small parts reach across the whole bed. The
    result that places more parts wins.
 4. Rewrites only the object transforms in the copy, saves it as a new file
    and opens it in OrcaSlicer. Your original project file is never modified,

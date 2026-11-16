@@ -178,7 +178,7 @@ def test_footprint_covers_the_exact_rotated_part():
                     t = np.linspace(0, 1, 200)[:, None]
                     pts.append(q[i] + t * (q[(i + 1) % len(q)] - q[i]))
             pts = np.concatenate(pts) - center
-            for s in shapes:
+            for n, s in enumerate(shapes):
                 a = math.radians(s.angle)
                 rot = np.array([[math.cos(a), -math.sin(a)], [math.sin(a), math.cos(a)]])
                 xy = pts @ rot.T / res
@@ -188,6 +188,18 @@ def test_footprint_covers_the_exact_rotated_part():
                 assert col.min() >= 0 and row.min() >= 0 and col.max() < w and row.max() < h, (name, res, s.angle)
                 missed = int((~s.raw[row, col]).sum())
                 assert missed == 0, f"{name} res {res} angle {s.angle}: {missed} points outside the footprint"
+                if n % 6:  # the repeating pattern's outline: drawn on fine pixels, and pooled at an offset
+                    continue
+                for k in (3, 8):
+                    f, cy, cx = sa._fine(s, k)
+                    fy, fx = np.floor(xy[:, 1] * k + cy).astype(int), np.floor(xy[:, 0] * k + cx).astype(int)
+                    assert fy.min() >= 0 and fx.min() >= 0 and fy.max() < f.shape[0] and fx.max() < f.shape[1]
+                    assert f[fy, fx].all(), f"{name} res {res} angle {s.angle}: fine outline (k={k}) misses the part"
+                    gap = sa._gap_offsets(0.0)
+                    for py, px in ((0, 0), (k - 1, 1), (k // 2, k - 1)):
+                        ph, _, _ = sa._phase(s, f, cy, cx, k, gap, py, px)
+                        r, c = np.floor(xy[:, 1] + ph.cy - ph.pad).astype(int), np.floor(xy[:, 0] + ph.cx - ph.pad).astype(int)
+                        assert r.min() >= 0 and c.min() >= 0 and ph.raw[r, c].all(), (name, res, s.angle, k, py, px)
 
 
 def test_fft_dilation_is_identical_to_the_shift_loop():
@@ -327,6 +339,84 @@ def test_long_loops_reach_cancellation_checkpoints():
         sa.CHECK_EVERY = old
 
 
+def best_disc_lattice(d, spacing, bed, pad=0.0):
+    """Most discs of diameter d on a square bed, `spacing` apart and from the edges, in a hexagonal
+    pattern (rows either way, first row long or short) or a square one; exact geometry. `pad` widens
+    the pitch, and the margin by half of it, like a footprint `pad` mm wider than the part."""
+    pitch, span = d + spacing + pad, bed - 2 * spacing - d - pad  # center to center; room for centers
+    if span < 0:
+        return 0
+    long_row, rows = int(span // pitch) + 1, int(span // (pitch * math.sqrt(3) / 2)) + 1
+    short_row = int((span - pitch / 2) // pitch) + 1 if span >= pitch / 2 else 0
+    hexes = [sum((a, b)[r % 2] for r in range(rows)) for a, b in ((long_row, short_row), (short_row, long_row))]
+    return max(long_row * long_row, *hexes)
+
+
+def test_fill_reaches_the_best_pattern_for_round_parts():
+    """Report: 24 mm round parts on a 220 mm bed filled 8 rows from the front, a row's worth of bed
+    left empty at the back and one part dropped alone in a corner (61). The pattern's pitch was
+    measured on 0.5 mm cells, which rounds every outline out by about a cell: 27 mm instead of 26,
+    a row lost over the bed. It is measured on fine pixels now, and every direction of the pattern is
+    counted on the bed. The fill must reach the best hexagonal or square pattern of the exact discs,
+    with at most 0.3 mm added to the pitch (fine-pixel rounding; on these beds that is the exact best
+    except 22 and 24 mm on 256), at the spacing, every part from the pattern (none dropped in a gap).
+    Before -> after: 22 mm on 220: 72 -> 85, 24 mm on 220: 61 -> 68, 15 mm on 220: 141 -> 168,
+    22 mm on 180: 46 -> 52, 24 mm on 256: 85 -> 91, 22 mm on 270: 111 -> 126."""
+    searched, filling = [], []
+    real, real_fill = sa._try_place, sa._fill
+
+    def spy(*a, **k):  # a copy placed by searching the bed, not on the pattern
+        r = real(*a, **k)
+        if filling:
+            searched.append(r is not None)
+        return r
+
+    def fill(*a, **k):
+        filling.append(1)
+        try:
+            return real_fill(*a, **k)
+        finally:
+            filling.pop()
+    sa._try_place, sa._fill = spy, fill
+    try:
+        for d, bed in ((22, 220.0), (24, 220.0), (15, 220.0), (30, 220.0), (22, 180.0), (24, 256.0), (22, 270.0)):
+            SHAPES[f"round{d}"] = [ngon(d / 2, 96)]
+            searched.clear()
+            p = sa.Params(spacing=2.0, fill=True, **sa.AUTO)
+            parts, copies, failed, _ = run_nest([(f"round{d}", 1)], p, bed=bed)
+            got, want = len(parts) + len(copies), best_disc_lattice(d, 2.0, bed, pad=0.3)
+            assert not failed and got >= want, f"{d} mm on {bed:g}: {got} parts, the best pattern holds {want}"
+            assert not any(searched), f"{d} mm on {bed:g}: {sum(searched)} parts placed outside the pattern"
+            check_round_layout(parts, copies, d, 2.0, bed)
+    finally:
+        sa._try_place, sa._fill = real, real_fill
+
+
+def test_fine_pattern_keeps_the_spacing_around_obstacles_and_other_parts():
+    """The fine pattern places copies at fractions of a cell (_phase). With an asymmetric part, a second
+    object filling the gaps and an obstacle, every exact gap still holds the spacing."""
+    obstacle = [rect(100, 90, 150, 140)]
+    for spec, step in (([("tri40", 1), ("disc12", 1)], 1.0), ([("L40", 1), ("sq20", 1)], 0.0)):
+        p = sa.Params(spacing=2.0, fill=True, copies=60, **dict(sa.AUTO, step=step))
+        parts, copies, failed, _ = run_nest(spec, p, obstacles=obstacle, bed=180.0)
+        assert not failed and len(copies) >= 20, (spec, len(copies))
+        check_layout(list(parts.values()) + copies, 2.0, obstacles=obstacle, bed=180.0)
+
+
+def check_round_layout(parts, copies, d, spacing, bed):
+    """check_layout for many round parts: exact gaps only between neighbours (centers closer than the
+    pitch plus 1 mm); the others are farther apart than the spacing already (the n-gon lies in its circle)."""
+    pieces = list(parts.values()) + copies
+    centers = np.array([np.concatenate(q).mean(axis=0) for q in pieces])
+    for i in range(len(pieces)):
+        pts = np.concatenate(pieces[i])
+        assert min(pts.min(), bed - pts.max()) >= spacing - EPS, f"part {i} closer than {spacing} mm to the edge"
+        near = np.flatnonzero(np.hypot(*(centers[i + 1:] - centers[i]).T) < d + spacing + 1.0) + i + 1
+        for j in near:
+            g = part_gap(pieces[i], pieces[j])
+            assert g >= spacing - EPS, f"parts {i} and {j}: gap {g:.4f} < spacing {spacing}"
+
+
 if __name__ == "__main__":
     test_gap_offsets_are_exact_for_unit_cells()
     test_fft_dilation_is_identical_to_the_shift_loop()
@@ -338,4 +428,6 @@ if __name__ == "__main__":
     test_small_parts_still_go_into_rings()
     test_half_turn_pairs_fill_more_triangles()
     test_fill_with_rotation_off_never_turns_parts()
+    test_fill_reaches_the_best_pattern_for_round_parts()
+    test_fine_pattern_keeps_the_spacing_around_obstacles_and_other_parts()
     print("ok")

@@ -7,7 +7,7 @@
 # type = "script"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Irregular and concave parts interlock to fit more on the plate, or fill the whole plate with copies. Just set the spacing."
 # author = "Heitor Ramon"
-# version = "0.12.0"
+# version = "0.13.0"
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Heitor Ramon
@@ -525,6 +525,9 @@ def _slop_polygon(reach: float = math.sqrt(2) + 0.05, run: float = 0.5 + 0.05) -
 
 
 SLOP = _slop_polygon()  # fine pixels; see _base_raster
+# Drawn straight at its angle (no NEAREST rotation after), a pixel whose square the part touches has its center
+# within sqrt(2)/2 of the part, so half the reach covers it; the 0.5 widening along y stays (PIL's scanlines).
+SLOP_DRAWN = _slop_polygon(math.sqrt(2) / 2 + 0.05)
 
 
 def _sweeps(p: np.ndarray, q: np.ndarray, poly: np.ndarray) -> np.ndarray:
@@ -541,7 +544,7 @@ def _sweeps(p: np.ndarray, q: np.ndarray, poly: np.ndarray) -> np.ndarray:
     return ends + poly[idx]
 
 
-def _base_raster(tris: np.ndarray, fine: float, k: int = 1):
+def _base_raster(tris: np.ndarray, fine: float, k: int = 1, slop: np.ndarray = SLOP):
     """Square L-mode image of `tris` (coords relative to the part center) with the center
     at the exact image middle, sized so any rotation about it stays inside. The half size is
     a multiple of `k`, so the center sits on a corner of the k x k pooled cells.
@@ -553,7 +556,7 @@ def _base_raster(tris: np.ndarray, fine: float, k: int = 1):
     fills pixel i over [i, i+1) but samples its scanlines so that centers up to about 0.45 px
     (along y) inside a polygon can stay unset (measured). So each triangle is filled and each
     edge is swept by SLOP: the sqrt(2) disc widened by 0.5 along y, each with 0.05 to spare."""
-    reach = float(np.abs(SLOP).max())
+    reach = float(np.abs(slop).max())
     half = int(math.ceil(np.linalg.norm(tris.reshape(-1, 2), axis=1).max() / fine + reach)) + 4
     half += -half % k
     img = Image.new("L", (2 * half, 2 * half), 0)
@@ -564,7 +567,7 @@ def _base_raster(tris: np.ndarray, fine: float, k: int = 1):
     edges = np.concatenate([px[:, [0, 1]], px[:, [1, 2]], px[:, [2, 0]]])
     edges = np.where((edges[:, 0, 0] > edges[:, 1, 0])[:, None, None], edges[:, ::-1], edges)
     edges = np.unique(np.round(edges, 6).reshape(-1, 4), axis=0).reshape(-1, 2, 2)  # shared edges once
-    for poly in _sweeps(edges[:, 0], edges[:, 1], SLOP).tolist():
+    for poly in _sweeps(edges[:, 0], edges[:, 1], slop).tolist():
         draw.polygon([tuple(q) for q in poly], fill=255)
     return img, half
 
@@ -628,6 +631,7 @@ class Shape:
     pad: int              # kernel = raw offset by (pad, pad)
     cx: float             # silhouette center within kernel, cells
     cy: float
+    fine: tuple | None = field(default=None, repr=False)  # (centered silhouette, res, spacing): see _fine
 
     @property
     def coarse(self) -> np.ndarray:  # kernel on the 2x coarser screening grid
@@ -679,8 +683,35 @@ def _shapes(item: Item, p: Params, tick=None):
         rows, cols = np.flatnonzero(m.any(1)), np.flatnonzero(m.any(0))
         m = m[rows[0]:rows[-1] + 1, cols[0]:cols[-1] + 1]
         c = half / k  # part center in pooled cells
-        out.append(Shape(float(a), m, _dilate_se(m, gap), pad, c - cols[0] + pad, c - rows[0] + pad))
+        out.append(Shape(float(a), m, _dilate_se(m, gap), pad, c - cols[0] + pad, c - rows[0] + pad,
+                         (tris, p.res, p.spacing)))
     return center, out
+
+
+def _fine(s: Shape, k: int):
+    """The part of `s` drawn straight at its angle on pixels k times finer than a cell, every pixel it
+    touches set (SLOP_DRAWN): (mask, cy, cx), the part's center in mask pixels from its corner."""
+    tris, res, _ = s.fine
+    a = math.radians(s.angle)
+    img, half = _base_raster(tris @ np.array([[math.cos(a), math.sin(a)], [-math.sin(a), math.cos(a)]]),
+                             res / k, slop=SLOP_DRAWN)
+    m = np.array(img) > 0
+    rows, cols = np.flatnonzero(m.any(1)), np.flatnonzero(m.any(0))
+    return m[rows[0]:rows[-1] + 1, cols[0]:cols[-1] + 1], half - rows[0], half - cols[0]
+
+
+def _phase(s: Shape, f: np.ndarray, cy: float, cx: float, k: int, gap: np.ndarray, py: int, px: int):
+    """The fine mask `f` (center (cy, cx) in its pixels) with its corner (py, px) fine pixels into a cell,
+    0 <= py, px < k, as a Shape on the cell grid: pooled "any" (a superset of the part), center at the
+    fraction. Returns (shape, r0, c0): the cell where the pooled mask was cropped."""
+    h, w = f.shape
+    m = np.zeros((h + k, w + k), bool)
+    m[py:py + h, px:px + w] = f
+    raw = _pool(m, k)
+    rows, cols = np.flatnonzero(raw.any(1)), np.flatnonzero(raw.any(0))
+    r0, c0 = int(rows[0]), int(cols[0])
+    raw = raw[r0:rows[-1] + 1, c0:cols[-1] + 1]
+    return Shape(s.angle, raw, _dilate_se(raw, gap), s.pad, (cx + px) / k - c0 + s.pad, (cy + py) / k - r0 + s.pad), r0, c0
 
 
 def _bed_grid(poly, excludes, res, obstacles=()):
@@ -964,6 +995,10 @@ LATTICE_STEP = 15.0  # degrees between the rotations tried for a repeating patte
 LATTICE_DIRS = 36    # first-neighbour directions tried per rotation, over a half turn
 LATTICE_TOP = 6      # densest patterns per rotation that get counted on the bed
 PAIR_TOP = 2         # twin offsets per rule (smallest pair box, most shared halo) tried per rotation
+FINE_TOP = 2         # rotations whose pattern is measured again on fine pixels; every direction is counted there
+LATTICE_FINE = 8     # fine pixels per cell side for that, at most
+LATTICE_FINE_PX = 480        # ... and at most this many fine pixels across the part with its spacing
+LATTICE_FINE_CELLS = 1 << 24  # ... and on the bed (fine pixels in all)
 
 
 def _lattice_layout(prepared, blocked, p: Params, progress=None):
@@ -993,9 +1028,17 @@ def _lattice_layout(prepared, blocked, p: Params, progress=None):
     spots = _lattice(tried, occ, need, progress, twins)
     if not spots:
         return None
-    def fits(s, x, y):  # spots are valid by construction; this guard makes overlaps impossible anyway
+    mine = np.zeros(occ.shape, bool)  # cells of pattern copies: they keep the spacing by the pattern's pitch
+
+    # Copies of one pattern are not checked against each other here: they are spaced by the pattern itself
+    # (_bases/_clear on the coarse or fine outline), and every spot comes from that one pattern.
+    def fits(s, x, y):  # spots are valid by construction; this guard keeps out every other part and obstacle
         kh, kw = s.kernel.shape
-        return not (occ[y:y + kh, x:x + kw][s.kernel] > 0).any()
+        ok = not ((occ[y:y + kh, x:x + kw] > 0) & ~mine[y:y + kh, x:x + kw])[s.kernel].any()
+        if ok:  # the caller stamps it now
+            h, w = s.raw.shape
+            mine[y + s.pad:y + s.pad + h, x + s.pad:x + s.pad + w] |= s.raw
+        return ok
 
     rest, placed, copies, bbox = list(group), {}, [], None
     for s, x, y in spots[:len(group)]:
@@ -1020,7 +1063,7 @@ def _lattice(shapes: list[Shape], occ: np.ndarray, need: int, progress=None, twi
     ny, nx = occ.shape
     occ_f = np.fft.rfft2(occ.astype(np.float32))
     tick = _tick(progress)
-    best, spots = (0, 0), []
+    best, spots, ranked = (0, 0), [], []
     for n, s in enumerate(shapes):
         if progress:
             progress(n, len(shapes), Phase("Trying repeating patterns", "patterns"))
@@ -1032,6 +1075,7 @@ def _lattice(shapes: list[Shape], occ: np.ndarray, need: int, progress=None, twi
             for v1, v2, area in _bases(_forbidden(s)):
                 found = _lattice_spots(valid, v1, v2)
                 key = (min(len(found), need), -area)
+                ranked.append((key, n))
                 if key > best:
                     best, spots = key, [(s, x, y) for y, x in found]
         twin = (twins or {}).get(id(s))
@@ -1048,7 +1092,69 @@ def _lattice(shapes: list[Shape], occ: np.ndarray, need: int, progress=None, twi
                 key = (min(2 * len(found), need), -area / 2)
                 if key > best:
                     best, spots = key, [t for y, x in found for t in ((s, x + ax, y + ay), (twin, x + bx, y + by))]
-    return spots
+    # The most promising rotations again, with the pitch measured on fine pixels (_fine_lattice). It must
+    # fit more copies to win: with as many, the looser pattern leaves more room for parts placed after it.
+    fine, fine_spots = (best[0] + 1, -math.inf), []
+    for n in list(dict.fromkeys(n for _, n in sorted(ranked, reverse=True)))[:FINE_TOP]:
+        if best[0] >= need or (fine_spots and fine[0] >= need):  # enough copies already
+            break
+        if shapes[n].fine is not None:
+            key, found = _fine_lattice(shapes[n], occ_f, occ.shape, need, tick)
+            if key > fine:
+                fine, fine_spots = key, found
+    return fine_spots or spots
+
+
+def _fine_lattice(s: Shape, occ_f, occ_shape, need: int, tick=None):
+    """Densest repeating pattern of `s`, with the pitch between copies measured on pixels up to
+    LATTICE_FINE times smaller than a cell instead of on cells. On cells each copy's outline is
+    rounded out to whole cells (about one cell more per pitch, see _shapes): over a plate of small
+    parts that adds up to a whole row or column (24 mm discs on a 220 mm bed: 8 rows instead of 9).
+    Each copy still goes on the cell grid, as the shape pooled at its fine offset (_phase), so it is
+    stamped, and checked against the bed, obstacles and other parts, like any other part. Every
+    direction is counted, not only the densest few: on a bounded bed the pattern square to its edges
+    often fits more than one a hair denser on paper. Returns ((count, -area in cells), spots)."""
+    ny, nx = occ_shape
+    k = min(LATTICE_FINE, LATTICE_FINE_PX // max(s.kernel.shape), math.isqrt(LATTICE_FINE_CELLS // ((ny + 2) * (nx + 2))))
+    if k < 2:
+        return (0, 0), []
+    _, res, spacing = s.fine
+    f, cy, cx = _fine(s, k)
+    gap_f = _gap_offsets(spacing / res * k)
+    bases = _bases(_forbidden(Shape(s.angle, f, _dilate_se(f, gap_f), gap_f.shape[0] // 2, 0.0, 0.0)), LATTICE_DIRS)
+    if not bases:
+        return (0, 0), []
+    gap = _gap_offsets(spacing / res)
+    valid = np.zeros(((ny + 2) * k, (nx + 2) * k), bool)  # by fine top-left of `f`, one cell of margin
+    phases = {}
+    for py in range(k):
+        for px in range(k):
+            ph, r0, c0 = _phase(s, f, cy, cx, k, gap, py, px)
+            kh, kw = ph.kernel.shape
+            if kh > ny or kw > nx:
+                continue
+            ok = ~_hits(occ_f, occ_shape, ph.kernel)
+            # kernel corner (y, x) of this phase puts f's corner at fine row (y + pad - r0 + 1) * k + py
+            y0, x0 = (s.pad - r0 + 1) * k + py, (s.pad - c0 + 1) * k + px
+            valid[y0:y0 + ok.shape[0] * k:k, x0:x0 + ok.shape[1] * k:k] = ok
+            phases[py, px] = ph, r0, c0
+    best, spots = (0, 0), []
+    if not valid.any():
+        return best, spots
+    for v1, v2, area in bases:
+        if tick:
+            tick()
+        found = _lattice_spots(valid, v1, v2)
+        key = (min(len(found), need), -area / (k * k))
+        if key > best:
+            best, spots = key, found
+        if best[0] >= need:
+            break
+    out = []
+    for Y, X in spots:
+        ph, r0, c0 = phases[Y % k, X % k]
+        out.append((ph, X // k - s.pad + c0 - 1, Y // k - s.pad + r0 - 1))
+    return best, out
 
 
 def _half_turn_symmetric(a: Shape, b: Shape) -> bool:
@@ -1128,7 +1234,7 @@ def _clip(dst_shape, src_shape, oy: int, ox: int):
     return (slice(y0, y1), slice(x0, x1)), (slice(y0 - oy, y1 - oy), slice(x0 - ox, x1 - ox))
 
 
-def _bases(forb: np.ndarray):
+def _bases(forb: np.ndarray, top: int = LATTICE_TOP):
     """Densest valid lattice bases ((dy, dx), (dy, dx), cell area) for copies of one shape.
 
     v1 is the nearest free offset in each of LATTICE_DIRS directions. v2 is the free offset,
@@ -1170,7 +1276,7 @@ def _bases(forb: np.ndarray):
                 out.setdefault((v1, v2), int(area.flat[i]))
                 break
             area.flat[i] = np.iinfo(area.dtype).max
-    return [(v1, v2, a) for (v1, v2), a in sorted(out.items(), key=lambda t: t[1])[:LATTICE_TOP]]
+    return [(v1, v2, a) for (v1, v2), a in sorted(out.items(), key=lambda t: t[1])[:top]]
 
 
 def _reduce(u, v):
