@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="#-instalar">Instalar</a> · <a href="#-recursos">Recursos</a> · <a href="#%EF%B8%8F-como-usar">Como usar</a> · <a href="#-perguntas-frequentes">Perguntas frequentes</a> · <a href="README.md">English</a>
+  <a href="#-instalação">Instalar</a> · <a href="#-recursos">Recursos</a> · <a href="#-como-usar">Como usar</a> · <a href="#-perguntas-frequentes">Perguntas frequentes</a> · <a href="README.md">English</a>
 </p>
 
 ## ✨ O que faz
@@ -30,7 +30,7 @@ O Organizar do próprio OrcaSlicer trata cada objeto como o seu fecho convexo, e
   </picture>
 </p>
 
-## 📦 Instalar
+## 📦 Instalação
 
 O Organizer está no Orca Cloud com o nome *Shape-Aware Arrange*. Entre no Orca Cloud pelo OrcaSlicer, abra **File > Plugins > Browse plugins**, encontre o plugin e assine, ou comece pela [página do plugin](https://cloud.orcaslicer.com/p/5bf381fd42d4). As atualizações chegam sozinhas.
 
@@ -59,7 +59,7 @@ Os nomes de menu acima são os do OrcaSlicer em inglês.
       <p><b>Aproxime peças pelo formato</b><br>Cada peça é posicionada pelo contorno real visto de cima e testada nas 360 rotações, em passos de 1°.</p>
     </td>
     <td width="50%" valign="top">
-      <img alt="Preencha a placa com cópias: o painel adicionando cópias, 17 até agora" src="assets/orca-cloud/orca_organizer-feature-02-fill-pt-BR.png" width="100%">
+      <img alt="Preencha a mesa com cópias: o painel adicionando cópias, 17 até agora" src="assets/orca-cloud/orca_organizer-feature-02-fill-pt-BR.png" width="100%">
       <p><b>Preencha a mesa com cópias</b><br>Preencher adiciona cópias dos objetos da mesa, um objeto por vez, até não caber mais nada ou até o número que você definir.</p>
     </td>
   </tr>
@@ -69,7 +69,7 @@ Os nomes de menu acima são os do OrcaSlicer em inglês.
       <p><b>Ajuste distância e rotação</b><br>Defina a folga em milímetros e escolha rotação automática, só passos de 90° ou nenhuma rotação.</p>
     </td>
     <td width="50%" valign="top">
-      <img alt="Revise a placa organizada: o resultado com 14 objetos posicionados e a cópia salva" src="assets/orca-cloud/orca_organizer-feature-04-review-pt-BR.png" width="100%">
+      <img alt="Revise a mesa organizada: o resultado com 14 objetos posicionados e a cópia salva" src="assets/orca-cloud/orca_organizer-feature-04-review-pt-BR.png" width="100%">
       <p><b>Revise a mesa organizada</b><br>O resultado abre como um arquivo de projeto novo, e o painel lista o que foi posicionado e o que não coube.</p>
     </td>
   </tr>
@@ -89,6 +89,7 @@ Os nomes de menu acima são os do OrcaSlicer em inglês.
 | | O resto não muda | Cores, pintura, modificadores, ajustes por objeto e as outras mesas ficam como estão. |
 | | Linha de comando | O núcleo de encaixe também roda em arquivos 3MF fora do OrcaSlicer. Veja [como funciona](docs/how-it-works.md#command-line) (em inglês). |
 
+<a id="-como-usar"></a>
 ## 🛠️ Como usar
 
 1. Selecione no OrcaSlicer a mesa que você quer arrumar.
@@ -193,7 +194,7 @@ Não. As peças mantêm a altura e ficam na mesa. Elas só se movem em X e Y e g
 
 Inglês e português do Brasil. O painel segue o idioma do OrcaSlicer e mostra inglês em qualquer outro.
 
-## 🧩 Mais plugins de bloodf
+## 🧩 Mais plugins do bloodf
 
 | | Plugin | O que faz | |
 |:-:|---|---|---|
@@ -206,7 +207,7 @@ Inglês e português do Brasil. O painel segue o idioma do OrcaSlicer e mostra i
 
 Cada plugin funciona sozinho; instalados juntos, compartilham dados onde ajuda.
 
-## 🤝 Contribuindo
+## 🤝 Contribuir
 
 Relatos de defeito e pull requests são bem-vindos. O [CONTRIBUTING.md](CONTRIBUTING.md) tem os comandos de build e teste, e a pasta [docs/](docs/) cobre [como a arrumação funciona](docs/how-it-works.md), o [desenvolvimento](docs/development.md) e a [publicação](docs/release.md). Esses documentos estão em inglês.
 

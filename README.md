@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="#-install">Install</a> · <a href="#-features">Features</a> · <a href="#%EF%B8%8F-how-to-use">How to use</a> · <a href="#-faq">FAQ</a> · <a href="README.pt-BR.md">Português</a>
+  <a href="#-install">Install</a> · <a href="#-features">Features</a> · <a href="#-how-to-use">How to use</a> · <a href="#-faq">FAQ</a> · <a href="README.pt-BR.md">Português</a>
 </p>
 
 ## ✨ What it does
@@ -77,16 +77,17 @@ From a file:
 |---|---|---|
 | | Overhangs | Each footprint is the whole 3D model projected straight down, so nothing is placed under another part's overhang. |
 | | Bed edge and excluded areas | The spacing is also kept from the bed edge and from the printer's excluded areas. |
-| | Prime tower | On multi-color plates with the prime tower enabled, its area is kept free, brim included. The depth is an estimate until you slice. |
+| | Prime tower | On multi-colour plates with the prime tower enabled, its area is kept free, brim included. The depth is an estimate until you slice. |
 | | Print by object | Parts stay at least the printer's extruder clearance radius apart, and are arranged as convex hulls, because that is what Orca checks. |
 | | Repeating patterns | For copies of the same part, the plugin finds how tightly two copies nest, tiles the bed with that pattern and fits the rest into the gaps. |
 | | Finer retry | If parts are left over, the plate is tried once more on a 0.25 mm grid, which lets tight shapes interlock. |
 | | Order quantities | *Most copies to add when filling* stops Fill at a set number, 12 for an order of 12. Empty fills the plate, up to 300 copies per run. |
 | | Remembered settings | Spacing, rotation and the copy limit of the last run come back after OrcaSlicer restarts. |
 | | Progress and Cancel | A run shows its phase and count. **Cancel** stops it at the next checkpoint, and nothing is written or opened. |
-| | Nothing else changes | Colors, painting, modifiers, per-object settings and the other plates are kept as they are. |
+| | Nothing else changes | Colours, painting, modifiers, per-object settings and the other plates are kept as they are. |
 | | Command line | The nesting core also runs on 3MF files outside OrcaSlicer. See [how it works](docs/how-it-works.md#command-line). |
 
+<a id="-how-to-use"></a>
 ## 🛠️ How to use
 
 1. Select the plate you want to arrange in OrcaSlicer.
@@ -172,7 +173,7 @@ A plate whose parts all fit takes a few seconds. A crowded plate that overflows 
 <details>
 <summary>Does it account for brims, supports and the prime tower?</summary>
 
-Brims, supports and skirts are not included in the footprint. The prime tower's area is kept free on multi-color plates, but its depth is only known after slicing, so the plugin reserves an estimate at least as deep as the tower is wide. Check the plate in OrcaSlicer after slicing.
+Brims, supports and skirts are not included in the footprint. The prime tower's area is kept free on multi-colour plates, but its depth is only known after slicing, so the plugin reserves an estimate at least as deep as the tower is wide. Check the plate in OrcaSlicer after slicing.
 </details>
 
 <details>

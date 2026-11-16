@@ -1,12 +1,6 @@
 # Orca Cloud description
 
-The text of the Orca Cloud listing ([Shape-Aware Arrange](https://cloud.orcaslicer.com/p/5bf381fd42d4)). Paste the
-English block into the English description and the Portuguese block into the Portuguese one. Each block is
-under 4000 characters (3354 and 3499). The images load from `main` on GitHub, so they show once the commit
-that adds them is merged. The listing slots and image files are in [release.md](release.md).
-
-Short description (one line): `Arrange parts by their real outline and fill a plate with more copies.` /
-`Organize as peças pelo contorno real e encha a mesa com mais cópias.`
+The text of the Orca Cloud listing ([Shape-Aware Arrange](https://cloud.orcaslicer.com/p/5bf381fd42d4)). Paste the English block into the English description and the Portuguese block into the Portuguese one. Each block is under 4000 characters (3354 and 3499). The images load from `main` on GitHub, so they show once the commit that adds them is merged. The listing slots and image files are in [release.md](release.md).
 
 ## English
 
@@ -26,8 +20,8 @@ Arrange parts by their real outline and fill a plate with more copies.
 - Arranges a plate by each object's real top-down outline, not its convex hull, so concave parts interlock and more of them fit.
 - Tries every part at all 360 rotations in 1° steps. You can limit it to 90° steps or turn rotation off.
 - **Fill** adds copies of the plate's objects, one object at a time in turn, until nothing more fits or the number you set is reached (up to 300 per run).
-- Keeps the spacing you set from other parts, the bed edge, excluded areas and, on multi-color plates, the prime tower.
-- Saves the result as a new project file and opens it. Colors, painting, modifiers, per-object settings and other plates are kept.
+- Keeps the spacing you set from other parts, the bed edge, excluded areas and, on multi-colour plates, the prime tower.
+- Saves the result as a new project file and opens it. Colours, painting, modifiers, per-object settings and other plates are kept.
 
 ![Fill the plate with copies](https://raw.githubusercontent.com/bloodf/orca_organizer/main/assets/orca-cloud/orca_organizer-feature-02-fill-en.png)
 
@@ -113,7 +107,7 @@ O contorno é só a geometria do modelo: brim, suportes e skirt não entram na c
 
 Inglês e português do Brasil, seguindo o idioma do OrcaSlicer.
 
-## Mais plugins de bloodf
+## Mais plugins do bloodf
 
 - [Embedder](https://cloud.orcaslicer.com/p/58222d4f9e52): Bolsos para ímãs e NFC, com a pausa na camada certa.
 - [Print Calculator](https://cloud.orcaslicer.com/p/521c07cf6de2): Preço de cada mesa: filamento, energia, mão de obra, taxas e margem.
