@@ -713,6 +713,84 @@ def test_instances_follow_their_position_not_a_stale_plate_list():
             assert np.allclose(b.transform, a.transform)
 
 
+def instance_variants_project(path: Path, bed: float):
+    """One concave L (object 2, mesh in a referenced file like Orca writes it) with seven instances, each
+    with its own transform, and a block with two instances. Plate 1: the L as is, turned 37 degrees,
+    mirrored, scaled 1.3 and turned, mirrored and turned, and one stacked exactly on the first (a new
+    instance before it was moved); plate 2: one L and both blocks. The plate list only knows the first
+    instance of each object (stale, as after adding instances), and an <assemble> section is present."""
+    ns = ('xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02" '
+          'xmlns:p="http://schemas.microsoft.com/3dmanufacturing/production/2015/06"')
+    sub = {"3D/Objects/object_1.model": mesh_xml(1, merge(box(0, 0, 30, 8), box(0, 8, 8, 30))),
+           "3D/Objects/object_3.model": mesh_xml(3, box(0, 0, 10, 10))}
+    objects = "".join(
+        f'<object id="{oid}" p:UUID="0000000{oid}-0000-0000-0000-000000000000" type="model"><components>'
+        f'<component p:path="/{f}" objectid="{sid}" transform="1 0 0 0 1 0 0 0 1 0 0 0"/></components></object>'
+        for oid, sid, f in [(2, 1, "3D/Objects/object_1.model"), (4, 3, "3D/Objects/object_3.model")])
+
+    def m(angle=0.0, x=0.0, y=0.0, mirror=False, scale=1.0):
+        a = np.eye(4)
+        a[0, 0] = -1.0 if mirror else 1.0
+        a[:3, :3] *= scale
+        return sa._mat_from_3mf(tf(angle, x, y)) @ a
+
+    px = bed * 1.2  # plate 2 origin x
+    l_items = [m(0, 10, 10), m(37, 50, 20), m(0, 90, 10, mirror=True), m(90, 40, 60, scale=1.3),
+               m(120, 90, 80, mirror=True), m(0, 10, 10), m(15, px + 20, 20)]
+    b_items = [m(0, px + 70, 70), m(0, px + 75, 75)]
+    items = "".join(f'<item objectid="{oid}" p:UUID="i{n}" transform="{sa._mat_to_3mf(t)}" printable="1"/>'
+                    for n, (oid, t) in enumerate([(2, t) for t in l_items] + [(4, t) for t in b_items]))
+    main = (f'<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" {ns}><resources>{objects}'
+            f'</resources><build p:UUID="b">{items}</build></model>')
+    assemble = "".join(f'<assemble_item object_id="2" instance_id="{i}" transform="{sa._mat_to_3mf(t)}" offset="0 0 0"/>'
+                       for i, t in enumerate(l_items))
+    settings = ('<?xml version="1.0" encoding="UTF-8"?>\n<config>'
+                '<object id="2"><metadata key="name" value="ell"/><part id="1" subtype="normal_part"/></object>'
+                '<object id="4"><metadata key="name" value="block"/><part id="3" subtype="normal_part"/></object>'
+                '<plate><metadata key="plater_id" value="1"/><model_instance><metadata key="object_id" value="2"/>'
+                '<metadata key="instance_id" value="0"/><metadata key="identify_id" value="10"/></model_instance></plate>'
+                '<plate><metadata key="plater_id" value="2"/><model_instance><metadata key="object_id" value="4"/>'
+                '<metadata key="instance_id" value="0"/><metadata key="identify_id" value="11"/></model_instance></plate>'
+                f'<assemble>{assemble}</assemble></config>')
+    project = {"printable_area": ["0x0", f"{bed:g}x0", f"{bed:g}x{bed:g}", f"0x{bed:g}"]}
+    with zipfile.ZipFile(path, "w") as z:
+        z.writestr("3D/3dmodel.model", main)
+        for name, body in sub.items():
+            z.writestr(name, f'<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" {ns}>'
+                             f'<resources>{body}</resources><build/></model>')
+        z.writestr("Metadata/model_settings.config", settings)
+        z.writestr("Metadata/project_settings.config", json.dumps(project))
+
+
+def test_instances_with_their_own_transforms_never_overlap():
+    """Report "with instances the parts overlap": instances mirrored, scaled or turned on their own,
+    stacked, on two plates, with a stale plate list, Arrange and Fill, rotation on and off. On plate 1
+    no two footprints share a cell (0.05 mm), each instance keeps its own mirror and scale, and plate 2
+    does not move. The plan is also checked as Orca rebuilds the plates when it opens the copy."""
+    bed = 120.0
+    with tempfile.TemporaryDirectory() as d:
+        src, dst = Path(d, "in.3mf"), Path(d, "out.3mf")
+        instance_variants_project(src, bed)
+        before = sa.Package(src).items()
+        for fill, step in ((False, 15.0), (True, 15.0), (False, 0.0), (True, 0.0)):
+            report = sa.arrange_3mf(src, dst, sa.Params(spacing=1, step=step, res=0.5, fill=fill))
+            assert report["placed"] == 6 and report["unplaced"] == [], (fill, step, report)
+            after = sa.Package(dst).items()
+            assert len(after) == len(before) + report["added"]
+            on_plate = [it for it in after if sa._plate_of(it, [(0, 0), (bed, 0), (bed, bed), (0, bed)], 2) == 1]
+            assert len(on_plate) == 6 + report["added"], (fill, step, len(on_plate))
+            for b, a in zip(before, after):
+                if b.index >= 6:  # plate 2: untouched
+                    assert np.allclose(b.transform, a.transform), b.index
+                lin_b, lin_a = b.transform[:3, :3], a.transform[:3, :3]
+                assert np.isclose(np.linalg.det(lin_b), np.linalg.det(lin_a)), "mirror or scale changed"
+            masks = [m for m, lo, hi in projections(dst, bed) if hi[0] <= bed]
+            assert len(masks) == len(on_plate)
+            assert (np.sum(masks, axis=0) > 1).sum() == 0, f"parts overlap on plate 1 (fill={fill}, step={step})"
+            if fill:
+                assert report["added"] > 0, report
+
+
 def test_plate_beyond_1_without_plate_list_is_refused():
     """A plain 3MF has no plate list: Orca puts everything on plate 1, so plate 2 must not be invented."""
     with tempfile.TemporaryDirectory() as d:
@@ -906,6 +984,7 @@ if __name__ == "__main__":
     test_fill_stops_at_the_requested_number_of_copies()
     test_spacing_limit_names_the_extruder_clearance_when_it_set_the_spacing()
     test_instances_follow_their_position_not_a_stale_plate_list()
+    test_instances_with_their_own_transforms_never_overlap()
     test_rotated_prime_tower_matches_orca_corners()
     test_fill_takes_turns_between_models_on_the_pattern_path()
     test_non_millimetre_unit_is_rejected_before_writing()
