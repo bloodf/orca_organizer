@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="#-install">Install</a> · <a href="#-features">Features</a> · <a href="#-how-to-use">How to use</a> · <a href="#-faq">FAQ</a> · <a href="README.pt-BR.md">Português</a>
+  <a href="#-install">Install</a> · <a href="#-features">Features</a> · <a href="#%EF%B8%8F-how-to-use">How to use</a> · <a href="#-faq">FAQ</a> · <a href="README.pt-BR.md">Português</a>
 </p>
 
 ## ✨ What it does

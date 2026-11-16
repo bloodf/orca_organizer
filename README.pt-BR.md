@@ -16,7 +16,7 @@
 </p>
 
 <p align="center">
-  <a href="#-instalar">Instalar</a> · <a href="#-recursos">Recursos</a> · <a href="#-como-usar">Como usar</a> · <a href="#-perguntas-frequentes">Perguntas frequentes</a> · <a href="README.md">English</a>
+  <a href="#-instalar">Instalar</a> · <a href="#-recursos">Recursos</a> · <a href="#%EF%B8%8F-como-usar">Como usar</a> · <a href="#-perguntas-frequentes">Perguntas frequentes</a> · <a href="README.md">English</a>
 </p>
 
 ## ✨ O que faz
