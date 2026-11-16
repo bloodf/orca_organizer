@@ -1,319 +1,216 @@
-<p align="center"><img src="assets/icon.png" width="128" alt="Shape-Aware Arrange icon"></p>
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/orca_organizer-hero-dark-en.png">
+    <img alt="Organizer: arrange parts by their real outline and fill a plate with more copies" src="assets/readme/orca_organizer-hero-light-en.png" width="100%">
+  </picture>
+</p>
 
-# Shape-Aware Arrange for OrcaSlicer
+<h1 align="center">🧩 Organizer</h1>
+<p align="center"><b>Arrange parts by their real outline and fill a plate with more copies.</b><br><sub>An OrcaSlicer plugin · by bloodf</sub></p>
 
-![Parts of many shapes packed tightly on a build plate](assets/social-preview.jpg)
+<p align="center">
+  <a href="https://cloud.orcaslicer.com/p/5bf381fd42d4"><img alt="Install from Orca Cloud" src="https://img.shields.io/badge/Orca_Cloud-Install-00628c?style=for-the-badge"></a>
+  <a href="https://github.com/bloodf/orca_organizer/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/bloodf/orca_organizer?style=for-the-badge&color=00628c"></a>
+  <img alt="OrcaSlicer 2.5+" src="https://img.shields.io/badge/OrcaSlicer-2.5%2B-555?style=for-the-badge">
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/github/license/bloodf/orca_organizer?style=for-the-badge&color=555"></a>
+</p>
 
-OrcaSlicer's built-in Arrange treats every object as its convex hull, so
-concave parts like snowflakes, stars, combs and letters end up spaced as if
-they were discs or boxes. This plugin arranges a plate using each object's
-real top-down footprint, so arms and teeth interlock and more parts fit.
+<p align="center">
+  <a href="#-install">Install</a> · <a href="#-features">Features</a> · <a href="#-how-to-use">How to use</a> · <a href="#-faq">FAQ</a> · <a href="README.pt-BR.md">Português</a>
+</p>
 
-Requires OrcaSlicer 2.5 or later, which has the Python plugin system.
+## ✨ What it does
 
-<!-- related-plugins:start -->
-## Explore the other plugins
+OrcaSlicer's built-in Arrange treats every object as its convex hull, so concave parts such as snowflakes, stars, combs and letters are spaced as if they were discs or boxes. Organizer arranges a plate by each object's real top-down outline, so arms and teeth interlock and more parts fit. **Fill** then adds copies of the plate's objects until nothing more fits. The result is saved as a new project file and opened in OrcaSlicer; your original file is never modified.
 
-Complete your OrcaSlicer workflow: arrange, price, manage filament and print. Each plugin works on its own; installed together they share data where it helps.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/orca_organizer-screen-result-dark-en.png">
+    <img alt="The Organizer tab after a Fill: 14 objects placed, 23 extra copies added, and the saved copy with its Open and Copy path buttons" src="assets/readme/orca_organizer-screen-result-light-en.png" width="100%">
+  </picture>
+</p>
+
+## 📦 Install
+
+Organizer is on Orca Cloud as *Shape-Aware Arrange*. Sign in to Orca Cloud in OrcaSlicer, open **File > Plugins > Browse plugins**, find it and subscribe, or start from the [plugin page](https://cloud.orcaslicer.com/p/5bf381fd42d4). Updates arrive automatically.
+
+From a file:
+
+1. Download `shape_arrange_any.py` from the [latest release](https://github.com/bloodf/orca_organizer/releases/latest).
+2. In OrcaSlicer, open **File > Plugins**.
+3. Click the arrow next to **Browse plugins**, choose **Install local plugin** and select the file.
+4. Tick **Activate** and allow the thread permission prompt. The arranging runs in the background so OrcaSlicer stays responsive.
+
+| Requirement | Version |
+|---|---|
+| OrcaSlicer | 2.5 or later (the first with the Python plugin system) |
+| System WebView | macOS 14.5 or later (WebKit 17.5), Windows WebView2, Linux WebKitGTK 2.44 or later |
+| Python packages | `numpy` and `pillow`, installed by OrcaSlicer on first install |
+| Project | 3MF in millimetres |
+
+## 🧰 Features
 
 <table>
   <tr>
-    <td width="33%" valign="top">
-      <a href="https://cloud.orcaslicer.com/p/521c07cf6de2"><img src="docs/related-plugins/orca_print_calculator-icon.png" width="40" height="40" alt="Orca Print Calculator"></a>
-      <h3><a href="https://cloud.orcaslicer.com/p/521c07cf6de2">Orca Print Calculator</a></h3>
-      <a href="https://cloud.orcaslicer.com/p/521c07cf6de2"><img src="docs/related-plugins/orca_print_calculator-preview.png" width="280" alt="Orca Print Calculator: preview"></a>
-      <p>Price every build plate: Spoolman filament cost, energy, labor, fees and a suggested selling price.</p>
-      <p><a href="https://cloud.orcaslicer.com/p/521c07cf6de2">Install from Orca Cloud →</a><br><a href="https://github.com/bloodf/orca_print_calculator">Source on GitHub →</a></p>
+    <td width="50%" valign="top">
+      <img alt="Fit shapes closer together: the panel measuring part outlines, 9 of 14" src="assets/orca-cloud/orca_organizer-feature-01-shape-en.png" width="100%">
+      <p><b>Fit shapes closer together</b><br>Each part is placed by its real top-down outline and tried at all 360 rotations, in 1° steps.</p>
     </td>
-    <td width="33%" valign="top">
-      <a href="https://cloud.orcaslicer.com/p/50c35dcbd6f3"><img src="docs/related-plugins/spooler-icon.png" width="40" height="40" alt="Spooler"></a>
-      <h3><a href="https://cloud.orcaslicer.com/p/50c35dcbd6f3">Spooler</a></h3>
-      <a href="https://cloud.orcaslicer.com/p/50c35dcbd6f3"><img src="docs/related-plugins/spooler-preview.png" width="280" alt="Spooler: preview"></a>
-      <p>Your Spoolman spools and filament presets in OrcaSlicer, with what is left on each spool.</p>
-      <p><a href="https://cloud.orcaslicer.com/p/50c35dcbd6f3">Install from Orca Cloud →</a><br><a href="https://github.com/bloodf/spooler">Source on GitHub →</a></p>
-    </td>
-    <td width="33%" valign="top">
-      <a href="https://cloud.orcaslicer.com/p/55b8c347d443"><img src="docs/related-plugins/u1control-icon.png" width="40" height="40" alt="U1 Control"></a>
-      <h3><a href="https://cloud.orcaslicer.com/p/55b8c347d443">U1 Control</a></h3>
-      <a href="https://cloud.orcaslicer.com/p/55b8c347d443"><img src="docs/related-plugins/u1control-preview.png" width="280" alt="U1 Control: preview"></a>
-      <p>The Snapmaker U1 in OrcaSlicer: print setup, camera, toolheads, RFID, Spoolman and a file manager.</p>
-      <p><a href="https://cloud.orcaslicer.com/p/55b8c347d443">Install from Orca Cloud →</a><br><a href="https://github.com/bloodf/u1control">Source on GitHub →</a></p>
+    <td width="50%" valign="top">
+      <img alt="Fill the plate with copies: the panel adding copies, 17 so far" src="assets/orca-cloud/orca_organizer-feature-02-fill-en.png" width="100%">
+      <p><b>Fill the plate with copies</b><br>Fill adds copies of the plate's objects, one object at a time in turn, until nothing more fits or the number you set is reached.</p>
     </td>
   </tr>
   <tr>
-    <td width="33%" valign="top">
-      <a href="https://cloud.orcaslicer.com/p/59c786285255"><img src="docs/related-plugins/kobracontrol-icon.png" width="40" height="40" alt="Kobra Control"></a>
-      <h3><a href="https://cloud.orcaslicer.com/p/59c786285255">Kobra Control</a></h3>
-      <a href="https://cloud.orcaslicer.com/p/59c786285255"><img src="docs/related-plugins/kobracontrol-preview.png" width="280" alt="Kobra Control: preview"></a>
-      <p>The Anycubic Kobra X in OrcaSlicer: Print and Send, the Device tab, ACE slots and a dashboard.</p>
-      <p><a href="https://cloud.orcaslicer.com/p/59c786285255">Install from Orca Cloud →</a><br><a href="https://github.com/bloodf/kobracontrol">Source on GitHub →</a></p>
+    <td width="50%" valign="top">
+      <img alt="Set spacing and rotation: the Advanced section with the three rotation options and the copy limit" src="assets/orca-cloud/orca_organizer-feature-03-spacing-en.png" width="100%">
+      <p><b>Set spacing and rotation</b><br>Set the gap in millimetres and choose automatic rotation, only 90° steps, or no rotation at all.</p>
     </td>
-    <td width="33%" valign="top">
-      <a href="https://cloud.orcaslicer.com/p/58222d4f9e52"><img src="docs/related-plugins/embedder-icon.png" width="40" height="40" alt="Embedder"></a>
-      <h3><a href="https://cloud.orcaslicer.com/p/58222d4f9e52">Embedder</a></h3>
-      <a href="https://cloud.orcaslicer.com/p/58222d4f9e52"><img src="docs/related-plugins/embedder-preview.png" width="280" alt="Embedder: preview"></a>
-      <p>Cut magnet and NFC sticker pockets into a part, with a pause at the right layer to drop each insert in.</p>
-      <p><a href="https://cloud.orcaslicer.com/p/58222d4f9e52">Install from Orca Cloud →</a><br><a href="https://github.com/bloodf/embedder">Source on GitHub →</a></p>
+    <td width="50%" valign="top">
+      <img alt="Review the arranged plate: the result with 14 objects placed and the saved copy" src="assets/orca-cloud/orca_organizer-feature-04-review-en.png" width="100%">
+      <p><b>Review the arranged plate</b><br>The result opens as a new project file, with what was placed and what did not fit listed in the panel.</p>
     </td>
-    <td width="33%" valign="top"></td>
   </tr>
 </table>
 
-Illustrative project artwork. [Credits and licenses](docs/related-plugins/README.md).
-<!-- related-plugins:end -->
+| | Feature | What you get |
+|---|---|---|
+| | Overhangs | Each footprint is the whole 3D model projected straight down, so nothing is placed under another part's overhang. |
+| | Bed edge and excluded areas | The spacing is also kept from the bed edge and from the printer's excluded areas. |
+| | Prime tower | On multi-colour plates with the prime tower enabled, its area is kept free, brim included. The depth is an estimate until you slice. |
+| | Print by object | Parts stay at least the printer's extruder clearance radius apart, and are arranged as convex hulls, because that is what Orca checks. |
+| | Repeating patterns | For copies of the same part, the plugin finds how tightly two copies nest, tiles the bed with that pattern and fits the rest into the gaps. |
+| | Finer retry | If parts are left over, the plate is tried once more on a 0.25 mm grid, which lets tight shapes interlock. |
+| | Order quantities | *Most copies to add when filling* stops Fill at a set number, 12 for an order of 12. Empty fills the plate, up to 300 copies per run. |
+| | Remembered settings | Spacing, rotation and the copy limit of the last run come back after OrcaSlicer restarts. |
+| | Progress and Cancel | A run shows its phase and count. **Cancel** stops it at the next checkpoint, and nothing is written or opened. |
+| | Nothing else changes | Colours, painting, modifiers, per-object settings and the other plates are kept as they are. |
+| | Command line | The nesting core also runs on 3MF files outside OrcaSlicer. See [how it works](docs/how-it-works.md#command-line). |
 
-## How it works
-
-1. Exports a copy of the current project, unsaved changes included.
-2. Rasterizes each object's footprint at every candidate rotation.
-3. Places parts largest-first. FFT collision search finds the position that
-   keeps the layout's bounding box smallest while staying the set spacing
-   away from other parts, the bed edge and any excluded areas.
-   If parts are left over, or when filling, it also tries a repeating
-   pattern for copies of the same part: it finds how tightly two copies nest,
-   also as pairs with one copy turned half a turn (when rotation is on),
-   tiles the bed with that pattern and fits the rest into the gaps. For the
-   most promising rotations the distance between copies is measured again on
-   pixels up to 8 times finer than the grid, and the pattern is tried in
-   every direction, so rows of small parts reach across the whole bed. The
-   result that places more parts wins.
-4. Rewrites only the object transforms in the copy, saves it as a new file
-   and opens it in OrcaSlicer. Your original project file is never modified,
-   and earlier arranged copies are never overwritten.
-
-It works with any model. Collisions are checked on all three axes:
-
-- **X/Y:** each footprint is the whole 3D model projected straight down, so
-  an overhang at any height reserves its space. Nothing is placed under
-  another part's overhang.
-- **Z:** parts keep their height and stay on the bed. They only move in X/Y
-  and turn around the vertical axis.
-- **Prime tower:** on multi-color plates (two or more filaments, or color
-  painting) with the prime tower enabled, the tower's area is kept free,
-  brim included, at its position and rotation on that plate. Its depth is
-  only known after slicing, so the plugin reserves an estimate: at least as
-  deep as it is wide. Check the tower in Orca after slicing.
-- **Print by object:** when the plate prints one object at a time, the
-  print head drops between finished parts. Parts are then kept at least
-  the printer's extruder clearance radius apart in X/Y, even if the spacing
-  you set is smaller. Orca checks this clearance between the parts' convex
-  hulls, so in this mode each part is arranged as its convex hull and
-  concave parts do not interlock. Height and print order are still checked
-  by Orca.
-
-The footprint is the model's geometry only: part brims, supports, skirts
-and travel moves are not included. The result is an arrangement, not a
-print check; slice and review it in Orca before printing.
-
-Orca 2.5 plugins can read the model but cannot move objects, so the plugin
-works on a copy and reopens it. Colors, painting, modifiers, per-object
-settings and other plates are kept.
-
-## Install
-
-**From Orca Cloud:** sign in to Orca Cloud in OrcaSlicer, open **File > Plugins > Browse plugins**, find *Shape-Aware Arrange* and subscribe ([plugin page](https://cloud.orcaslicer.com/p/5bf381fd42d4)). Updates arrive automatically.
-
-**From a file:**
-
-1. In OrcaSlicer, open **File > Plugins**.
-2. Click the arrow next to **Browse plugins**, choose **Install local
-   plugin**, and select `shape_arrange.py`.
-3. Tick **Activate** and allow the thread permission prompt (the arranging
-   runs in the background so OrcaSlicer stays responsive). On first install,
-   OrcaSlicer installs `numpy` and `pillow` for the plugin.
-
-## Use
+<a id="-how-to-use"></a>
+## 🛠️ How to use
 
 1. Select the plate you want to arrange in OrcaSlicer.
-2. Click the **Organizer** tab in the main window. It has **Arrange** and
-   **Fill** one click away, so you never open the Plugins window or run a
-   script. The tab shows the project, the selected plate and its object
-   count, and follows your selection. Where the host has no plugin tabs
-   (see Known limits), click **Run** on *Shape-Aware Arrange* in
-   **File > Plugins** instead: it opens the same controls in a panel docked
-   on the right.
-3. Set the spacing and click **Arrange plate N**. Everything else is
-   automatic: every part tries all 360 rotations (1° steps) and keeps the one
-   that packs best. All angles are screened on a coarse grid, and the best 8
-   are re-checked at full precision. If parts are left over, the plate is retried once on a finer
-   0.25 mm grid, which lets tight shapes interlock.
-   **Fill plate N** does the same, then keeps adding copies of
-   the plate's objects, one object at a time in turn, until nothing more
-   fits. The turns also apply when copies of one object are tiled in a
-   repeating pattern. Smaller objects keep filling the gaps once bigger ones
-   stop fitting. It adds at most 300 copies per run, and the panel lists how
-   many copies of each object were added. To add a set number, for example
-   12 for an order, enter it in *Most copies to add when filling* under
-   **Advanced**; empty fills the plate.
-4. Allow the launch prompt the first time; this is how the plugin opens the
-   arranged copy. The panel shows how many parts were placed, lists any
-   that did not fit (moved into a row above the plate) and always shows
-   where the copy was saved, with an **Open this copy in OrcaSlicer** button.
+2. Click the **Organizer** tab in the main window. It shows the project, the selected plate and its object count, and follows your selection.
+3. Set **Spacing between parts** and click **Arrange plate N**. To add copies as well, click **Fill plate N** instead.
+4. Allow the launch prompt the first time. This is how the plugin opens the arranged copy.
+5. Read the result. It says how many parts were placed, lists any that did not fit (they are moved into a row above the plate) and shows where the copy was saved, with **Open this copy in OrcaSlicer** and **Copy path**.
+6. Slice and check the plate in OrcaSlicer before printing.
 
-The spacing is the gap kept between parts' top-down outlines. It is never
-undercut; because positions sit on a 0.5 mm grid, the real gap is typically
-about 1 mm larger, up to about 2 mm along slanted edges. Under
-**Advanced**, *Only 90° steps* turns parts only by quarter turns, so parts that
-are square to the bed stay square to it (each part may also keep its current
-angle), and *Keep each part's orientation* turns rotation off: parts only
-move. Both fit fewer parts than automatic rotation.
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/readme/orca_organizer-screen-advanced-dark-en.png">
+    <img alt="The Organizer tab with Advanced open: Automatic (1° steps), Only 90° steps, Keep each part's orientation, and Most copies to add when filling" src="assets/readme/orca_organizer-screen-advanced-light-en.png" width="100%">
+  </picture>
+</p>
 
-The panel remembers the spacing, rotation and copy limit of the last run you
-started, also after OrcaSlicer restarts (`settings.json` in the plugin's
-storage folder).
+Under **Advanced**, *Only 90° steps* turns parts only by quarter turns, so parts that are square to the bed stay square to it. *Keep each part's orientation* turns rotation off and only moves parts. Both fit fewer parts than *Automatic (1° steps)*.
 
-Each run is saved as `<project>-arranged-<date>-<time>-<id>.3mf` in the
-plugin's storage folder, so earlier results stay. The plugin does not delete
-them; remove old ones by hand when you no longer need them. A run that fails
-keeps its project snapshot in `jobs/<id>/` of that folder for diagnosis; the
-plugin keeps the 10 newest of those and removes any older than 30 days when
-the next run starts.
+Where OrcaSlicer has no plugin tabs, click **Run** on *Shape-Aware Arrange* in **File > Plugins**. It opens the same controls in a panel docked on the right, and both entries share one run.
 
-**Cancel** stops a run at the next checkpoint; nothing is written or
-opened. Only one run works at a time, whichever entry you use: the
-Organizer tab and the Script's panel share one run, so a second click
-shows the running one instead of starting another. If you switch tabs,
-close the panel or reload the page during a run, the run continues; come
-back to see its progress. A run that finished while nobody was watching is
-saved when you return, and **Open this copy in OrcaSlicer** asks Orca to load it. The tab marks a
-result that belongs to another project or plate than the one selected now.
+The spacing is the gap between the parts' top-down outlines and is never undercut. Positions sit on a 0.5 mm grid, so the real gap is typically about 1 mm larger, up to about 2 mm along slanted edges. The details of every step are in [how it works](docs/how-it-works.md).
 
-A plate whose parts all fit takes a few seconds. A crowded plate that
-overflows takes about 20 seconds (18 snowflakes, 80 mm), because the finer
-retry runs too. The work runs in the background, so OrcaSlicer stays usable,
-and the panel shows progress.
+## 🔒 Privacy and safety
 
-## Organizer tab and the Script
+Organizer works on your computer and makes no network connection. The panel is one offline page embedded in the plugin file, and its tests load it under a content security policy that allows no connections. OrcaSlicer itself downloads `numpy` and `pillow` when the plugin is first installed.
 
-The plugin registers two entries that drive one run (they share state):
+It reads the open project by asking OrcaSlicer to export a copy of it, unsaved changes included. It writes only to the plugin's storage folder: the arranged copies (`<project>-arranged-<date>-<time>-<id>.3mf`), `settings.json` with the last spacing, rotation and copy limit, and a project snapshot in `jobs/<id>/` when a run fails. It keeps the 10 newest snapshots and removes any older than 30 days.
 
-- **Organizer** is a Pages capability: a tab in the main window, built when
-  first shown. Orca's Pages API only offers tabs, so the plugin does not add
-  a toolbar button or menu item.
-- **Shape-Aware Arrange** is the Script (File > Plugins > Run). It stays for
-  hosts and workflows that use it, and opens the same controls docked.
+It never modifies your original project file, never overwrites an earlier arranged copy and never deletes one. It asks for two permissions: threads, to work in the background, and launch, to ask OrcaSlicer to open the arranged copy.
 
-**Language.** The panel is in English and Brazilian Portuguese (pt-BR). It
-uses the language OrcaSlicer's UI runs in (`orca.host.app_language()`, from
-Orca's Host API) and falls back to the browser's language when the host does
-not offer it. Any other language shows English. Part and file names, paths and
-the technical details of an unexpected error are shown as they are. A failure
-says what went wrong and what to try next, in the panel's language; the raw
-error stays as *Details* only when the cause is not one the plugin knows.
-"Open this copy in OrcaSlicer" only asks Orca to open the saved file: what Orca
-does with its current project or windows was not tested, so the panel does not
-say. When the plugin does not answer, the tab says so and offers **Try again**,
-which asks the plugin for its state again (the host has no API to reload a tab).
+The footprint is the model's geometry only. Part brims, supports, skirts and travel moves are not included, and the prime tower is an estimate. The result is an arrangement, not a print check.
 
-The tab keeps no state: the plugin does. Reloading the tab asks the plugin
-for the current run. The plugin never posts to the tab from its worker
-thread, because the host does not document that as thread-safe; the tab asks
-for progress every second while a run is busy and every three seconds while
-idle, and only while it is visible. A host without the Pages capability
-loads the plugin without the tab and keeps the Script.
+## ❓ FAQ
 
-## Command line
+<details>
+<summary>Why does it open a copy instead of moving the parts in my project?</summary>
 
-The nesting core also runs outside OrcaSlicer on 3MF files in millimetres
-(other units are refused):
+OrcaSlicer 2.5 plugins can read the model but cannot move objects. The plugin exports a copy of the project, rewrites only the object positions in it, saves it as a new file and asks OrcaSlicer to open it.
+</details>
 
-```sh
-uv run --python 3.12 --with numpy --with pillow python shape_arrange.py \
-    in.3mf out.3mf --plate 1 --spacing 2 --auto --preview plate.png
-```
+<details>
+<summary>The gap between parts is larger than the spacing I set.</summary>
 
-Add `--fill` to fill the plate with copies, and `--copies N` to add at most N of them.
+The spacing is a minimum. Parts are placed on a 0.5 mm grid, so the real gap is typically about 1 mm larger, up to about 2 mm along slanted edges. When the plate prints one object at a time, the printer's extruder clearance radius replaces a smaller spacing, and the result says so.
+</details>
 
-`--auto` uses the plugin's settings: 1° steps on a 0.5 mm grid, and one
-retry on a 0.25 mm grid with 15° steps if parts are left over. Use `--step`
-and `--res` instead to choose the rotation step and grid size yourself;
-`--step 0` keeps every part's orientation. The CLI writes to the `dst` you
-give it, replacing an existing file there.
+<details>
+<summary>Some parts did not fit. Where are they?</summary>
 
-Pass `--bed 270x270` for plain 3MF files that carry no printer settings.
+They are moved into a row above the plate and listed in the result. Lower the spacing, allow automatic rotation, or move some parts to another plate.
+</details>
 
-## Panel source
+<details>
+<summary>Parts overlapped when an object had several instances.</summary>
 
-The Organizer tab and the Script's dock panel are one Vue 3 + PrimeVue 5 app in `ui/` (see
-`ui/README.md`), built on the shared Orca UI foundation 4.0.1 in the Organizer's sky accent. The plugin stays a single `.py` file: `cd ui && npm ci --ignore-scripts && npm run build`
-compiles the app into one offline HTML file and embeds it in `shape_arrange.py` (`PANEL_HTML`).
-Editing `ui/src` without rebuilding is caught by CI and by `tests/test_panel_js.py`. Python users who
-only run or release the plugin need no Node: the built page is committed inside `shape_arrange.py`.
+That was a bug in versions before 0.9.5. The plate's parts were read from a list OrcaSlicer saves in the project, which goes stale when instances are added or removed. Since 0.9.5 every part whose position is on the selected plate is taken. Update to the latest version.
+</details>
 
-## Test
+<details>
+<summary>OrcaSlicer crashed on start after I installed the plugin.</summary>
 
-```sh
-uv run --python 3.12 --with numpy --with pillow python tests/test_shape_arrange.py
-uv run --python 3.12 --with numpy --with pillow python tests/test_packing.py
-uv run --python 3.12 --with numpy --with pillow python tests/test_plugin.py
-uv run --python 3.12 --with numpy --with pillow python tests/test_panel_js.py
-```
+Versions 0.9.0 to 0.9.2 crashed OrcaSlicer on start. This is fixed in 0.9.3. If you see "Could not start: plugin.storage() must be called from a plugin callback", update as well: that one is fixed in 0.9.4.
+</details>
 
-`test_panel_js.py` needs Node and `npm ci` in `ui/`. It checks that the page embedded in
-`shape_arrange.py` is exactly the one `ui/` builds, that it is offline and needs no
-`unsafe-eval`, that its English wording equals the plugin's own, and runs the Vue component
-tests (`ui/tests`: validation, focus, every state and message, polling, protocol).
+<details>
+<summary>I do not see the Organizer tab.</summary>
 
-`test_plugin.py` runs the plugin against a stub `orca` module and checks the
-threading (the export and the file launch happen on the UI thread, the
-nesting does not) and the run lifecycle: closing and reopening the panel,
-cancelling, a failed save and earlier results that must stay. It also covers the Organizer
-tab (registration, a host without Pages, one run shared with the Script's panel,
-stale ids, reload, unload) against a stub Pages host. None of it runs inside OrcaSlicer.
+The tab needs an OrcaSlicer with plugin pages, and the number of visible tabs is set under <b>Preferences > General > Plugins > Visible plugin pages</b>. Without the tab, click <b>Run</b> on <i>Shape-Aware Arrange</i> in <b>File > Plugins</b>.
+</details>
 
-`test_shape_arrange.py` builds a two-plate Orca-style project in which two combs fit on
-plate 2 only if their teeth interlock. It arranges the project, then checks
-that every part sits on the bed with no overlap and that plate 1 and every
-other file in the 3MF are unchanged.
+<details>
+<summary>Where are the arranged copies, and can I delete them?</summary>
 
-## Known limits
+In the plugin's storage folder. The result shows the full path, and <b>Copy path</b> copies it. The plugin does not delete arranged copies, so remove old ones by hand when you no longer need them.
+</details>
 
-- Parts are not mirrored or tilted; only rotation about Z is tried.
-- Only 3MF files in millimetres are accepted. In the model's `<build>`
-  section, element prefixes bound to the 3MF core namespace are supported;
-  a layout the plugin cannot edit safely is refused with an error.
-- The Organizer tab needs a host with the Pages capability, and the tab
-  count is set by the host (Preferences > General > Plugins > Visible
-  plugin pages). Orca documents no toolbar, menu or shortcut API for
-  plugins, so none is used. How a real host delivers `post_message`, when it
-  calls `get_ui()` again after a reload and how it lays out the tab were
-  not tested in OrcaSlicer; the plugin recovers by asking for state.
-- Only English and pt-BR exist, and the pt-BR wording was not reviewed by a
-  native speaker beyond the author. The panel's own colors (buttons, errors)
-  were chosen for contrast on the light and dark backgrounds it detects; the
-  colors Orca really passes were not measured. The panel is a Vue 3 + PrimeVue app
-  (`ui/`); it was exercised in headless Chrome with a mock host bridge, never in
-  OrcaSlicer's WebView. Its layout uses CSS container queries and `color-mix()`
-  and an embedded Manrope font; how the macOS, Windows and Linux WebViews draw
-  them was not checked.
-- Disabling or reloading the plugin during a run ends the run: its state
-  lives in the plugin process. The project snapshot stays in the plugin's
-  storage folder and earlier copies are untouched.
-- Saving the arranged copy runs on OrcaSlicer's UI thread, so a very large
-  project can pause the window briefly while it is written.
-- On Windows the arranged copy may open in a second OrcaSlicer window unless
-  single-instance mode is on. If no launcher is found, the panel shows the
-  file path to open by hand.
+<details>
+<summary>How long does a run take?</summary>
 
-## Releasing
+A plate whose parts all fit takes a few seconds. A crowded plate that overflows takes about 20 seconds (18 snowflakes of 80 mm), because the finer retry runs too. The work runs in the background, so OrcaSlicer stays usable.
+</details>
 
-1. Bump `version` in the metadata block of `shape_arrange.py` and add a
-   section for it to `CHANGELOG.md`. Commit and push.
-2. Publish a GitHub release whose tag matches the version:
-   `gh release create v0.9.0 --title "Shape-Aware Arrange v0.9.0" --notes ""`
-   (or **Draft a new release** in the GitHub UI).
-3. The Release workflow tests the tagged code, checks the tag against the
-   plugin version, attaches `shape_arrange_any.py` (Orca Cloud requires an
-   OS/arch suffix in the file name; `any` means pure Python), fills empty
-   release notes from `CHANGELOG.md`, and publishes the version to Orca
-   Cloud with those notes as the changelog.
+<details>
+<summary>Does it account for brims, supports and the prime tower?</summary>
 
-Orca Cloud publishing needs no secrets. The repository is connected to the
-plugin under **Edit plugin > GitHub publishing** on Orca Cloud, and the
-workflow proves where it runs with a short-lived OIDC token from GitHub.
-Orca Cloud only accepts runs triggered by a published release, so pushing
-a tag on its own does nothing. If a run fails, fix the cause and re-run it.
+Brims, supports and skirts are not included in the footprint. The prime tower's area is kept free on multi-colour plates, but its depth is only known after slicing, so the plugin reserves an estimate at least as deep as the tower is wide. Check the plate in OrcaSlicer after slicing.
+</details>
 
-## License
+<details>
+<summary>On Windows the arranged copy opened in a second OrcaSlicer window.</summary>
+
+That happens unless single-instance mode is on. If no launcher is found, the panel shows the file path so you can open it by hand.
+</details>
+
+<details>
+<summary>Can parts be mirrored or tilted to fit better?</summary>
+
+No. Parts keep their height and stay on the bed. They only move in X and Y and turn around the vertical axis. The full list of limits is in <a href="docs/how-it-works.md#known-limits">how it works</a>.
+</details>
+
+## 🌍 Languages
+
+English and Brazilian Portuguese. The panel follows the language OrcaSlicer runs in and shows English for any other.
+
+## 🧩 More plugins by bloodf
+
+| | Plugin | What it does | |
+|:-:|---|---|---|
+| <img alt="Organizer icon" src="assets/orca-cloud/orca_organizer-tile.png" width="40"> | 🧩 **Organizer** · you are here | Arrange parts by their real outline and fill a plate with more copies. | |
+| <img alt="Embedder icon" src="https://raw.githubusercontent.com/bloodf/embedder/main/assets/orca-cloud/embedder-tile.png" width="40"> | 🧲 [Embedder](https://github.com/bloodf/embedder) | Magnet and NFC pockets, with the pause at the right layer. | [Install](https://cloud.orcaslicer.com/p/58222d4f9e52) |
+| <img alt="Print Calculator icon" src="https://raw.githubusercontent.com/bloodf/orca_print_calculator/main/assets/orca-cloud/orca_print_calculator-tile.png" width="40"> | 💰 [Print Calculator](https://github.com/bloodf/orca_print_calculator) | Price every plate: filament, energy, labour, fees and margin. | [Install](https://cloud.orcaslicer.com/p/521c07cf6de2) |
+| <img alt="Spooler icon" src="https://raw.githubusercontent.com/bloodf/spooler/main/assets/orca-cloud/spooler-tile.png" width="40"> | 🧵 [Spooler](https://github.com/bloodf/spooler) | Your Spoolman stock inside OrcaSlicer, with what is left on each spool. | [Install](https://cloud.orcaslicer.com/p/50c35dcbd6f3) |
+| <img alt="Kobra Control icon" src="https://raw.githubusercontent.com/bloodf/kobracontrol/main/assets/orca-cloud/kobracontrol-tile.png" width="40"> | 🟣 [Kobra Control](https://github.com/bloodf/kobracontrol) | Run the Anycubic Kobra X from OrcaSlicer over your LAN. | [Install](https://cloud.orcaslicer.com/p/59c786285255) |
+| <img alt="U1 Control icon" src="https://raw.githubusercontent.com/bloodf/u1control/main/assets/orca-cloud/u1control-tile.png" width="40"> | 🔵 [U1 Control](https://github.com/bloodf/u1control) | Run the Snapmaker U1 from OrcaSlicer: toolheads, camera, files. | [Install](https://cloud.orcaslicer.com/p/55b8c347d443) |
+
+Each plugin works on its own; installed together they share data where it helps.
+
+## 🤝 Contributing
+
+Bug reports and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) has the build and test commands, and [docs/](docs/) covers [how the arrangement works](docs/how-it-works.md), [development](docs/development.md) and [releasing](docs/release.md).
+
+## 📄 License
 
 GPL-3.0-or-later. See [LICENSE](LICENSE).
+
+<p align="center"><sub>by bloodf</sub></p>

@@ -1,0 +1,745 @@
+{
+  "note": "Generated marketing artwork (2026-11-16 set, native pixels in source/) with screenshots of the built page (mock host, made-up data, never OrcaSlicer itself) from render-screens.mjs. Exports are written by compose.py.",
+  "exports": [
+    {
+      "file": "assets/orca-cloud/orca_organizer-tile.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-tile.png",
+      "screenshot": null,
+      "operation": "scale 1254x1254 to 512x512 (Lanczos)",
+      "size": [
+        512,
+        512
+      ],
+      "bytes": 185048,
+      "sha256": "be8aaa40fc9830e48796a12c42df988855c13a37e91fa98aac5e834a233cf7c4",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-main-en.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-cover-en.png",
+      "screenshot": "assets/marketing/source/screens/screen-filled-dark-en.png",
+      "operation": "screenshot scaled to cover the empty square [884, 100, 1597, 787] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1326541,
+      "sha256": "08c5a3fd72354d6d83cd55bbf2a4f24bd4d1d522001ac3c37209d15162eb461f",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-main-square-en.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-main-square-en.png",
+      "screenshot": "assets/marketing/source/screens/screen-form-dark-en-small.png",
+      "operation": "screenshot scaled to cover the empty square [714, 459, 1213, 951] and blended under the frame's inner edge; scale 1254x1254 to 900x900 (Lanczos)",
+      "size": [
+        900,
+        900
+      ],
+      "bytes": 853618,
+      "sha256": "95652861cb665068ef3a44d1fa01864e665769495a245532c34e8c1837c8af97",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/social/orca_organizer-social-preview-en.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-social-preview-en.png",
+      "screenshot": "assets/marketing/source/screens/screen-form-dark-en-medium.png",
+      "operation": "screenshot scaled to cover the empty square [988, 81, 1685, 747] and blended under the frame's inner edge; scale 1774x887 to 1280x640 (Lanczos)",
+      "size": [
+        1280,
+        640
+      ],
+      "bytes": 798656,
+      "sha256": "93447d0e6e588a0ac89a9198e0302d3aa031de7e3d5abc0e2cec2ed76948dbbe",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-feature-01-shape-en.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-feature-01-shape-en.png",
+      "screenshot": "assets/marketing/source/screens/screen-outlines-dark-en.png",
+      "operation": "screenshot scaled to cover the empty square [885, 100, 1597, 786] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1260550,
+      "sha256": "f79fd8f57326c7c66aedac07a777cc39306cc352a993a40ef42b2d895af13f0b",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-feature-02-fill-en.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-feature-02-fill-en.png",
+      "screenshot": "assets/marketing/source/screens/screen-filling-dark-en.png",
+      "operation": "screenshot scaled to cover the empty square [884, 100, 1597, 787] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1212885,
+      "sha256": "8400bf730bcf435aa51b9077ecf13bfc6aa7fbfd56f8e3353690751bc048acdc",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-feature-03-spacing-en.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-feature-03-spacing-en.png",
+      "screenshot": "assets/marketing/source/screens/screen-advanced-dark-en.png",
+      "operation": "screenshot scaled to cover the empty square [885, 100, 1597, 786] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1327800,
+      "sha256": "01fd024ee089dc8f22237cfe38d282d1ba51cd42527f30d31742628aa29e759c",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-feature-04-review-en.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-feature-04-review-en.png",
+      "screenshot": "assets/marketing/source/screens/screen-arranged-dark-en.png",
+      "operation": "screenshot scaled to cover the empty square [885, 100, 1597, 786] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1272475,
+      "sha256": "622e7dcb1c65f842b17ce0ecaa9cd2a77e99414aa610402828f74ae583f124d8",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-hero-dark-en.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-hero-dark-en.png",
+      "screenshot": "assets/marketing/source/screens/screen-form-dark-en-medium.png",
+      "operation": "screenshot scaled to cover the empty square [884, 101, 1597, 787] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1265992,
+      "sha256": "b96711dd10a721ff6b6cd8b9f5606d798b8a4d70c4a2ae63bb2b254643ee89b2",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-hero-light-en.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-hero-light-en.png",
+      "screenshot": "assets/marketing/source/screens/screen-form-light-en-medium.png",
+      "operation": "screenshot scaled to cover the empty square [886, 99, 1598, 787] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1275568,
+      "sha256": "700ccf9d7a89abfa9dfd3db842f62d710a75842b822c7bfafa692d03596f9012",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-main-pt-BR.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-main-pt-BR.png",
+      "screenshot": "assets/marketing/source/screens/screen-filled-dark-pt-BR.png",
+      "operation": "screenshot scaled to cover the empty square [885, 100, 1597, 787] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1316233,
+      "sha256": "e4698fb5e12cf4eb252eac005f54f67acf0d4125eea62f14ae006b51bea95ec8",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-main-square-pt-BR.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-main-square-pt-BR.png",
+      "screenshot": "assets/marketing/source/screens/screen-form-dark-pt-BR-small.png",
+      "operation": "screenshot scaled to cover the empty square [721, 420, 1219, 911] and blended under the frame's inner edge; scale 1254x1254 to 900x900 (Lanczos)",
+      "size": [
+        900,
+        900
+      ],
+      "bytes": 859999,
+      "sha256": "a5a482c7c6cb03525387b218cdffbed2393d05889d2b8be7835af4ec4d56e3f4",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/social/orca_organizer-social-preview-pt-BR.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-social-preview-pt-BR.png",
+      "screenshot": "assets/marketing/source/screens/screen-form-dark-pt-BR-medium.png",
+      "operation": "screenshot scaled to cover the empty square [993, 86, 1701, 757] and blended under the frame's inner edge; scale 1774x887 to 1280x640 (Lanczos)",
+      "size": [
+        1280,
+        640
+      ],
+      "bytes": 789477,
+      "sha256": "b118e7fd39f57953c92156c367a21e1dd5ae1a9a1aabdc63d382e7af3d369193",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-feature-01-shape-pt-BR.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-feature-01-shape-pt-BR.png",
+      "screenshot": "assets/marketing/source/screens/screen-outlines-dark-pt-BR.png",
+      "operation": "screenshot scaled to cover the empty square [884, 100, 1597, 787] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1287346,
+      "sha256": "b586f9faaa2a5c00e98eb124b2820cae8308e39f9a915a7e895d8c75ad1cad11",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-feature-02-fill-pt-BR.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-feature-02-fill-pt-BR.png",
+      "screenshot": "assets/marketing/source/screens/screen-filling-dark-pt-BR.png",
+      "operation": "screenshot scaled to cover the empty square [885, 100, 1597, 786] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1209223,
+      "sha256": "18b77af66401aa89f6f1859358e4dfe5799b15af79e1f580339afea897957c6f",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-feature-03-spacing-pt-BR.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-feature-03-spacing-pt-BR.png",
+      "screenshot": "assets/marketing/source/screens/screen-advanced-dark-pt-BR.png",
+      "operation": "screenshot scaled to cover the empty square [885, 100, 1597, 786] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1355611,
+      "sha256": "c5fe2aae5f412e930af18b03905a4d189c51962dc54cc343ab724ff41f7aa85f",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/orca-cloud/orca_organizer-feature-04-review-pt-BR.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-feature-04-review-pt-BR.png",
+      "screenshot": "assets/marketing/source/screens/screen-arranged-dark-pt-BR.png",
+      "operation": "screenshot scaled to cover the empty square [886, 100, 1597, 786] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1302412,
+      "sha256": "c2fba9479e41722e464d181a0ad164abf2aebe8ddc82d4003e0ac8a8220a2d12",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-hero-dark-pt-BR.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-hero-dark-pt-BR.png",
+      "screenshot": "assets/marketing/source/screens/screen-form-dark-pt-BR-medium.png",
+      "operation": "screenshot scaled to cover the empty square [885, 100, 1597, 786] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1290617,
+      "sha256": "93e7bcefdf68c8975f91f2427f1ea4b36d198eb81b4a080bb0eb0e3ff2bea843",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-hero-light-pt-BR.png",
+      "source": "assets/marketing/source/orca_organizer-workshop-hero-light-pt-BR.png",
+      "screenshot": "assets/marketing/source/screens/screen-form-light-pt-BR-medium.png",
+      "operation": "screenshot scaled to cover the empty square [883, 101, 1599, 787] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
+      "size": [
+        1600,
+        900
+      ],
+      "bytes": 1326859,
+      "sha256": "2b7fb52553c4aef36cfca0a1321a63f42d16f2b4101b4cbaad5002faf7fb280e",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-screen-result-dark-en.png",
+      "source": "assets/marketing/source/screens/screen-filled-dark-en-wide.png",
+      "screenshot": null,
+      "operation": "copy (PNG optimised)",
+      "size": [
+        2080,
+        820
+      ],
+      "bytes": 177071,
+      "sha256": "532a8aae78f2d522577519019b6348e2f4d0f49747b061ae32b8f78b12b8b488",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-screen-result-dark-pt-BR.png",
+      "source": "assets/marketing/source/screens/screen-filled-dark-pt-BR-wide.png",
+      "screenshot": null,
+      "operation": "copy (PNG optimised)",
+      "size": [
+        2080,
+        820
+      ],
+      "bytes": 184081,
+      "sha256": "5da6a612dbe7d46a143b149998c6ccea7ab464f2464abbedaa5b31bc4b9a8aae",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-screen-result-light-en.png",
+      "source": "assets/marketing/source/screens/screen-filled-light-en-wide.png",
+      "screenshot": null,
+      "operation": "copy (PNG optimised)",
+      "size": [
+        2080,
+        820
+      ],
+      "bytes": 180882,
+      "sha256": "5941e44b280e26290c9dd5e67bf71d0d823e2f833ff678b56eff4de3abbe4e04",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-screen-result-light-pt-BR.png",
+      "source": "assets/marketing/source/screens/screen-filled-light-pt-BR-wide.png",
+      "screenshot": null,
+      "operation": "copy (PNG optimised)",
+      "size": [
+        2080,
+        820
+      ],
+      "bytes": 187953,
+      "sha256": "9fac3c8227e1baddfb463be9484dc53aa452ce0083ef8ea2fbf8589fcfb6e78e",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-screen-advanced-dark-en.png",
+      "source": "assets/marketing/source/screens/screen-advanced-dark-en-wide.png",
+      "screenshot": null,
+      "operation": "copy (PNG optimised)",
+      "size": [
+        2080,
+        1460
+      ],
+      "bytes": 230904,
+      "sha256": "8e50ad30fb602c3170c15953c597e274e6ad8d6e43cd0f6194cef9753d37caf7",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-screen-advanced-dark-pt-BR.png",
+      "source": "assets/marketing/source/screens/screen-advanced-dark-pt-BR-wide.png",
+      "screenshot": null,
+      "operation": "copy (PNG optimised)",
+      "size": [
+        2080,
+        1460
+      ],
+      "bytes": 261057,
+      "sha256": "bda47f92e33bf4daae726ca27d1f3cfc7750c261ff23f134530c23ff087fe7ec",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-screen-advanced-light-en.png",
+      "source": "assets/marketing/source/screens/screen-advanced-light-en-wide.png",
+      "screenshot": null,
+      "operation": "copy (PNG optimised)",
+      "size": [
+        2080,
+        1460
+      ],
+      "bytes": 234561,
+      "sha256": "4b2d7a7389adeca5bf945dc1f3c67cc2ab9b115791abaf3a3f00e73c7882ee8f",
+      "date": "2026-11-16"
+    },
+    {
+      "file": "assets/readme/orca_organizer-screen-advanced-light-pt-BR.png",
+      "source": "assets/marketing/source/screens/screen-advanced-light-pt-BR-wide.png",
+      "screenshot": null,
+      "operation": "copy (PNG optimised)",
+      "size": [
+        2080,
+        1460
+      ],
+      "bytes": 264611,
+      "sha256": "9ce1b9e059f1775c9610dc69a5c29846d0eb53967a1b24642a9fc51177894060",
+      "date": "2026-11-16"
+    }
+  ],
+  "sources": [
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-cover-en.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1721079,
+      "sha256": "5ba3fb68e36008af755809257bff285e97c0a1ebd330e309f2692d1dfa8251f4"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-feature-01-shape-en.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1730216,
+      "sha256": "0d2252b81afb34385ba0656fb6d385297f5cbd45ba1fe1c3e08a234535eed69e"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-feature-01-shape-pt-BR.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1826117,
+      "sha256": "81d117d6892d22fefaa79b45e38bef53b2a327909177b95bda36a5538399a2a2"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-feature-02-fill-en.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1679236,
+      "sha256": "b6a7f99f76f34bbcc730caf994b03c1767e19f93025a62b53a4ecc7f18b8f403"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-feature-02-fill-pt-BR.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1658778,
+      "sha256": "407e786eb201b291ba96694c9822c9767910807cf9dc71302af6cbac047d5796"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-feature-03-spacing-en.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1731178,
+      "sha256": "8f4dbccd6cc3d927350ba6cc33ed63a541fb9ac654a6c94762786c710cbe86ad"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-feature-03-spacing-pt-BR.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1774053,
+      "sha256": "92a6b977dbe587f5537e551c7d96fa07f47a6accddabeb588d6a9fb2bea8d79a"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-feature-04-review-en.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1686089,
+      "sha256": "29041659ce388b31ffcbeb034d32a48e9c9c7bd1e22fef442b9acb28fa2b8897"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-feature-04-review-pt-BR.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1699857,
+      "sha256": "0113cd50e73af6fd14bda50ff62f5d4267dd46147157838c92089d75664bfb59"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-hero-dark-en.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1704005,
+      "sha256": "dbabb9925a8c1fb13389331e7944a718aa12b7a5f0eaeac2e2c142b4f1670aac"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-hero-dark-pt-BR.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1701083,
+      "sha256": "268562d8c3e0bfc3d4a7a52df2093561dc415ae2ddc80d7381796ebf90c104b1"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-hero-light-en.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1659353,
+      "sha256": "4102a6e9b2558ee4d7b9a2b9b95c3f354ab81d44f202ddbd26dc960730c14c27"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-hero-light-pt-BR.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1695850,
+      "sha256": "dbdeb8189ebf8819a1a0b5b51602749fca70a24468792eaecc1d93f1868f3dd1"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-main-pt-BR.png",
+      "size": [
+        1672,
+        941
+      ],
+      "bytes": 1696780,
+      "sha256": "98a856baa79836c1a31dda0970e9d47354e1494bbfdde3bdab504d65c56ed032"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-main-square-en.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "bytes": 1805633,
+      "sha256": "3ac9e16f83998f79b5886cf0997ddb62e8e1fd701203481b87fc7ed3f5345e02"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-main-square-pt-BR.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "bytes": 1826609,
+      "sha256": "90e633045abf4262f308a5b26eadf980d35383de1c9733d3c6587953b0c97d0a"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-social-preview-en.png",
+      "size": [
+        1774,
+        887
+      ],
+      "bytes": 1799209,
+      "sha256": "a9c84495da4e9340729ee1ea07d60d915abd913614685ddeab8923886a9fdf01"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-social-preview-pt-BR.png",
+      "size": [
+        1774,
+        887
+      ],
+      "bytes": 1772918,
+      "sha256": "2830d9f105c8476baf3552304b58cced99c05f90b76daabe2250f1d61c3b1ecb"
+    },
+    {
+      "file": "assets/marketing/source/orca_organizer-workshop-tile.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "bytes": 1173943,
+      "sha256": "b47e32477f63b16f252f90ffa1fc32bfa6f03a2e2f2e4a3214f8e3a71d707894"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-advanced-dark-en-wide.png",
+      "size": [
+        2080,
+        1460
+      ],
+      "bytes": 228988,
+      "sha256": "44ffcb84c8dec4b4104b445c9656bb272076a83c749565cd03845f1998db208a"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-advanced-dark-en.png",
+      "size": [
+        1580,
+        1522
+      ],
+      "bytes": 224776,
+      "sha256": "810edecb67ef42080828b82023ede10c7d9a5b790b60eb95911379f114d6eace"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-advanced-dark-pt-BR-wide.png",
+      "size": [
+        2080,
+        1460
+      ],
+      "bytes": 257899,
+      "sha256": "fc071d8f1ea33e2d0e0a2f6032a042ca0e15f45a53b67a89687c4955f8ac9625"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-advanced-dark-pt-BR.png",
+      "size": [
+        1580,
+        1522
+      ],
+      "bytes": 253845,
+      "sha256": "4f5361fc15f298de54a2e928e80fc83438dc770fdef87701a1209ede621d8504"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-advanced-light-en-wide.png",
+      "size": [
+        2080,
+        1460
+      ],
+      "bytes": 230694,
+      "sha256": "996b7bc4f6659bfda4de6405f76f1d67f5ac80b9cef04f6638e39fe598ddf6fb"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-advanced-light-pt-BR-wide.png",
+      "size": [
+        2080,
+        1460
+      ],
+      "bytes": 258975,
+      "sha256": "12582c9e2405f87c052ac324a19f66f4d228be4579f76c626579e6273b6e3e02"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-arranged-dark-en.png",
+      "size": [
+        1400,
+        1348
+      ],
+      "bytes": 156780,
+      "sha256": "fdb9a1577df0c5dda08e017a636c761eb4ea7ad92cac2db04bba11f6348b5795"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-arranged-dark-pt-BR.png",
+      "size": [
+        1400,
+        1348
+      ],
+      "bytes": 175262,
+      "sha256": "3ee8d4c87f8f209657d18776c0e55014be69f18f3adb7c15e73b8d1b7a67c933"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-filled-dark-en-wide.png",
+      "size": [
+        2080,
+        820
+      ],
+      "bytes": 173875,
+      "sha256": "fc06a080672c578f54afbd42e43cf6c1b8a5686298e5250d444a6c558167063a"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-filled-dark-en.png",
+      "size": [
+        1400,
+        1348
+      ],
+      "bytes": 179958,
+      "sha256": "68754829dfc965f36e91c2d801b02d4f22791b5532ae7c72f6fe9080af60c83a"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-filled-dark-pt-BR-wide.png",
+      "size": [
+        2080,
+        820
+      ],
+      "bytes": 180671,
+      "sha256": "55d80cb4aa7ff5922eeb1da51c1c6e8f8b50d35e02742d98cc9170f3cb474b71"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-filled-dark-pt-BR.png",
+      "size": [
+        1400,
+        1348
+      ],
+      "bytes": 195509,
+      "sha256": "f4985fa578a2a57a4d24113e1492f53cef915dd198fd1b41611b84b389f14d34"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-filled-light-en-wide.png",
+      "size": [
+        2080,
+        820
+      ],
+      "bytes": 175994,
+      "sha256": "767e92220b247ba936e34e0385f5329120b57780ae5ab172a38e7674abf7ab07"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-filled-light-pt-BR-wide.png",
+      "size": [
+        2080,
+        820
+      ],
+      "bytes": 182643,
+      "sha256": "6121ad34f558060a0603f8a81f37061f9fdc5cdd1bce3e7d1e9c9313e9c35805"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-filling-dark-en.png",
+      "size": [
+        1400,
+        1348
+      ],
+      "bytes": 108280,
+      "sha256": "683006296b3878b03b71cfba45b3364ed15d1747fa1f3eaee2e7246547db0fdc"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-filling-dark-pt-BR.png",
+      "size": [
+        1400,
+        1348
+      ],
+      "bytes": 124953,
+      "sha256": "092058ce880933dfdb05f22ee77b4d677572bbab7c17de73d3f7938412c3203a"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-form-dark-en-medium.png",
+      "size": [
+        920,
+        886
+      ],
+      "bytes": 76906,
+      "sha256": "a1d36f31a28dcb009095780b35955f5cf1d9eefdf999ccc0775829cb9406d84f"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-form-dark-en-small.png",
+      "size": [
+        840,
+        828
+      ],
+      "bytes": 77548,
+      "sha256": "4cb6a33de01ce436085954c2eb11e272a292a404a280856067e986cb467f79cc"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-form-dark-pt-BR-medium.png",
+      "size": [
+        920,
+        886
+      ],
+      "bytes": 85423,
+      "sha256": "3e03d19b9f1ae3859033cff824408d06d9524ad2cdc26701c921523f007eed28"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-form-dark-pt-BR-small.png",
+      "size": [
+        840,
+        828
+      ],
+      "bytes": 87076,
+      "sha256": "e61c5f9427ae472646e9c4a3fef2a2d6cbe822b323d70411573bb1f64d528d75"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-form-light-en-medium.png",
+      "size": [
+        920,
+        886
+      ],
+      "bytes": 76167,
+      "sha256": "eadb7aa65a3ba6021ad28d641154a8db562e7f97a9709e7b48706d2331c0d229"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-form-light-pt-BR-medium.png",
+      "size": [
+        920,
+        886
+      ],
+      "bytes": 84826,
+      "sha256": "47c220731f4ddaf8a9b0727167beded34aaeeb7004467b4ed6e3cb5cc9cbcaee"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-outlines-dark-en.png",
+      "size": [
+        1400,
+        1348
+      ],
+      "bytes": 110286,
+      "sha256": "1f370780132e8f6173b7779932e2052ebfbb6a97ede00ccfa40eb8b4c1e29d05"
+    },
+    {
+      "file": "assets/marketing/source/screens/screen-outlines-dark-pt-BR.png",
+      "size": [
+        1400,
+        1348
+      ],
+      "bytes": 125495,
+      "sha256": "e6edef9f216a8e63bea70e7bf0d2364c3954a653ee6836c3648c6f211310fc03"
+    }
+  ]
+}
