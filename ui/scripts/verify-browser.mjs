@@ -117,10 +117,16 @@ try {
       // what the user sees without scrolling: bottom edge of each action, and of the progress bar, against the viewport
       fold: Object.fromEntries(['#go', '#fill', '#cancel', '#open', '#again', '#foot', '[role=progressbar]'].map((sel) => { const el = document.querySelector(sel); return [sel, el && el.getClientRects().length ? Math.round(el.getBoundingClientRect().bottom) : null]; })),
       clipped: [...document.querySelectorAll('.p-button')].filter((el) => el.getClientRects().length && el.scrollWidth > el.clientWidth + 1).map((el) => el.id || el.textContent.trim()),
-      // text cut with an ellipsis or by its box. Long names and paths are cut on purpose (they carry their full text as a title);
-      // the page's own wording never is.
-      cut: [...new Set([...document.querySelectorAll('body *')].filter((el) => { if (!el.getClientRects().length || el.closest('.oui-sr') || el.hasAttribute('title') || !el.textContent.trim()) return false; const cs = getComputedStyle(el); const hides = (v) => v === 'hidden' || v === 'clip';
-        return (hides(cs.overflowX) && el.scrollWidth > el.clientWidth + 1) || (hides(cs.overflowY) && el.scrollHeight > el.clientHeight + 1); }).map((el) => el.id || (typeof el.className === 'string' && el.className) || el.tagName))].sort() };
+      // text cut with an ellipsis or by its box, titled or not. Long names and paths are cut on purpose (they carry their full
+      // text as a title) and English cuts them too; the summary fails only what a translation cuts and English shows whole.
+      // A titled element also counts as cut in English when English cuts a box around it (cutTitled: its ancestors).
+      ...(() => {
+        const key = (el) => el.id || (typeof el.className === 'string' && el.className) || el.tagName;
+        const els = [...document.querySelectorAll('body *')].filter((el) => { if (!el.getClientRects().length || el.closest('.oui-sr') || !el.textContent.trim()) return false; const cs = getComputedStyle(el); const hides = (v) => v === 'hidden' || v === 'clip';
+          return (hides(cs.overflowX) && el.scrollWidth > el.clientWidth + 1) || (hides(cs.overflowY) && el.scrollHeight > el.clientHeight + 1); });
+        const up = (el) => { const keys = []; for (let e = el.parentElement; e && e !== document.body; e = e.parentElement) keys.push(key(e)); return keys; };
+        return { cut: [...new Set(els.map(key))].sort(), cutTitled: Object.fromEntries(els.filter((el) => el.hasAttribute('title')).map((el) => [key(el), up(el)])) };
+      })() };
   })()`;
 
   // ---- scenarios (the host's real protocol, delivered by the driver)
@@ -296,6 +302,13 @@ try {
     assert(fonts.length && !fonts.some((f) => /last ?resort/i.test(f.familyName)), `${sel}: a glyph has no font: ${JSON.stringify(fonts)}`);
     assert(fonts.some((f) => f.familyName !== 'Manrope'), `${sel}: no system font was used for Chinese: ${JSON.stringify(fonts)}`);
   }
+  // Chinese quotes and ellipsis are drawn full width by the Chinese font, not as Manrope's narrow Latin marks
+  await evaluate('(() => { const s = document.createElement("span"); s.id = "cjk-punct"; s.textContent = "“”‘’…"; document.querySelector("#notes").append(s); })()');
+  const { nodeId: punctNode } = await call('DOM.querySelector', { nodeId: (await call('DOM.getDocument')).root.nodeId, selector: '#cjk-punct' });
+  const punctFonts = (await call('CSS.getPlatformFontsForNode', { nodeId: punctNode })).fonts;
+  interaction.chineseFonts['#cjk-punct'] = punctFonts.map((f) => `${f.familyName} (${f.glyphCount})`);
+  assert(punctFonts.length && !punctFonts.some((f) => /manrope/i.test(f.familyName)), `Chinese punctuation drawn by Manrope: ${JSON.stringify(punctFonts)}`);
+  await evaluate('document.querySelector("#cjk-punct").remove()');
   await call('CSS.disable'); await call('DOM.disable');
   // the embedded face is the one that renders (under a policy without font-src data: the page falls back to the system font)
   interaction.manropeLoaded = await evaluate('document.fonts.ready.then(() => document.fonts.check("13px Manrope"))');
@@ -318,8 +331,9 @@ try {
   summary.clippedButtons = results.filter((r) => r.clipped.length).map((r) => ({ name: r.name, clipped: r.clipped }));
   // A translation may not cut text that English shows whole. What English cuts too is a long name or path, cut on purpose.
   const english = new Map(results.filter((r) => r.lang === 'en').map((r) => [r.name.replace('-en-', '-*-'), r.cut]));
+  const cutInEnglish = (r, c) => { const en = english.get(r.name.replace(`-${r.lang}-`, '-*-')); return en.includes(c) || (r.cutTitled[c] ?? []).some((a) => en.includes(a)); };
   summary.cutByTranslation = results.filter((r) => r.lang !== 'en' && english.has(r.name.replace(`-${r.lang}-`, '-*-')))
-    .map((r) => ({ name: r.name, cut: r.cut.filter((c) => !english.get(r.name.replace(`-${r.lang}-`, '-*-')).includes(c)) })).filter((r) => r.cut.length);
+    .map((r) => ({ name: r.name, cut: r.cut.filter((c) => !cutInEnglish(r, c)) })).filter((r) => r.cut.length);
   summary.languages = Object.fromEntries(LANGS.map(([tag]) => [tag, results.filter((r) => r.lang === tag).length]));
   await writeFile(join(out, 'results.json'), JSON.stringify({ summary, results }, null, 1));
   await writeFile(join(out, 'summary.json'), JSON.stringify(summary, null, 1));
