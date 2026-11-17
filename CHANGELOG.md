@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 0.14.2 (2026-11-17)
 
 - Polish (pl) translation. Thanks to @xtronets for asking (u1control#20). Organizer follows OrcaSlicer when it runs in Polish (Polski, `pl_PL`): every button, tooltip, setting, progress line, result and error is in Polish, numbers are written the Polish way (2,5 mm) and counts use Polish's three plural forms (1 obiekt, 2 obiekty, 5 obiektów).
 
