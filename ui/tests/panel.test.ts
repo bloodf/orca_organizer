@@ -773,6 +773,16 @@ describe('requirements', () => {
     expect(panel.q('#req-hint')).toBeNull();
   });
 
+  it('says it is still checking while the plugin loads the packages, and leaves Arrange on', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX, requirements: found.map((r) => ({ ...r, status: 'unknown', version: null })) }));
+    expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
+    expect(panel.text('#req')).toContain('Checking…');
+    expect(panel.text('[data-req=numpy] .oui-status[data-state=pending]')).toBe('Checking…');
+    await panel.deliver(sync({ ctx: CTX, requirements: [...found] }));
+    expect(panel.text('#req')).toContain('all found');
+  });
+
   it('explains the plugin refusing a run for a missing requirement, in the page language', async () => {
     panel = await mountPanel({ language: 'de-DE' });
     await panel.deliver(sync({ ctx: CTX, text: 'EN', error: true, msg: { code: 'start_failed', cause: { code: 'missing_requirements', names: 'numpy' }, detail: 'd' } }));

@@ -1040,7 +1040,10 @@ def test_plugin_loads_without_numpy_and_pillow_and_refuses_to_run():
             sa, log, pending, opened, _ = load(tmp, project)
             assert sa.np is None and sa.Image is None
             panel = sa._panel
-            panel.on_message({"action": "hello"})
+            panel.on_message({"action": "hello"})  # first sync: the imports start on a worker, the page waits
+            assert {r["status"] for r in log["posts"][-1]["requirements"]} <= {"unknown", "missing"}
+            pump(pending, lambda: sa._DEPS is not None)
+            panel.on_message({"action": "poll"})
             rows = {r["id"]: r for r in log["posts"][-1]["requirements"]}
             assert [rows[i]["status"] for i in ("numpy", "pillow")] == ["missing", "missing"], rows
             assert "ImportError" in rows["numpy"]["detail"] and rows["numpy"]["version"] is None
@@ -1069,6 +1072,7 @@ def test_requirements_are_reported_found_with_their_version():
         project = tmp / "proj.3mf"
         t.make_project(project)
         sa, log, pending, opened, _ = load(tmp, project)
+        sa._deps()
         calls = []
         sa._load_deps = lambda: calls.append(1) or {}
         sa._session.sync()
@@ -1077,6 +1081,33 @@ def test_requirements_are_reported_found_with_their_version():
         assert rows[0]["version"] == sa.np.__version__
         sa._panel.on_message({"action": "recheck"})
         assert calls == [], "nothing missing: Check again retries no import"
+
+
+def test_nothing_is_checked_at_import_or_while_registering():
+    """Requirements are checked only after the plugin loaded: importing the module, defining its classes,
+    registering its capabilities and opening its panel import neither numpy nor Pillow."""
+    import builtins
+
+    real, tried = builtins.__import__, []
+
+    def no_deps(name, *a, **kw):
+        if name.split(".")[0] in ("numpy", "PIL"):
+            tried.append(name)
+            raise ImportError(f"No module named {name!r}")
+        return real(name, *a, **kw)
+
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        builtins.__import__ = no_deps
+        try:
+            sa, log, *_ = load(tmp, project)  # import, register_capabilities, Script execute (opens the panel)
+            page = page_of(sa, log)
+            page.get_ui()
+        finally:
+            builtins.__import__ = real
+        assert tried == [] and sa._DEPS is None and sa.np is None, tried
 
 
 if __name__ == "__main__":
@@ -1115,4 +1146,5 @@ if __name__ == "__main__":
     test_start_error_is_explained_for_the_page()
     test_plugin_loads_without_numpy_and_pillow_and_refuses_to_run()
     test_requirements_are_reported_found_with_their_version()
+    test_nothing_is_checked_at_import_or_while_registering()
     print("ok")

@@ -131,7 +131,7 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 
     <!-- What Arrange and Fill need; opens by itself while something is missing. -->
     <details v-if="state.requirements.length" class="more" :open="missing.length > 0">
-      <summary id="req"><span class="sum"><OuiIcon :icon="chevronRight" :size="14" />{{ s.req }}<span class="oui-meta">{{ missing.length ? s.reqMissingMeta({ names: missing.join(s.list) }) : s.reqAllFound }}</span></span></summary>
+      <summary id="req"><span class="sum"><OuiIcon :icon="chevronRight" :size="14" />{{ s.req }}<span class="oui-meta">{{ missing.length ? s.reqMissingMeta({ names: missing.join(s.list) }) : state.requirements.some((r) => r.status === 'unknown') ? s.reqChecking : s.reqAllFound }}</span></span></summary>
       <div class="more-body">
         <ul class="reqs">
           <RequirementRow v-for="r in state.requirements" :key="r.id" :req="r" />

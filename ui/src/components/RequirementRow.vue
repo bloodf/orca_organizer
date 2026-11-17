@@ -18,10 +18,11 @@ const GUIDES: Record<string, string> = {
     <div class="head">
       <strong>{{ req.name }}</strong>
       <OuiStatus v-if="req.status === 'ok'" state="ok" :label="s.reqFound({ version: req.version ?? '' })" />
-      <OuiStatus v-else state="error" :label="s.reqMissing" />
+      <OuiStatus v-else-if="req.status === 'missing'" state="error" :label="s.reqMissing" />
+      <OuiStatus v-else state="pending" :label="s.reqChecking" />
     </div>
     <p class="oui-meta">{{ s.reqWhy[req.id] }}</p>
-    <template v-if="req.status !== 'ok'">
+    <template v-if="req.status === 'missing'">
       <p class="oui-meta">{{ s.reqFix }}</p>
       <p v-if="req.detail" class="oui-meta detail">{{ req.detail }}</p>
     </template>
