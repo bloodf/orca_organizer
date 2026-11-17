@@ -7,6 +7,10 @@
 - The page fills the whole tab at every height, also after the window is resized: no more grey under a short page.
 - The plugin loads even when OrcaSlicer could not install numpy or Pillow (offline, or a pip error during install). It used to fail to load with no word of why. Now **Arrange** and **Fill** are turned off with one line saying what is missing, and a new **Requirements** section under the form lists numpy and Pillow: found (with the version) or not found (with the error), what each is used for, how to get it back (reinstall the plugin from Orca Cloud so OrcaSlicer installs its packages again, then restart OrcaSlicer) and a link to its installation guide. **Check again** looks once more without a restart. The section is closed while everything is found.
 
+## 0.14.1 (2026-11-16)
+
+- Changed: the plugin icon is the new brand tile. The Organizer tab in OrcaSlicer shows it (the tab had no icon before), and it is the `icon.png` attached to each release.
+
 ## 0.14.0 (2026-11-16)
 
 - Organizer now speaks Spanish, German and Simplified Chinese, next to English and Brazilian Portuguese. It follows the language OrcaSlicer runs in (Español, Deutsch, 简体中文); Traditional Chinese shows Simplified, and any other language shows English. There is no language setting in the plugin: change OrcaSlicer's language and the tab and the dock follow.
