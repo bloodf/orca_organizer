@@ -874,3 +874,67 @@ describe('structure and accessibility', () => {
     expect(panel.q('#path b')).toBeNull();
   });
 });
+
+describe('requirements', () => {
+  const found = [
+    { id: 'numpy', name: 'numpy', status: 'ok', version: '2.5.5', detail: null },
+    { id: 'pillow', name: 'Pillow', status: 'ok', version: '13.0.0', detail: null },
+  ] as const;
+  const noPillow = [found[0], { id: 'pillow', name: 'Pillow', status: 'missing', version: null, detail: "ImportError: No module named 'PIL'" }] as const;
+
+  it('lists what Arrange and Fill need, with versions, collapsed while everything is found', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX, requirements: [...found] }));
+    expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
+    expect(panel.q('#req-hint')).toBeNull();
+    expect(panel.q<HTMLDetailsElement>('details:has(#req)')!.open).toBe(false);
+    expect(panel.text('#req')).toContain('all found');
+    expect(panel.text('[data-req=numpy] .oui-status[data-state=ok]')).toBe('Found, version 2.5.5');
+  });
+
+  it('turns Arrange and Fill off with a one-line reason and says how to fix it', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX, requirements: [...noPillow] }));
+    panel.take();
+    for (const id of ['#go', '#fill']) {
+      const button = panel.q<HTMLButtonElement>(id)!;
+      expect(button.disabled).toBe(true);
+      expect(button.getAttribute('aria-describedby')).toContain('req-hint');
+    }
+    expect(panel.text('#req-hint')).toBe('Arrange and Fill are off: Pillow could not be loaded. See Requirements below.');
+    expect(panel.q<HTMLDetailsElement>('details:has(#req)')!.open).toBe(true);
+    expect(panel.text('[data-req=pillow] .oui-status[data-state=warn]')).toBe('Not found');
+    expect(panel.q('[data-req=pillow] a')!.getAttribute('href')).toBe('https://pillow.readthedocs.io/en/stable/installation/');
+    expect(panel.q('[data-req=numpy] a')).toBeNull(); // found: no install line
+    expect(panel.text('[data-req=pillow]')).toContain('Reinstall the plugin from Orca Cloud');
+    expect(panel.text('[data-req=pillow]')).toContain("No module named 'PIL'");
+    panel.organizer.run('arrange');
+    expect(panel.take()).toEqual([]); // nothing is sent while a requirement is missing
+
+    panel.q<HTMLButtonElement>('[data-req=pillow] .oui-req-check')!.click();
+    await panel.flush();
+    expect(panel.takeRequests()).toEqual([{ action: 'recheck' }]);
+    expect(panel.text('[data-req=pillow] .oui-req-check')).toBe('Checking…');
+    expect(panel.q<HTMLButtonElement>('[data-req=pillow] .oui-req-check')!.disabled).toBe(true);
+    await panel.deliver(sync({ ctx: CTX, requirements: [...found] }));
+    expect(panel.text('[data-req=pillow] .oui-req-check')).toBe('Check again');
+    expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
+    expect(panel.q('#req-hint')).toBeNull();
+  });
+
+  it('says it is still checking while the plugin loads the packages, and leaves Arrange on', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX, requirements: found.map((r) => ({ ...r, status: 'unknown', version: null })) }));
+    expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
+    expect(panel.text('#req')).toContain('Checking…');
+    expect(panel.text('[data-req=numpy] .oui-status[data-state=busy]')).toBe('Checking…');
+    await panel.deliver(sync({ ctx: CTX, requirements: [...found] }));
+    expect(panel.text('#req')).toContain('all found');
+  });
+
+  it('explains the plugin refusing a run for a missing requirement, in the page language', async () => {
+    panel = await mountPanel({ language: 'de-DE' });
+    await panel.deliver(sync({ ctx: CTX, text: 'EN', error: true, msg: { code: 'start_failed', cause: { code: 'missing_requirements', names: 'numpy' }, detail: 'd' } }));
+    expect(panel.status()).toContain('Anordnen und Füllen benötigen numpy');
+  });
+});

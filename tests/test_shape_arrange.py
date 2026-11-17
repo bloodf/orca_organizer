@@ -16,6 +16,8 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import shape_arrange as sa  # noqa: E402
 
+sa._deps()  # numpy and Pillow load on first need; these tests call the core directly
+
 BED_W, BED_H = 75.0, 56.0
 
 

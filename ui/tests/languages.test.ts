@@ -103,8 +103,8 @@ async function walk(lang: Lang): Promise<string[][]> {
 }
 
 // What the walk itself put on the page (project, parts, paths, raw details), names that are never translated, and units.
-const DATA = /\/s\/P-arranged\.3mf|P-arranged\.3mf|no project|no permission|disk full|boom|inch|block|\b[a-dP]\b/g;
-const NAMES = /Shape-Aware Arrange|Organizer|OrcaSlicer|Orca|\bmm\b|\bXY\b|\b3D\b|Ctrl\+C|⌘C|\bMac\b/g;
+const DATA = /\/s\/P-arranged\.3mf|P-arranged\.3mf|no project|no permission|disk full|boom|inch|numpy|Pillow|block|\b[a-dP]\b/g;
+const NAMES = /Shape-Aware Arrange|Organizer|OrcaSlicer|Orca Cloud|Orca|\bmm\b|\bXY\b|\b3D\b|Ctrl\+C|⌘C|\bMac\b/g;
 const hasWords = (text: string) => /\p{L}/u.test(text.replace(DATA, '').replace(NAMES, ''));
 // The same word in both languages.
 const SAME: Partial<Record<Lang, RegExp>> = { de: /^Details: / };
