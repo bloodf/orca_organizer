@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Polish (pl) translation. Thanks to @xtronets for asking (u1control#20). Organizer follows OrcaSlicer when it runs in Polish (Polski, `pl_PL`): every button, tooltip, setting, progress line, result and error is in Polish, numbers are written the Polish way (2,5 mm) and counts use Polish's three plural forms (1 obiekt, 2 obiekty, 5 obiektów).
+
 ## 0.14.1 (2026-11-17)
 
 - Notifications appear bottom-left and each one can be closed; warnings and notices on the page can be dismissed. "Path copied" (or how to copy it by hand) is now one of those notifications instead of a line in the result card. A closed notice stays closed while the same thing is true and comes back when it changes: a new run, another problem with the project, the plugin going silent again.

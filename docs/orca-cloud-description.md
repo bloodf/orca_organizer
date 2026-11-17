@@ -45,7 +45,7 @@ The footprint is the model's geometry only: brims, supports and skirts are not i
 
 ## Languages
 
-English, Brazilian Portuguese, Spanish, German and Simplified Chinese, following OrcaSlicer's language.
+English, Brazilian Portuguese, Spanish, German, Simplified Chinese and Polish, following OrcaSlicer's language.
 
 ## More plugins by bloodf
 

@@ -970,20 +970,20 @@ def test_host_language_is_passed_to_the_page():
         assert all(m.get("lang") == "pt_BR" for m in log["posts"] if "text" in m and m.get("job")), "worker posts carry the cached language"
 
 
-def test_script_result_and_page_language_follow_the_host_in_all_five_languages():
+def test_script_result_and_page_language_follow_the_host_in_all_six_languages():
     """Orca's own language codes reach the page untouched (it maps them), and the Script's result, the one
     sentence the plugin says outside its page, is written in that language."""
     said = {"en": "Panel opened", "pt_BR": "Painel aberto", "es": "Panel abierto", "de": "Panel geöffnet",
-            "zh_CN": "面板已打开"}
+            "zh_CN": "面板已打开", "pl_PL": "Otwarto panel"}
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d)
         project = tmp / "proj.3mf"
         t.make_project(project)
         sa, log, pending, opened, ui = load(tmp, project)
-        assert set(sa.PANEL_OPENED) == {"en", "pt", "es", "de", "zh"} and len(set(sa.PANEL_OPENED.values())) == 5
+        assert set(sa.PANEL_OPENED) == {"en", "pt", "es", "de", "zh", "pl"} and len(set(sa.PANEL_OPENED.values())) == 6
         page = page_of(sa, log)
         page.get_ui()
-        for code, want in (*said.items(), ("zh_TW", said["zh_CN"]), ("es_MX", said["es"]), ("de-CH", said["de"]),
+        for code, want in (*said.items(), ("zh_TW", said["zh_CN"]), ("es_MX", said["es"]), ("de-CH", said["de"]), ("pl", said["pl_PL"]), ("PL-pl", said["pl_PL"]),
                            ("pt_PT", said["pt_BR"]), ("fr", said["en"]), ("", said["en"]), (None, said["en"])):
             log["lang"] = code
             sa._session.lang = None
@@ -995,7 +995,7 @@ def test_script_result_and_page_language_follow_the_host_in_all_five_languages()
 
 
 def test_every_user_reachable_error_has_cause_and_next_step():
-    """Each PlanError code has English cause + next step; the page's tables (five languages) are checked in test_panel_js."""
+    """Each PlanError code has English cause + next step; the page's tables (every language) are checked in test_panel_js."""
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d)
         project = tmp / "proj.3mf"
@@ -1255,7 +1255,7 @@ if __name__ == "__main__":
     test_unexpected_failure_keeps_the_raw_error_as_details()
     test_progress_is_structured_and_counts_only_real_totals()
     test_host_language_is_passed_to_the_page()
-    test_script_result_and_page_language_follow_the_host_in_all_five_languages()
+    test_script_result_and_page_language_follow_the_host_in_all_six_languages()
     test_every_user_reachable_error_has_cause_and_next_step()
     test_result_message_is_structured_and_open_wording_is_neutral()
     test_start_error_is_explained_for_the_page()

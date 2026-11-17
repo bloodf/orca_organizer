@@ -1,13 +1,14 @@
-// Every user-visible string of the panel, in the five supported languages: English and Brazilian Portuguese here,
-// Spanish, German and Simplified Chinese in messages.<lang>.ts. The plugin's Python writes the English wording too
+// Every user-visible string of the panel, in the six supported languages: English and Brazilian Portuguese here,
+// Spanish, German, Simplified Chinese and Polish in messages.<lang>.ts. The plugin's Python writes the English wording too
 // (`text`); these tables are what the page shows when the structured `msg` is present.
 // tests/english-parity.test.ts keeps the English entries equal to what Python produces; tests/messages.test.ts keeps
 // every language complete (same keys, same arguments used, nothing left in English).
 import { de } from './messages.de';
 import { es } from './messages.es';
+import { pl } from './messages.pl';
 import { zhCN } from './messages.zh-CN';
 
-export const LANGS = ['en', 'pt-BR', 'es', 'de', 'zh-CN'] as const;
+export const LANGS = ['en', 'pt-BR', 'es', 'de', 'zh-CN', 'pl'] as const;
 export type Lang = (typeof LANGS)[number];
 export type Num = (n: number) => string;
 /** The form of a word for `n`, by the language's own plural rule. */
@@ -352,14 +353,14 @@ function ptBR(num: Num): Strings {
   };
 }
 
-const BY_PRIMARY = new Map<string, Lang>([['pt', 'pt-BR'], ['es', 'es'], ['de', 'de'], ['zh', 'zh-CN']]);
+const BY_PRIMARY = new Map<string, Lang>([['pt', 'pt-BR'], ['es', 'es'], ['de', 'de'], ['zh', 'zh-CN'], ['pl', 'pl']]);
 /**
  * The supported language of a host (`pt_BR`, `es`, `zh_CN`) or browser (`pt-BR`, `es-MX`, `zh-Hans-CN`) language, by its
  * primary part: any Portuguese is pt-BR and any Chinese, Traditional included, is Simplified. Everything else is English.
  */
 export const pickLang = (language: string | null | undefined): Lang => BY_PRIMARY.get((language || '').toLowerCase().split(/[-_]/)[0]) ?? 'en';
 
-const LOCALES: Record<Lang, string> = { en: 'en-US', 'pt-BR': 'pt-BR', es: 'es', de: 'de', 'zh-CN': 'zh-CN' };
+const LOCALES: Record<Lang, string> = { en: 'en-US', 'pt-BR': 'pt-BR', es: 'es', de: 'de', 'zh-CN': 'zh-CN', pl: 'pl-PL' };
 /**
  * The locale numbers are written in. Spanish and German are written differently by country (2,5 in Spain and Argentina,
  * 2.5 in Mexico; 1.234,5 in Germany, 1’234.5 in Switzerland), so a system region of the same language is used.
@@ -384,13 +385,16 @@ export function numberFormat(lang: Lang): Num {
   return (n) => format.format(n);
 }
 
-/** CLDR plural rules (Intl): `one` only where the language says so. Chinese has no plural and needs none of this. */
+/**
+ * CLDR plural rules (Intl): `one` only where the language says so. Chinese has no plural and needs none of this; Polish
+ * has three integer forms and uses its own rule (`plPlural` in messages.pl.ts).
+ */
 function pluralOf(lang: Lang): Plural {
   const rules = new Intl.PluralRules(LOCALES[lang]);
   return (n, singular, other) => (rules.select(n) === 'one' ? singular : other);
 }
 
-const TABLES: Record<Lang, (num: Num, plural: Plural) => Strings> = { en, 'pt-BR': ptBR, es, de, 'zh-CN': zhCN };
+const TABLES: Record<Lang, (num: Num, plural: Plural) => Strings> = { en, 'pt-BR': ptBR, es, de, 'zh-CN': zhCN, pl };
 const tables = new Map<Lang, Strings>();
 export function strings(lang: Lang): Strings {
   let t = tables.get(lang);
