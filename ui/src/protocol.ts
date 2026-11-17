@@ -18,6 +18,7 @@ export interface Cause {
   limit?: number;
   clearance?: number;
   max?: number;
+  names?: string;
 }
 
 export type MsgCode =
@@ -82,6 +83,17 @@ export interface HostMessage {
   relay?: string;
   /** The settings of the last run, kept by the plugin across sessions. */
   prefs?: Prefs | null;
+  /** What Arrange and Fill need (shape_arrange.py `requirements()`); a missing one turns both off. */
+  requirements?: Requirement[] | null;
+}
+
+export interface Requirement {
+  id: string;
+  name: string;
+  status: 'ok' | 'missing' | 'unknown';
+  version: string | null;
+  /** Why it is missing: the import error. */
+  detail: string | null;
 }
 
 /** Most copies one Fill adds (shape_arrange.py MAX_COPIES). */
@@ -98,6 +110,7 @@ export interface Prefs {
 export type OutMessage =
   | { action: 'hello' }
   | { action: 'poll' }
+  | { action: 'recheck' }
   | { action: 'arrange' | 'fill'; spacing: number; rotation: Rotation; copies?: number }
   | { action: 'cancel' | 'open' | 'finish'; job: string | null };
 

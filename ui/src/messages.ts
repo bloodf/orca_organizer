@@ -136,6 +136,10 @@ function en(num: Num) {
         "The plate prints by object, and the printer's extruder clearance radius of " + num(a.clearance) + ' mm leaves no room on this bed.',
         'Set the extruder clearance radius below ' + num(a.limit) + ' mm in the printer settings, or print layer by layer, and try again.',
       ],
+      missing_requirements: (a: { names: string }): Cause => [
+        'Arrange and Fill need ' + a.names + ', which could not be loaded.',
+        'Reinstall the plugin from Orca Cloud, restart OrcaSlicer and try again.',
+      ],
       unexpected: ['Something unexpected went wrong.', 'Try again. If it keeps happening, the details below help to diagnose it.'] as Cause,
     } as Record<string, Cause | ((a: never) => Cause)>,
     saveFailed: (a: { ref: string; detail: string }) =>
@@ -162,6 +166,20 @@ function en(num: Num) {
     } as Record<string, string | ((a: { detail: string }) => string)>,
     copied: 'Path copied.',
     copyFail: 'Could not copy automatically. The path is selected: press Ctrl+C (⌘C on Mac).',
+    req: 'Requirements',
+    reqAllFound: 'all found',
+    reqMissingMeta: (a: { names: string }) => 'missing: ' + a.names,
+    reqBlocked: (a: { names: string }) => 'Arrange and Fill are off: ' + a.names + ' could not be loaded. See Requirements below.',
+    reqFound: (a: { version: string }) => 'Found, version ' + a.version,
+    reqMissing: 'Not found',
+    reqWhy: {
+      numpy: "Measures each part's outline on a grid (footprint rasterising) for Arrange and Fill.",
+      pillow: "Draws each part's outline into that grid (footprint rasterising) for Arrange and Fill.",
+    } as Record<string, string>,
+    reqFix: 'OrcaSlicer installs it with the plugin. Reinstall the plugin from Orca Cloud so OrcaSlicer installs its packages again, then restart OrcaSlicer.',
+    reqGuide: 'Installation guide',
+    reqCheck: 'Check again',
+    reqChecking: 'Checking…',
   };
 }
 
@@ -284,6 +302,10 @@ function ptBR(num: Num): Strings {
         'A placa imprime um objeto por vez, e o raio de folga da extrusora da impressora, de ' + num(a.clearance) + ' mm, não deixa espaço nesta mesa.',
         'Defina o raio de folga da extrusora abaixo de ' + num(a.limit) + ' mm nas configurações da impressora, ou imprima camada por camada, e tente novamente.',
       ],
+      missing_requirements: (a: { names: string }): Cause => [
+        'Arrumar e Preencher precisam de ' + a.names + ', que não puderam ser carregados.',
+        'Reinstale o plugin pelo Orca Cloud, reinicie o OrcaSlicer e tente novamente.',
+      ],
       unexpected: ['Algo inesperado deu errado.', 'Tente novamente. Se continuar, o detalhe técnico abaixo ajuda a diagnosticar.'],
     },
     saveFailed: (a) =>
@@ -309,6 +331,20 @@ function ptBR(num: Num): Strings {
     },
     copied: 'Caminho copiado.',
     copyFail: 'Não foi possível copiar automaticamente. O caminho está selecionado: pressione Ctrl+C (⌘C no Mac).',
+    req: 'Requisitos',
+    reqAllFound: 'todos encontrados',
+    reqMissingMeta: (a: { names: string }) => 'faltando: ' + a.names,
+    reqBlocked: (a: { names: string }) => 'Arrumar e Preencher estão desativados: ' + a.names + ' não puderam ser carregados. Veja Requisitos abaixo.',
+    reqFound: (a: { version: string }) => 'Encontrado, versão ' + a.version,
+    reqMissing: 'Não encontrado',
+    reqWhy: {
+      numpy: 'Mede o contorno de cada peça numa grade (rasterização da área ocupada) para Arrumar e Preencher.',
+      pillow: 'Desenha o contorno de cada peça nessa grade (rasterização da área ocupada) para Arrumar e Preencher.',
+    },
+    reqFix: 'O OrcaSlicer instala junto com o plugin. Reinstale o plugin pelo Orca Cloud para o OrcaSlicer instalar os pacotes de novo e reinicie o OrcaSlicer.',
+    reqGuide: 'Guia de instalação',
+    reqCheck: 'Verificar de novo',
+    reqChecking: 'Verificando…',
   };
 }
 

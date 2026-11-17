@@ -120,6 +120,10 @@ export function es(num: Num, plural: Plural): Strings {
         'La cama se imprime por objeto, y el radio del margen del extrusor de la impresora, de ' + num(a.clearance) + ' mm, no deja espacio en esta cama.',
         'Define el radio del margen del extrusor por debajo de ' + num(a.limit) + ' mm en los ajustes de la impresora, o imprime por capa, e inténtalo de nuevo.',
       ],
+      missing_requirements: (a: { names: string }): Cause => [
+        'Organizar y Llenar necesitan ' + a.names + ', que no se pudieron cargar.',
+        'Reinstala el plugin desde Orca Cloud, reinicia OrcaSlicer y vuelve a intentarlo.',
+      ],
       unexpected: ['Algo inesperado salió mal.', 'Inténtalo de nuevo. Si sigue ocurriendo, los detalles de abajo ayudan a diagnosticarlo.'],
     },
     saveFailed: (a) => a.ref + ': no se pudo guardar la copia organizada: ' + a.detail + '\nNo se abrió nada; las copias anteriores no cambiaron.',
@@ -144,5 +148,19 @@ export function es(num: Num, plural: Plural): Strings {
     },
     copied: 'Ruta copiada.',
     copyFail: 'No se pudo copiar automáticamente. La ruta está seleccionada: usa Ctrl+C (⌘C en Mac).',
+    req: 'Requisitos',
+    reqAllFound: 'todos encontrados',
+    reqMissingMeta: (a: { names: string }) => 'faltan: ' + a.names,
+    reqBlocked: (a: { names: string }) => 'Organizar y Llenar están desactivados: no se pudo cargar ' + a.names + '. Consulta Requisitos más abajo.',
+    reqFound: (a: { version: string }) => 'Encontrado, versión ' + a.version,
+    reqMissing: 'No encontrado',
+    reqWhy: {
+      numpy: 'Mide el contorno de cada pieza en una cuadrícula (rasterizado de la huella) para Organizar y Llenar.',
+      pillow: 'Dibuja el contorno de cada pieza en esa cuadrícula (rasterizado de la huella) para Organizar y Llenar.',
+    },
+    reqFix: 'OrcaSlicer lo instala junto con el plugin. Reinstala el plugin desde Orca Cloud para que OrcaSlicer vuelva a instalar sus paquetes y reinicia OrcaSlicer.',
+    reqGuide: 'Guía de instalación',
+    reqCheck: 'Comprobar de nuevo',
+    reqChecking: 'Comprobando…',
   };
 }

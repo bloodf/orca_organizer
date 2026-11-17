@@ -970,7 +970,8 @@ def test_every_user_reachable_error_has_cause_and_next_step():
         assert codes == set(sa.ERRORS_EN), (codes ^ set(sa.ERRORS_EN))
         for code in codes:
             why, nxt = sa.error_en({"code": code, "plate": 3, "plates": 1, "unit": "inch", "res": 0.5,
-                                      "spacing": 300, "limit": 37.5, "clearance": 65, "max": 300})
+                                      "spacing": 300, "limit": 37.5, "clearance": 65, "max": 300,
+                                    "names": "numpy"})
             assert why.endswith(".") and nxt.endswith(".") and "{" not in why + nxt, (code, why, nxt)
         assert sa.error_en({"code": "plate_gone", "plate": 3, "plates": 1})[0].endswith("the project has 1 plate.")
         assert isinstance(sa.PlanError("x", "plate_empty", plate=1), ValueError)  # old callers still catch ValueError
@@ -1018,6 +1019,66 @@ def test_start_error_is_explained_for_the_page():
         assert log["posts"][-1]["msg"]["cause"]["code"] == "bad_rotation" and "rotation" in log["posts"][-1]["text"].lower()
 
 
+def test_plugin_loads_without_numpy_and_pillow_and_refuses_to_run():
+    """OrcaSlicer's pip install of numpy/Pillow failed: the plugin still loads, registers and opens its panel,
+    reports both as missing, and refuses Arrange and Fill before exporting anything."""
+    import builtins
+
+    real = builtins.__import__
+
+    def no_deps(name, *a, **kw):
+        if name.split(".")[0] in ("numpy", "PIL"):
+            raise ImportError(f"No module named {name!r}")
+        return real(name, *a, **kw)
+
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        builtins.__import__ = no_deps
+        try:
+            sa, log, pending, opened, _ = load(tmp, project)
+            assert sa.np is None and sa.Image is None
+            panel = sa._panel
+            panel.on_message({"action": "hello"})
+            rows = {r["id"]: r for r in log["posts"][-1]["requirements"]}
+            assert [rows[i]["status"] for i in ("numpy", "pillow")] == ["missing", "missing"], rows
+            assert "ImportError" in rows["numpy"]["detail"] and rows["numpy"]["version"] is None
+            for action in ("arrange", "fill"):
+                panel.on_message({"action": action, "spacing": 1})
+                msg = log["posts"][-1]
+                assert msg["error"] and msg["msg"]["cause"] == {"code": "missing_requirements", "names": "numpy, Pillow"}
+                assert msg["text"].startswith("Could not start: Arrange and Fill need numpy, Pillow")
+            assert log["exports"] == [] and sa._session.job is None
+            panel.on_message({"action": "recheck"})  # still not installed
+            assert log["posts"][-1]["requirements"][0]["status"] == "missing"
+        finally:
+            builtins.__import__ = real
+        panel.on_message({"action": "recheck"})  # installed meanwhile: Check again finds them and Arrange runs
+        rows = {r["id"]: r for r in log["posts"][-1]["requirements"]}
+        assert rows["numpy"]["status"] == rows["pillow"]["status"] == "ok" and rows["numpy"]["version"]
+        sa._current_plate = lambda: 1
+        panel.on_message({"action": "arrange", "spacing": 1})
+        pump(pending, panel.done.is_set)
+        assert not log["posts"][-1]["error"] and len(opened) == 1
+
+
+def test_requirements_are_reported_found_with_their_version():
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa, log, pending, opened, _ = load(tmp, project)
+        calls = []
+        sa._load_deps = lambda: calls.append(1) or {}
+        sa._session.sync()
+        rows = log["posts"][-1]["requirements"]
+        assert [(r["id"], r["status"], r["detail"]) for r in rows] == [("numpy", "ok", None), ("pillow", "ok", None)]
+        assert rows[0]["version"] == sa.np.__version__
+        sa._panel.on_message({"action": "recheck"})
+        assert calls == [], "nothing missing: Check again retries no import"
+
+
 if __name__ == "__main__":
     test_arrange_runs_off_ui_thread_and_finishes_on_it()
     test_fill_button_adds_copies()
@@ -1052,4 +1113,6 @@ if __name__ == "__main__":
     test_every_user_reachable_error_has_cause_and_next_step()
     test_result_message_is_structured_and_open_wording_is_neutral()
     test_start_error_is_explained_for_the_page()
+    test_plugin_loads_without_numpy_and_pillow_and_refuses_to_run()
+    test_requirements_are_reported_found_with_their_version()
     print("ok")

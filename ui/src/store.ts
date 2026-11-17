@@ -1,6 +1,6 @@
 import { computed, reactive } from 'vue';
 import { numberFormat, pickLang, strings, type Lang } from './messages';
-import { MAX_COPIES, type Bridge, type Ctx, type HostMessage, type Prefs, type Rotation, type StaleRef } from './protocol';
+import { MAX_COPIES, type Bridge, type Ctx, type HostMessage, type Prefs, type Requirement, type Rotation, type StaleRef } from './protocol';
 import { describe, jobRef, splitLines, translate, type StatusLine, type StatusSource, type StatusView } from './status';
 
 const BUSY_POLL_MS = 1000;
@@ -50,6 +50,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     spacingInvalid: false,
     validation: false, // a local input error: shown over whatever the plugin says, until the input changes
     focus: null as { id: FocusId; seq: number } | null,
+    requirements: [] as Requirement[], // from the plugin; empty until the first sync
+    rechecking: false,
   });
 
   // Plain bookkeeping that never needs to redraw anything.
@@ -79,6 +81,9 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   const fillLabel = computed(() => (state.ctx && state.ctx.plate ? s.value.fill({ plate: state.ctx.plate }) : s.value.fillNone));
   const ctxShort = computed(() => (state.ctx && state.ctx.plate ? s.value.ctxShort({ plate: state.ctx.plate, objects: state.ctx.objects }) : ''));
   const projectName = computed(() => (state.ctx && state.ctx.plate ? state.ctx.name || s.value.untitledProject : ''));
+  /** Names of what Arrange and Fill need and could not be loaded: both stay off while any is missing. */
+  const missing = computed(() => state.requirements.filter((r) => r.status === 'missing').map((r) => r.name));
+  const blockedText = computed(() => (missing.value.length ? s.value.reqBlocked({ names: missing.value.join(s.value.list) }) : ''));
   const staleText = computed(() => (state.staleRef ? s.value.stale({ ref: ref(state.staleRef) }) : state.stale));
 
   const statusView = computed<StatusView>(() => {
@@ -171,6 +176,10 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     if (m.lang) state.hostLang = m.lang;
     if ('context' in m) state.context = m.context || '';
     if (m.ctx) state.ctx = m.ctx;
+    if (m.requirements) {
+      state.requirements = m.requirements;
+      state.rechecking = false;
+    }
     if (m.prefs && !prefsApplied && !state.busy) applyPrefs(m.prefs);
     if ('stale' in m) {
       state.stale = m.stale || '';
@@ -206,6 +215,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   }
 
   function run(action: 'arrange' | 'fill') {
+    if (missing.value.length) return;
     prefsApplied = true;
     const v = state.spacing;
     if (v == null || !Number.isFinite(v) || v < 0) {
@@ -278,6 +288,12 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     requestFocus('spacing');
   }
 
+  /** Check again: the plugin retries loading what is missing and answers with a sync. */
+  function recheck() {
+    state.rechecking = true;
+    bridge.postMessage({ action: 'recheck' });
+  }
+
   function retry() {
     state.retrying = true;
     retryAt = now();
@@ -326,8 +342,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   bridge.onMessage(onMessage);
 
   return {
-    state, lang, s, t, loading, ctxText, ctxProblem, goLabel, fillLabel, staleText, ctxShort, projectName, statusView, ready, progress, hasCount, percent, countText, jobView,
-    run, setSpacing, setRotation, setCopies, cancel, open, copyPath, again, retry, start, stop, onMessage,
+    state, lang, s, t, loading, ctxText, ctxProblem, goLabel, fillLabel, staleText, missing, blockedText, ctxShort, projectName, statusView, ready, progress, hasCount, percent, countText, jobView,
+    run, setSpacing, setRotation, setCopies, cancel, open, copyPath, again, recheck, retry, start, stop, onMessage,
   };
 }
 

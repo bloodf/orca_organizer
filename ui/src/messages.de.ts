@@ -126,6 +126,10 @@ export function de(num: Num, plural: Plural): Strings {
         'Die Platte wird nach Objekt gedruckt, und der Radius des Extruder-Freiraums des Druckers von ' + num(a.clearance) + ' mm lässt auf diesem Druckbett keinen Platz.',
         'Stellen Sie den Radius des Extruder-Freiraums in den Drucker-Einstellungen unter ' + num(a.limit) + ' mm ein oder drucken Sie „Nach Ebene“, und versuchen Sie es erneut.',
       ],
+      missing_requirements: (a: { names: string }): Cause => [
+        'Anordnen und Füllen benötigen ' + a.names + ', konnten aber nicht geladen werden.',
+        'Installieren Sie das Plugin aus Orca Cloud neu, starten Sie OrcaSlicer neu und versuchen Sie es erneut.',
+      ],
       unexpected: ['Etwas Unerwartetes ist schiefgegangen.', 'Versuchen Sie es erneut. Tritt der Fehler weiter auf, helfen die Details unten bei der Diagnose.'],
     },
     saveFailed: (a) => a.ref + ': Die angeordnete Kopie konnte nicht gespeichert werden: ' + a.detail + '\nEs wurde nichts geöffnet; frühere Kopien sind unverändert.',
@@ -150,5 +154,19 @@ export function de(num: Num, plural: Plural): Strings {
     },
     copied: 'Pfad kopiert.',
     copyFail: 'Automatisches Kopieren nicht möglich. Der Pfad ist markiert: Drücken Sie Strg+C (⌘C auf dem Mac).',
+    req: 'Voraussetzungen',
+    reqAllFound: 'alle gefunden',
+    reqMissingMeta: (a: { names: string }) => 'fehlt: ' + a.names,
+    reqBlocked: (a: { names: string }) => 'Anordnen und Füllen sind aus: ' + a.names + ' konnte nicht geladen werden. Siehe Voraussetzungen unten.',
+    reqFound: (a: { version: string }) => 'Gefunden, Version ' + a.version,
+    reqMissing: 'Nicht gefunden',
+    reqWhy: {
+      numpy: 'Misst den Umriss jedes Teils auf einem Raster (Rasterung der Grundfläche) für Anordnen und Füllen.',
+      pillow: 'Zeichnet den Umriss jedes Teils in dieses Raster (Rasterung der Grundfläche) für Anordnen und Füllen.',
+    },
+    reqFix: 'OrcaSlicer installiert es mit dem Plugin. Installieren Sie das Plugin aus Orca Cloud neu, damit OrcaSlicer seine Pakete erneut installiert, und starten Sie OrcaSlicer neu.',
+    reqGuide: 'Installationsanleitung',
+    reqCheck: 'Erneut prüfen',
+    reqChecking: 'Wird geprüft…',
   };
 }
