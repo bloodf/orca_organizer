@@ -59,5 +59,5 @@ from its pixels, puts the matching screenshot into it, exports the listing sizes
 2 MB. The screenshots show the panel, not OrcaSlicer's 3D view.
 
 The plugin icon is the listing tile (`assets/orca-cloud/orca_organizer-tile.png`). `assets/icon.png` is the tile at
-256x256 and is attached to every release; the Organizer tab's icon is the tile at 64x64, embedded in
+256x256 and is attached to every release; the Organizer tab's icon is the tile at 40x40 RGBA (white surround transparent), embedded in
 `shape_arrange.py` as `ICON_PNG` and written to the storage folder when OrcaSlicer asks for it.

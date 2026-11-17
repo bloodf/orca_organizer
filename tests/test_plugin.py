@@ -517,6 +517,19 @@ def _close_to_tile(path: Path, size: int) -> bool:
     return icon.size == (size, size) and max(ImageStat.Stat(ImageChops.difference(icon, tile)).mean) < 4
 
 
+def _is_tab_tile(path: Path) -> bool:
+    """40x40 RGBA (20 px tab, 2x): the tile's white surround transparent, its middle opaque and the tile's colour."""
+    from PIL import Image
+
+    icon = Image.open(path)
+    tile = Image.open(ROOT / "assets" / "orca-cloud" / "orca_organizer-tile.png").convert("RGB")
+    if icon.size != (40, 40) or icon.mode != "RGBA":
+        return False
+    corners_clear = all(icon.getpixel(xy)[3] == 0 for xy in ((0, 0), (39, 0), (0, 39), (39, 39)))
+    middle, want = icon.getpixel((20, 20)), tile.getpixel((256, 256))
+    return corners_clear and middle[3] == 255 and max(abs(a - b) for a, b in zip(middle, want)) < 24
+
+
 def test_tab_icon_is_the_brand_tile():
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d)
@@ -527,7 +540,7 @@ def test_tab_icon_is_the_brand_tile():
         path = Path(page.get_icon())
         assert path == tmp / "storage" / "organizer-icon.png" and path.read_bytes() == sa.ICON_PNG
         assert not path.with_suffix(".svg").exists()  # the host would load an .svg of the same name first
-        assert _close_to_tile(path, 64) and len(sa.ICON_PNG) < 16_000
+        assert _is_tab_tile(path) and len(sa.ICON_PNG) < 8_000
         path.write_bytes(b"stale")  # an older or damaged copy is replaced
         assert Path(page.get_icon()) == path and path.read_bytes() == sa.ICON_PNG
     assert _close_to_tile(ROOT / "assets" / "icon.png", 256)  # the icon attached to each release
