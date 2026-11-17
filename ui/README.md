@@ -11,7 +11,7 @@ at run time, nothing is downloaded, and the page needs no `unsafe-eval` (templat
 | `src/App.vue`, `src/components/*.vue` | app bar, notices, form, job card, status banners, saved copy, first-run panel |
 | `src/assets/organizer-plate.webp` | the first-run illustration (copied from ui-foundation `assets/illustrations/`) |
 | `src/store.ts` | all reactive state, polling, focus requests; the plugin owns the job, the page only shows it |
-| `src/messages.ts`, `src/messages.<lang>.ts`, `src/status.ts` | strings in en, pt-BR, es, de and zh-CN (language detection, number and plural rules), structured `msg` to text lines |
+| `src/messages.ts`, `src/messages.<lang>.ts`, `src/status.ts` | strings in en, pt-BR, es, de, zh-CN and pl (language detection, number and plural rules), structured `msg` to text lines |
 | `src/protocol.ts`, `src/hostTheme.ts` | message types and the host bridge; light/dark detection |
 | `shared/` | vendored ui-foundation 4.0.1 (see `shared/manifest.json`). Do not edit; `npm run check:shared` |
 | `tests/` | vitest + jsdom component tests (`panel`, `messages`, `languages`, `english-parity`, `theme`) |

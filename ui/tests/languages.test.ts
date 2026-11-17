@@ -1,13 +1,13 @@
 // The real panel in every language. Each state the page can be in is rendered once in English and once in the other
 // language, and nothing a person can read or a screen reader can say (text, tooltips, aria labels) may be the same
-// English sentence. Then the wording of the three languages added in 0.14.0 is checked on the page itself.
+// English sentence. Then the wording of the languages added since 0.14.0 (es, de, zh-CN, pl) is checked on the page itself.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Lang } from '../src/messages';
 import fixtures from './fixtures/english.json';
 import { mountPanel, REF, type Panel } from './helpers';
 
 /** The code OrcaSlicer's `app_language()` gives for each language, and the browser tag used before the host answers. */
-const HOST: Record<Exclude<Lang, 'en'>, string> = { 'pt-BR': 'pt_BR', es: 'es', de: 'de', 'zh-CN': 'zh_CN' };
+const HOST: Record<Exclude<Lang, 'en'>, string> = { 'pt-BR': 'pt_BR', es: 'es', de: 'de', 'zh-CN': 'zh_CN', pl: 'pl_PL' };
 const TRANSLATED = Object.keys(HOST) as Exclude<Lang, 'en'>[];
 
 let panel: Panel;
@@ -163,7 +163,7 @@ interface Wording {
   offline: string;
 }
 
-const WORDING: Record<'es' | 'de' | 'zh-CN', Wording> = {
+const WORDING: Record<'es' | 'de' | 'zh-CN' | 'pl', Wording> = {
   es: {
     host: ['es', 'es_ES', 'es-MX'],
     reading: 'Leyendo…',
@@ -235,6 +235,30 @@ const WORDING: Record<'es' | 'de' | 'zh-CN', Wording> = {
     startFailed: '无法开始：旋转必须是“自动”“仅 90° 步长”或“保持朝向”。\n下一步：请从三个选项中选择一个。',
     stale: '下方的任务属于“未命名，盘 2”，不属于当前选择。',
     offline: '插件无响应。',
+  },
+  pl: {
+    host: ['pl_PL', 'pl', 'pl-PL'],
+    reading: 'Wczytywanie…',
+    go: 'Rozmieść płytę 2',
+    fill: 'Wypełnij płytę 2',
+    context: 'P · wybrana płyta 2 · 3 obiekty w projekcie',
+    bar: 'P · Płyta 2 · 3 obiekty',
+    ready: 'Gotowe. Wynik zostanie zapisany jako nowy plik; twój projekt się nie zmieni.',
+    spacingError: 'Wpisz odstęp 0 mm lub większy.',
+    decimal: '2,5',
+    phase: 'P, płyta 2: Rozmieszczanie części',
+    figure: '7 z 14',
+    otherPlate: 'Płyta 2 · b',
+    copies: 'Dodano 5 kopii',
+    placed: 'P, płyta 2: rozmieszczono 2 obiekty.',
+    added: 'Wypełniono płytę: dodano 300 kopii (a ×150, b ×150).',
+    unplaced: 'Nie zmieściły się (przeniesione nad płytę): c, d',
+    open: 'Otwórz tę kopię w OrcaSlicer',
+    again: 'Nowe rozmieszczenie',
+    failed: 'P, płyta 2: nie udało się rozmieścić.\nPłyta 2 nie ma obiektów do druku.\nNastępny krok: Wybierz inną płytę albo dodaj na nią części.',
+    startFailed: 'Nie można uruchomić: Obrót musi mieć wartość „Automatyczny”, „Tylko co 90°” lub „Zachowaj orientację”.\nNastępny krok: Wybierz jedną z trzech opcji.',
+    stale: 'Poniższa operacja dotyczy: bez nazwy, płyta 2, a nie bieżącego wyboru.',
+    offline: 'Brak odpowiedzi od wtyczki.',
   },
 };
 

@@ -190,7 +190,7 @@ No. Parts keep their height and stay on the bed. They only move in X and Y and t
 
 ## 🌍 Languages
 
-English, Brazilian Portuguese, Spanish, German and Simplified Chinese. The panel follows the language OrcaSlicer runs in and shows English for any other.
+English, Brazilian Portuguese, Spanish, German, Simplified Chinese and Polish. The panel follows the language OrcaSlicer runs in and shows English for any other.
 
 ## 🧩 More plugins by bloodf
 

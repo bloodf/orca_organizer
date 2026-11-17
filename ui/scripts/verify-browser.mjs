@@ -5,7 +5,7 @@
 //   node scripts/verify-browser.mjs --out /path/to/evidence [--chrome "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"]
 //   ... --only 'done-light-de-dock280|idle-.*-zh-CN'   draws only the screenshots whose name matches (while working on one)
 //
-// Every state is drawn in the five languages (en, pt-BR, es, de, zh-CN), light and dark, at the dock and tab sizes.
+// Every state is drawn in the six languages (en, pt-BR, es, de, zh-CN, pl), light and dark, at the dock and tab sizes.
 // Not Orca: no real WebView, theme, app_language(), clipboard permission or plugin. Those stay with the user.
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -165,7 +165,7 @@ try {
   };
 
   const THEMES = ['light', 'dark'];
-  const LANGS = [['en', 'en_US'], ['pt-BR', 'pt_BR'], ['es', 'es'], ['de', 'de'], ['zh-CN', 'zh_CN']]; // [page language, what Orca's app_language() says]
+  const LANGS = [['en', 'en_US'], ['pt-BR', 'pt_BR'], ['es', 'es'], ['de', 'de'], ['zh-CN', 'zh_CN'], ['pl', 'pl_PL']]; // [page language, what Orca's app_language() says]
   const WIDTHS = [['dock280', { width: 280, scale: 1 }], ['tab1280', { width: 1280, height: 720, scale: 1 }], ['tab1900', { width: 1900, height: 1000, scale: 1 }], ['zoom200-dock', { width: 140, height: 360, scale: 2 }], ['zoom200-tab', { width: 640, height: 360, scale: 2 }]];
   const MATRIX_STATES = ['idle', 'running', 'done', 'error'];
   const EXTRA_STATES = ['loading', 'empty', 'unreadable', 'stale', 'validation', 'runningFill', 'errorUnknown', 'offline', 'toast'];

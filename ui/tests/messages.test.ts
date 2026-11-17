@@ -39,8 +39,8 @@ const SHOWN = Object.values({ ...ARGS, i: 74 }).map(String);
 const BARE = { ...ARGS, objects: null, n: null, per: '', subject: '' };
 
 describe('messages', () => {
-  it('supports English, Brazilian Portuguese, Spanish, German and Simplified Chinese', () => {
-    expect([...LANGS]).toEqual(['en', 'pt-BR', 'es', 'de', 'zh-CN']);
+  it('supports English, Brazilian Portuguese, Spanish, German, Simplified Chinese and Polish', () => {
+    expect([...LANGS]).toEqual(['en', 'pt-BR', 'es', 'de', 'zh-CN', 'pl']);
   });
 
   it.each(OTHERS)('%s has exactly the keys of English: none missing, none extra', (lang) => shape(ENGLISH, strings(lang), lang));
@@ -91,6 +91,7 @@ describe('messages', () => {
     for (const l of ['es', 'es_ES', 'es-MX', 'es-419', 'ES']) expect(pickLang(l), l).toBe('es');
     for (const l of ['de', 'de_DE', 'de-CH', 'DE_at']) expect(pickLang(l), l).toBe('de');
     for (const l of ['zh_CN', 'zh-CN', 'zh', 'zh-Hans-CN', 'zh_TW', 'zh-Hant-TW', 'ZH_cn']) expect(pickLang(l), l).toBe('zh-CN');
+    for (const l of ['pl', 'pl_PL', 'pl-PL', 'PL', 'PL_pl']) expect(pickLang(l), l).toBe('pl');
     for (const l of ['en', 'en_US', 'fr_FR', 'ru_RU', 'ja', 'ko', 'esperanto', 'constructor', '', null, undefined]) expect(pickLang(l), String(l)).toBe('en');
   });
 
@@ -100,6 +101,7 @@ describe('messages', () => {
     expect(numberFormat('es')(12345.5)).toBe('12.345,5');
     expect(numberFormat('de')(1234.5)).toBe('1.234,5');
     expect(numberFormat('zh-CN')(1234.5)).toBe('1,234.5');
+    expect(numberFormat('pl')(12345.5)).toBe('12\u00a0345,5');
     expect(strings('pt-BR').ctx({ name: 'P', plate: 1, objects: 1234 })).toBe('P · placa 1 selecionada · 1.234 objetos no projeto');
     expect(strings('es').ctx({ name: 'P', plate: 1, objects: 12345 })).toBe('P · cama 1 seleccionada · 12.345 objetos en el proyecto');
     expect(strings('de').ctx({ name: 'P', plate: 1, objects: 1234 })).toBe('P · Platte 1 ausgewählt · 1.234 Objekte im Projekt');
@@ -108,12 +110,13 @@ describe('messages', () => {
     expect(cause('de', 'spacing_large', { spacing: 300, limit: 37.5 })[1]).toBe('Geben Sie einen Abstand unter 37,5 mm ein und versuchen Sie es erneut.');
     expect(cause('es', 'bad_res')[1]).toContain('0,5');
     expect(cause('zh-CN', 'bad_res')[1]).toContain('0.5');
+    expect(cause('pl', 'spacing_large', { spacing: 300, limit: 37.5 })[1]).toBe('Wpisz odstęp mniejszy niż 37,5 mm i spróbuj ponownie.');
   });
 
   it('writes Spanish and German numbers as the system region does, when the system speaks that language', () => {
     const system = (...languages: string[]) => vi.spyOn(navigator, 'languages', 'get').mockReturnValue(languages);
     system('en-US', 'en');
-    expect(LANGS.map(localeOf)).toEqual(['en-US', 'pt-BR', 'es', 'de', 'zh-CN']);
+    expect(LANGS.map(localeOf)).toEqual(['en-US', 'pt-BR', 'es', 'de', 'zh-CN', 'pl-PL']);
     system('es-MX', 'es', 'en');
     expect(localeOf('es')).toBe('es-MX'); // 2.5, where Spain and Argentina write 2,5
     expect(new Intl.NumberFormat(localeOf('es')).format(2.5)).toBe('2.5');
@@ -122,7 +125,7 @@ describe('messages', () => {
     expect(localeOf('de')).toBe('de-CH');
     expect(localeOf('es')).toBe('es');
     system('pt-PT', 'fr-CA');
-    expect(LANGS.map(localeOf)).toEqual(['en-US', 'pt-BR', 'es', 'de', 'zh-CN']); // other languages keep one way of writing
+    expect(LANGS.map(localeOf)).toEqual(['en-US', 'pt-BR', 'es', 'de', 'zh-CN', 'pl-PL']); // other languages keep one way of writing
   });
 
   it('pluralises by each language\'s own rule; Chinese has no plural (O05)', () => {
@@ -155,5 +158,23 @@ describe('messages', () => {
     expect([1, 2].map((n) => zh.count({ i: 0, n: null, count: n, subject: '' }))).toEqual(['已添加 1 个副本', '已添加 2 个副本']);
     expect(zh.res.added({ added: 5, per: 'a ×2、b ×3' })).toBe('已用 5 个额外副本铺满该盘（a ×2、b ×3）。');
     expect([gone('zh-CN', 1), gone('zh-CN', 2)]).toEqual(['盘 9 不存在：项目共有 1 个盘。', '盘 9 不存在：项目共有 2 个盘。']);
+  });
+
+  it('pl: one, few and many by the CLDR rule (1, 2, 5, 12, 22)', () => {
+    const pl = strings('pl');
+    const ns = [1, 2, 5, 12, 22];
+    expect(ns.map((n) => pl.ctxShort({ plate: 1, objects: n }))).toEqual([
+      'Płyta 1 · 1 obiekt', 'Płyta 1 · 2 obiekty', 'Płyta 1 · 5 obiektów', 'Płyta 1 · 12 obiektów', 'Płyta 1 · 22 obiekty',
+    ]);
+    expect(ns.map((n) => pl.count({ i: 0, n: null, count: n, subject: '' }))).toEqual([
+      'Dodano 1 kopię', 'Dodano 2 kopie', 'Dodano 5 kopii', 'Dodano 12 kopii', 'Dodano 22 kopie',
+    ]);
+    expect(ns.map((n) => cause('pl', 'plate_gone', { plate: 9, plates: n })[0])).toEqual([
+      'Płyta 9 nie istnieje: projekt ma 1 płytę.', 'Płyta 9 nie istnieje: projekt ma 2 płyty.', 'Płyta 9 nie istnieje: projekt ma 5 płyt.',
+      'Płyta 9 nie istnieje: projekt ma 12 płyt.', 'Płyta 9 nie istnieje: projekt ma 22 płyty.',
+    ]);
+    expect(pl.ctxShort({ plate: 1, objects: 0 })).toBe('Płyta 1 · 0 obiektów');
+    expect(pl.res.placed({ ref: 'r', placed: 104 })).toBe('r: rozmieszczono 104 obiekty.');
+    expect(pl.res.added({ added: 113, per: '' })).toBe('Wypełniono płytę: dodano 113 kopii.');
   });
 });

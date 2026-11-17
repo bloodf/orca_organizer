@@ -171,7 +171,7 @@ describe('spacing validation', () => {
     await panel.flush();
   }
 
-  it.each(['de', 'es', 'pt-BR', 'en'])('%s: a point is a decimal, typed or pasted', async (language) => {
+  it.each(['de', 'es', 'pt-BR', 'pl', 'en'])('%s: a point is a decimal, typed or pasted', async (language) => {
     panel = await mountPanel({ language });
     await panel.deliver(sync({ ctx: CTX }));
     await keys('2.5');
