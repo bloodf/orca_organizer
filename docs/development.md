@@ -6,7 +6,7 @@ in [how-it-works.md](how-it-works.md); releasing is in [release.md](release.md).
 ## Panel source
 
 The Organizer tab and the Script's dock panel are one Vue 3 + PrimeVue 5 app in `ui/` (see
-`ui/README.md`), built on the shared Orca UI foundation 4.1.0 in the Organizer's sky accent. The plugin stays a single `.py` file: `cd ui && npm ci --ignore-scripts && npm run build`
+`ui/README.md`), built on the shared Orca UI foundation 4.2.1 in the Organizer's sky accent. The plugin stays a single `.py` file: `cd ui && npm ci --ignore-scripts && npm run build`
 compiles the app into one offline HTML file and embeds it in `shape_arrange.py` (`PANEL_HTML`).
 Editing `ui/src` without rebuilding is caught by CI and by `tests/test_panel_js.py`. Python users who
 only run or release the plugin need no Node: the built page is committed inside `shape_arrange.py`.
