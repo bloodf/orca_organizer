@@ -1,6 +1,7 @@
 import { computed, reactive } from 'vue';
+import { showToast } from '../shared/src/components/toast';
 import { numberFormat, pickLang, strings, type Lang } from './messages';
-import { MAX_COPIES, type Bridge, type Ctx, type HostMessage, type Prefs, type Rotation, type StaleRef } from './protocol';
+import { MAX_COPIES, type Bridge, type Ctx, type HostMessage, type Prefs, type Requirement, type Rotation, type StaleRef } from './protocol';
 import { describe, jobRef, splitLines, translate, type StatusLine, type StatusSource, type StatusView } from './status';
 
 const BUSY_POLL_MS = 1000;
@@ -36,13 +37,15 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     staleRef: null as StaleRef | null,
     status: null as StatusSource | null,
     offline: false,
+    offlineAt: 0, // when the plugin went silent: the offline banner's identity, so a new silence shows it again
     retrying: false,
     busy: false,
     cancelling: false,
     path: null as string | null,
     resultVisible: false,
     formOpen: false, // the dock shows one thing at a time: true once the user went from a result back to the form
-    pathNote: null as 'copied' | 'copyFail' | null,
+    job: null as string | null, // the job the status is about: the identity of its banners (dismissed per run)
+    errorSeq: 0, // errors the plugin sent outside a job (start_failed): each one is news, even the same sentence again
     clipboard: false,
     spacing: 2 as number | null,
     rotation: 'auto' as Rotation,
@@ -50,6 +53,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     spacingInvalid: false,
     validation: false, // a local input error: shown over whatever the plugin says, until the input changes
     focus: null as { id: FocusId; seq: number } | null,
+    requirements: [] as Requirement[], // from the plugin; empty until the first sync
+    rechecking: false,
   });
 
   // Plain bookkeeping that never needs to redraw anything.
@@ -79,6 +84,9 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   const fillLabel = computed(() => (state.ctx && state.ctx.plate ? s.value.fill({ plate: state.ctx.plate }) : s.value.fillNone));
   const ctxShort = computed(() => (state.ctx && state.ctx.plate ? s.value.ctxShort({ plate: state.ctx.plate, objects: state.ctx.objects }) : ''));
   const projectName = computed(() => (state.ctx && state.ctx.plate ? state.ctx.name || s.value.untitledProject : ''));
+  /** Names of what Arrange and Fill need and could not be loaded: both stay off while any is missing. */
+  const missing = computed(() => state.requirements.filter((r) => r.status === 'missing').map((r) => r.name));
+  const blockedText = computed(() => (missing.value.length ? s.value.reqBlocked({ names: missing.value.join(s.value.list) }) : ''));
   const staleText = computed(() => (state.staleRef ? s.value.stale({ ref: ref(state.staleRef) }) : state.stale));
 
   const statusView = computed<StatusView>(() => {
@@ -171,6 +179,10 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     if (m.lang) state.hostLang = m.lang;
     if ('context' in m) state.context = m.context || '';
     if (m.ctx) state.ctx = m.ctx;
+    if (m.requirements) {
+      state.requirements = m.requirements;
+      state.rechecking = false;
+    }
     if (m.prefs && !prefsApplied && !state.busy) applyPrefs(m.prefs);
     if ('stale' in m) {
       state.stale = m.stale || '';
@@ -179,6 +191,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     if (m.sync || m.start) {
       if (m.job !== job) state.cancelling = false;
       job = m.job ?? null;
+      state.job = job;
       if (!m.path) {
         state.resultVisible = false;
         state.path = null;
@@ -190,13 +203,12 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     if ('text' in m) {
       state.status = { kind: 'job', msg: m.msg || null, text: m.text ?? '', error: !!m.error, hasPath: !!m.path };
       if (m.msg?.code === 'start_failed') state.cancelling = false;
+      // A job's error is already its own (the job id is in the banner key); one outside a job is counted.
+      if (m.error && !('job' in m)) state.errorSeq++;
     }
     if (m.path) {
       done = m.job ?? null;
-      if (state.path !== m.path) {
-        state.pathNote = null;
-        state.formOpen = false;
-      }
+      if (state.path !== m.path) state.formOpen = false;
       state.path = m.path;
       state.resultVisible = true;
     }
@@ -206,6 +218,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   }
 
   function run(action: 'arrange' | 'fill') {
+    if (missing.value.length) return;
     prefsApplied = true;
     const v = state.spacing;
     if (v == null || !Number.isFinite(v) || v < 0) {
@@ -252,7 +265,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     bridge.postMessage({ action: 'open', job: done });
   }
 
-  /** The WebView may refuse the clipboard: then `select` marks the path for Ctrl/Cmd+C and the note says so. */
+  /** The WebView may refuse the clipboard: then `select` marks the path for Ctrl/Cmd+C and a toast says so. */
   function copyPath(select: () => void) {
     const text = state.path ?? '';
     const fail = () => {
@@ -261,11 +274,11 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
       } catch {
         /* selection is a courtesy; the note below still tells the user what to do */
       }
-      state.pathNote = 'copyFail';
+      showToast({ tone: 'warn', title: s.value.copyFail, key: 'copy' });
     };
     try {
       navigator.clipboard.writeText(text).then(() => {
-        state.pathNote = 'copied';
+        showToast({ tone: 'success', title: s.value.copied, key: 'copy' });
       }, fail);
     } catch {
       fail();
@@ -276,6 +289,12 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   function again() {
     state.formOpen = true;
     requestFocus('spacing');
+  }
+
+  /** Check again: the plugin retries loading what is missing and answers with a sync. */
+  function recheck() {
+    state.rechecking = true;
+    bridge.postMessage({ action: 'recheck' });
   }
 
   function retry() {
@@ -293,6 +312,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     if (!alive) return;
     options.onTick?.();
     if (!document.hidden && now() - last > SILENCE_MS && now() - retryAt > SILENCE_MS) {
+      if (!state.offline) state.offlineAt = now();
       state.offline = true;
       state.retrying = false;
     }
@@ -326,8 +346,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   bridge.onMessage(onMessage);
 
   return {
-    state, lang, s, t, loading, ctxText, ctxProblem, goLabel, fillLabel, staleText, ctxShort, projectName, statusView, ready, progress, hasCount, percent, countText, jobView,
-    run, setSpacing, setRotation, setCopies, cancel, open, copyPath, again, retry, start, stop, onMessage,
+    state, lang, s, t, loading, ctxText, ctxProblem, goLabel, fillLabel, staleText, missing, blockedText, ctxShort, projectName, statusView, ready, progress, hasCount, percent, countText, jobView,
+    run, setSpacing, setRotation, setCopies, cancel, open, copyPath, again, recheck, retry, start, stop, onMessage,
   };
 }
 

@@ -32,7 +32,7 @@ const text = (value: Leaf['value'], args: Record<string, unknown>) => [typeof va
 const ARGS = {
   name: '«name»', plate: 71, objects: 72, problem: '«problem»', ref: '«ref»', i: 73, n: 75, count: 76, subject: '«subject»', act: '«act»',
   why: '«why»', max: 77, unit: '«unit»', plates: 78, res: 79, spacing: 80, limit: 81, clearance: 82, detail: '«detail»', placed: 83,
-  added: 84, per: '«per»', names: '«names»',
+  added: 84, per: '«per»', names: '«names»', version: '«version»',
 };
 const SHOWN = Object.values({ ...ARGS, i: 74 }).map(String);
 // The other shape of each message: no object count, a fill (no total) and no per-object list.
@@ -69,7 +69,7 @@ describe('messages', () => {
   });
 
   it('Chinese is written in Chinese: only names, units and keys stay in Latin letters, and punctuation is full-width', () => {
-    const names = /Organizer|Shape-Aware Arrange|OrcaSlicer|Orca|Brim|build|Ctrl\+C|⌘C|Mac|\bmm\b|\bXY\b|\b3D\b|«\w+»/g;
+    const names = /Organizer|Shape-Aware Arrange|OrcaSlicer|Orca Cloud|Orca|Brim|build|Ctrl\+C|⌘C|Mac|\bmm\b|\bXY\b|\b3D\b|«\w+»/g;
     for (const { path, value } of leaves(strings('zh-CN'))) {
       for (const args of [ARGS, BARE]) {
         const out = text(value, args);

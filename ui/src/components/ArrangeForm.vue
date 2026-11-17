@@ -4,13 +4,14 @@ import InputNumber from 'primevue/inputnumber';
 import Message from 'primevue/message';
 import RadioButton from 'primevue/radiobutton';
 import { computed } from 'vue';
-import { OuiIcon } from '../../shared/src/components';
+import { OuiIcon, OuiRequirement } from '../../shared/src/components';
 import { arrange, chevronRight, fill, info } from '../../shared/src/icons';
 import { localeOf } from '../messages';
 import { MAX_COPIES, type Rotation } from '../protocol';
+import type { Requirement } from '../protocol';
 import { useOrganizer } from '../useOrganizer';
 
-const { s, lang, state, goLabel, fillLabel, statusView, ready, run, setSpacing, setRotation, setCopies } = useOrganizer();
+const { s, lang, state, goLabel, fillLabel, statusView, ready, missing, blockedText, run, recheck, setSpacing, setRotation, setCopies } = useOrganizer();
 
 const locale = computed(() => localeOf(lang.value));
 // PrimeVue takes only the locale's decimal sign and drops '.' where it groups thousands (de, es, pt-BR): "2.5" became 25.
@@ -39,8 +40,13 @@ const rotations = computed<{ value: Rotation; label: string }[]>(() => [
 const spacingPt = computed(() => ({
   pcInputText: { root: { 'aria-describedby': state.validation ? 'spacing-error spacing-help' : 'spacing-help' } },
 }));
-// A disabled action points at the one sentence that says why (the busy hint), after its own description.
-const describedBy = (id: string) => (state.busy ? id + ' busy-hint' : id);
+// A disabled action points at the one sentence that says why (busy, or a missing requirement), after its own description.
+const describedBy = (id: string) => [id, state.busy && 'busy-hint', blockedText.value && 'req-hint'].filter(Boolean).join(' ');
+// The rows of the Requirements section (ui-foundation OuiRequirement). "unknown" from the plugin means it is still loading them.
+const GUIDES: Record<string, string> = { numpy: 'https://numpy.org/install/', pillow: 'https://pillow.readthedocs.io/en/stable/installation/' };
+const reqStatus = (r: Requirement) => (r.status === 'ok' ? 'found' : r.status === 'missing' ? 'missing' : 'checking');
+const reqLabel = (r: Requirement) => (r.status === 'ok' ? s.value.reqFound({ version: r.version ?? '' }) : r.status === 'missing' ? s.value.reqMissing : s.value.reqChecking);
+const off = computed(() => state.busy || missing.value.length > 0);
 // Before anything ran, the status is the one-line promise under the form; outcomes are banners (StatusBlock).
 const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.lines : []));
 </script>
@@ -70,10 +76,10 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
     </div>
 
     <div class="actions">
-      <Button id="go" :label="goLabel" :disabled="state.busy" :aria-describedby="describedBy('go-help')" :title="s.goHelp" @click="run('arrange')">
+      <Button id="go" :label="goLabel" :disabled="off" :aria-describedby="describedBy('go-help')" :title="s.goHelp" @click="run('arrange')">
         <template #icon><OuiIcon :icon="arrange" :size="14" /></template>
       </Button>
-      <Button id="fill" :label="fillLabel" severity="secondary" :disabled="state.busy" :aria-describedby="describedBy('fill-help')" :title="s.fillHelp" @click="run('fill')">
+      <Button id="fill" :label="fillLabel" severity="secondary" :disabled="off" :aria-describedby="describedBy('fill-help')" :title="s.fillHelp" @click="run('fill')">
         <template #icon><OuiIcon :icon="fill" :size="14" /></template>
       </Button>
     </div>
@@ -125,6 +131,33 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
       </div>
     </details>
 
+    <p v-if="blockedText" id="req-hint" class="oui-meta">{{ blockedText }}</p>
+
+    <!-- What Arrange and Fill need; opens by itself while something is missing. -->
+    <details v-if="state.requirements.length" class="more" :open="missing.length > 0">
+      <summary id="req"><span class="sum"><OuiIcon :icon="chevronRight" :size="14" />{{ s.req }}<span class="oui-meta">{{ missing.length ? s.reqMissingMeta({ names: missing.join(s.list) }) : state.requirements.some((r) => r.status === 'unknown') ? s.reqChecking : s.reqAllFound }}</span></span></summary>
+      <div class="more-body">
+        <div class="reqs">
+          <OuiRequirement
+            v-for="r in state.requirements"
+            :key="r.id"
+            :data-req="r.id"
+            :name="r.name"
+            :why="s.reqWhy[r.id]"
+            :status="reqStatus(r)"
+            :status-label="reqLabel(r)"
+            :detail="r.status === 'missing' ? (r.detail ?? undefined) : undefined"
+            :install-text="s.reqFix"
+            :install-url="GUIDES[r.id]"
+            :install-label="s.reqGuide"
+            :check-label="state.rechecking ? s.reqChecking : s.reqCheck"
+            :checking="state.rechecking"
+            @check="recheck"
+          />
+        </div>
+      </div>
+    </details>
+
     <p v-if="state.busy" id="busy-hint" class="oui-meta">{{ s.busyHint }}</p>
     <p v-for="(line, index) in idleNote" :key="line.key" class="oui-meta" :data-i="index">{{ line.text }}</p>
     <!-- The safety note is always on screen: what the spacing does not cover, and to check the plate before printing. -->
@@ -145,7 +178,7 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 .more > summary > .sum { display: flex; align-items: center; gap: 6px; min-height: 28px; min-width: 0; }
 .more > summary::-webkit-details-marker { display: none; }
 .sum > .oui-icon { color: var(--oui-muted); transition: transform var(--oui-fast); }
-.more[open] > #adv .sum > .oui-icon { transform: rotate(90deg); }
+.more[open] > :is(#adv, #req) .sum > .oui-icon { transform: rotate(90deg); }
 .sum > .oui-meta { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .more + .more { margin-top: calc(-1 * var(--oui-s2)); }
 .more-body { display: grid; gap: var(--oui-s3); padding-top: var(--oui-s2); }
@@ -153,6 +186,7 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 .rotation legend { padding: 0; margin-bottom: var(--oui-s2); font-size: var(--oui-text-sm); font-weight: 600; color: var(--oui-muted); }
 .choice { display: flex; align-items: flex-start; gap: var(--oui-s2); }
 .terms { display: grid; gap: 2px; }
+.reqs { display: grid; margin: 0 calc(-1 * var(--oui-s4)); }
 .terms dt { font-weight: 600; }
 .terms dd + dt { margin-top: var(--oui-s2); }
 </style>

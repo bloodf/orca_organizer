@@ -2,6 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, watch, watchEffect } from 'vue';
 import { usePrimeVue, type PrimeVueLocaleOptions } from 'primevue/config';
 import { primeVueOptions } from '../shared/src';
+import { OuiToastHost } from '../shared/src/components';
 import { organizerKey } from './useOrganizer';
 import type { Organizer } from './store';
 import ArrangeForm from './components/ArrangeForm.vue';
@@ -63,6 +64,7 @@ onBeforeUnmount(stop);
       </div>
     </div>
   </main>
+  <OuiToastHost :close-label="s.close" :label="s.notifications" />
 </template>
 
 <style>
@@ -85,6 +87,8 @@ onBeforeUnmount(stop);
   .grid:not([data-result]) > .pane-side, .grid[data-view='result'] > .pane-side { order: -1; }
   .grid[data-view='running'] > .pane-form, .grid[data-view='result'] > .pane-form, .grid .idle { display: none; }
   .pane-side:not(:has(> :not(.oui-sr, :empty, .idle))) { display: none; }
+  /* Room for the outcome's close buttons: Open stays above the fold of the 360 px dock. */
+  .pane-side { gap: var(--oui-s1); }
 }
 /* Tab: the form in its own card on the left, the job, the result or what to expect on the right. */
 @container oui-page (min-width: 621px) {

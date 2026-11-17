@@ -17,6 +17,8 @@ import numpy as np
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import shape_arrange as sa  # noqa: E402
 
+sa._deps()  # numpy and Pillow load on first need; these tests call the core directly
+
 BED = 256.0
 EPS = 1e-6
 

@@ -100,6 +100,10 @@ export function zhCN(num: Num): Strings {
         '该盘逐件打印，而打印机的挤出机避让半径为 ' + num(a.clearance) + ' mm，在此热床上放不下任何零件。',
         '请在打印机设置中将挤出机避让半径设为小于 ' + num(a.limit) + ' mm，或改为逐层打印，然后重试。',
       ],
+      missing_requirements: (a: { names: string }): Cause => [
+        '自动摆放和铺满需要 ' + a.names + '，但无法加载。',
+        '请从 Orca Cloud 重新安装插件，重启 OrcaSlicer 后重试。',
+      ],
       unexpected: ['发生了意外错误。', '请重试。如果问题仍然出现，下方的详情有助于诊断。'],
     },
     saveFailed: (a) => a.ref + '：无法保存摆放后的副本：' + a.detail + '\n未打开任何文件；之前的副本保持不变。',
@@ -121,6 +125,22 @@ export function zhCN(num: Num): Strings {
       none: '未找到 OrcaSlicer 启动程序：请手动打开已保存的副本。',
     },
     copied: '路径已复制。',
+    close: '关闭',
+    notifications: '通知',
     copyFail: '无法自动复制。路径已选中：请按 Ctrl+C（Mac 上按 ⌘C）。',
+    req: '依赖项',
+    reqAllFound: '全部已找到',
+    reqMissingMeta: (a: { names: string }) => '缺少：' + a.names,
+    reqBlocked: (a: { names: string }) => '自动摆放和铺满已停用：无法加载 ' + a.names + '。请查看下方的依赖项。',
+    reqFound: (a: { version: string }) => '已找到，版本 ' + a.version,
+    reqMissing: '未找到',
+    reqWhy: {
+      numpy: '在网格上测量每个零件的轮廓（占地栅格化），用于自动摆放和铺满。',
+      pillow: '将每个零件的轮廓绘制到该网格中（占地栅格化），用于自动摆放和铺满。',
+    },
+    reqFix: 'OrcaSlicer 会随插件一起安装它。请从 Orca Cloud 重新安装插件，让 OrcaSlicer 重新安装所需的包，然后重启 OrcaSlicer。',
+    reqGuide: '安装指南',
+    reqCheck: '重新检查',
+    reqChecking: '正在检查…',
   };
 }

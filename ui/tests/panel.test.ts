@@ -3,17 +3,22 @@
 // state, message and protocol assertion of the imperative page still holds for the Vue one.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { JobMsg } from '../src/protocol';
+import { clearToasts } from '../shared/src/components/toast';
 import { CTX, mountPanel, REF, type Panel } from './helpers';
 
 let panel: Panel;
 beforeEach(() => {
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined });
+  sessionStorage.clear(); // dismissed banners are remembered per session
 });
 afterEach(() => {
   panel?.unmount();
+  clearToasts();
   vi.useRealTimers();
 });
 
+// A closed toast plays its leave transition: it is gone for the user once it has the leave class.
+const TOAST = '.oui-toast:not(.oui-toast-leave-active)';
 const sync = (extra: Record<string, unknown> = {}) => ({ sync: true, job: null, busy: false, ...extra });
 const bar = () => panel.q('#job [role=progressbar]')!;
 const prog = (p: Panel, phase: string, i: number, n: number | null, extra: Record<string, unknown> = {}) =>
@@ -427,12 +432,13 @@ describe('result', () => {
     panel.q('#copy')!.click();
     expect(copied).toBe('/s/P-arranged.3mf');
     await panel.flush();
-    expect(panel.text('#path-note')).toBe('Path copied.');
+    expect(panel.text('.oui-toast[data-toast-tone=success] strong')).toBe('Path copied.');
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('denied')) } });
     panel.q('#copy')!.click();
     await panel.flush();
     await panel.flush();
-    expect(panel.text('#path-note')).toMatch(/The path is selected: press Ctrl\+C/);
+    expect(panel.text('.oui-toast[data-toast-tone=warn] strong')).toMatch(/The path is selected: press Ctrl\+C/);
+    expect(panel.q(`${TOAST}[data-toast-tone=success]`), 'a second copy replaces the first toast').toBeNull();
     const range = getSelection()!.getRangeAt(0); // the fallback really selected the path element's text
     expect(range.startContainer).toBe(panel.q('#path'));
     expect(range.endOffset).toBe(panel.q('#path')!.childNodes.length);
@@ -441,14 +447,32 @@ describe('result', () => {
     expect(panel.q('#copy')).toBeNull(); // no clipboard API: no Copy button
   });
 
-  it('keeps the copy note through polls of the same result and clears it for a new one', async () => {
+  it('shows the copy toast in the shared host, with a Close button, and leaves after 5 s', async () => {
     panel = await finished();
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.resolve() } });
+    vi.useFakeTimers();
     panel.q('#copy')!.click();
     await panel.flush();
+    const host = panel.q('.oui-toasts')!;
+    expect(host.getAttribute('aria-label')).toBe('Notifications');
+    expect(host.querySelectorAll('.oui-toast').length).toBe(1);
+    expect(panel.q('.oui-toast')!.getAttribute('role')).toBe('status');
     await panel.deliver(sync({ job: 'j1', busy: false, path: '/s/P-arranged.3mf', text: 'x', msg: doneMsg }));
-    expect(panel.q('#path-note')).not.toBeNull();
-    await panel.deliver(sync({ job: 'j2', busy: false, path: '/s/Q-arranged.3mf', text: 'x', msg: doneMsg }));
-    expect(panel.q('#path-note')).toBeNull();
+    expect(panel.q('.oui-toast'), 'a poll does not remove it').not.toBeNull();
+    await vi.advanceTimersByTimeAsync(5100);
+    expect(panel.q(TOAST)).toBeNull();
+    panel.q('#copy')!.click();
+    await panel.flush();
+    const close = panel.q<HTMLButtonElement>('.oui-toast .oui-toast-close')!;
+    expect(close.getAttribute('aria-label')).toBe('Close');
+    close.click();
+    await panel.flush();
+    expect(panel.q(TOAST)).toBeNull();
+  });
+
+  it('labels the toast host in the page language', async () => {
+    panel = await mountPanel({ language: 'de-DE' });
+    expect(panel.q('.oui-toasts')!.getAttribute('aria-label')).toBe('Benachrichtigungen');
   });
 
   it('shows the stale note, structured and translated, and hides it again', async () => {
@@ -463,6 +487,112 @@ describe('result', () => {
     expect(panel.text('#stale strong')).toBe('A execução abaixo é de sem título, placa 2, não da seleção atual.');
     await panel.deliver(sync({ ...keep, lang: 'en_US', stale: '', stale_ref: null }));
     expect(panel.q('#stale')).toBeNull();
+  });
+
+  it('lets the stale note be dismissed until the run it names changes', async () => {
+    panel = await finished();
+    const keep = { job: 'j1', busy: false, text: 'done text', path: '/s/P-arranged.3mf', msg: doneMsg, ctx: { plate: 1, objects: 1, name: 'Q', problem: null } };
+    const stale = (plate: number) => sync({ ...keep, stale: 'x', stale_ref: { stem: 'P', plate, action: 'arrange' } });
+    await panel.deliver(stale(2));
+    const close = panel.q<HTMLButtonElement>('#stale .oui-banner-close')!;
+    expect(close.getAttribute('aria-label')).toBe('Close');
+    close.click();
+    await panel.flush();
+    expect(panel.q('#stale')).toBeNull();
+    await panel.deliver(stale(2)); // the next poll, same condition
+    expect(panel.q('#stale')).toBeNull();
+    panel.unmount(); // a reload in the same session
+    panel = await finished();
+    await panel.deliver(stale(2));
+    expect(panel.q('#stale')).toBeNull();
+    await panel.deliver(stale(3)); // another run: the note is news again
+    expect(panel.text('#stale strong')).toBe('The run below is for P, plate 3, not the current selection.');
+  });
+
+  it('lets the result and error banners be dismissed per run', async () => {
+    panel = await finished();
+    const done = panel.q<HTMLButtonElement>('#status .oui-banner .oui-banner-close')!;
+    done.click();
+    await panel.flush();
+    expect(panel.q('#status .oui-banner')).toBeNull();
+    await panel.deliver(sync({ job: 'j1', busy: false, path: '/s/P-arranged.3mf', text: 'x', msg: doneMsg }));
+    expect(panel.q('#status .oui-banner'), 'a poll of the same result keeps it closed').toBeNull();
+    await panel.deliver(sync({ job: 'j2', busy: false, path: '/s/P-arranged-2.3mf', text: 'x', msg: doneMsg }));
+    expect(panel.q('#status .oui-banner'), 'the next run shows its outcome').not.toBeNull();
+    const failed = { ...REF, code: 'failed', action: 'fill', cause: { code: 'unexpected' }, detail: 'boom' } as JobMsg;
+    await panel.deliver(sync({ job: 'j3', busy: false, error: true, text: 'x', msg: failed }));
+    panel.q<HTMLButtonElement>('#status-error .oui-banner-close')!.click();
+    await panel.flush();
+    expect(panel.q('#status-error')).toBeNull();
+    await panel.deliver(sync({ job: 'j3', busy: false, error: true, text: 'x', msg: failed }));
+    expect(panel.q('#status-error')).toBeNull();
+    await panel.deliver(sync({ job: 'j4', busy: false, error: true, text: 'x', msg: failed }));
+    expect(panel.q('#status-error')).not.toBeNull();
+  });
+
+  it('lets the project problem be dismissed until the problem changes', async () => {
+    panel = await mountPanel();
+    const problem = (p: string) => sync({ msg: null, ctx: { plate: 0, objects: 0, name: '', problem: p } });
+    await panel.deliver(problem('no plate'));
+    panel.q<HTMLButtonElement>('.context-problem .oui-banner-close')!.click();
+    await panel.flush();
+    expect(panel.q('.context-problem')).toBeNull();
+    await panel.deliver(problem('no plate'));
+    expect(panel.q('.context-problem')).toBeNull();
+    await panel.deliver(problem('locked'));
+    expect(panel.text('.context-problem')).toMatch(/locked/);
+  });
+
+  it('shows a closed project problem again once it cleared and came back', async () => {
+    panel = await mountPanel();
+    const problem = (p: string | null) => sync({ msg: null, ctx: { plate: 0, objects: 0, name: '', problem: p } });
+    await panel.deliver(problem('no plate'));
+    panel.q<HTMLButtonElement>('.context-problem .oui-banner-close')!.click();
+    await panel.flush();
+    await panel.deliver(problem(null)); // solved: the dismissal is forgotten
+    expect(panel.q('.context-problem')).toBeNull();
+    await panel.deliver(problem('no plate')); // the same problem, later
+    expect(panel.text('.context-problem')).toMatch(/no plate/);
+  });
+
+  it('shows a closed stale note again once it cleared and came back', async () => {
+    panel = await finished();
+    const keep = { job: 'j1', busy: false, text: 'done text', path: '/s/P-arranged.3mf', msg: doneMsg, ctx: { plate: 1, objects: 1, name: 'Q', problem: null } };
+    const stale = (on: boolean) => sync({ ...keep, stale: on ? 'x' : '', stale_ref: on ? { stem: 'P', plate: 2, action: 'arrange' } : null });
+    await panel.deliver(stale(true));
+    panel.q<HTMLButtonElement>('#stale .oui-banner-close')!.click();
+    await panel.flush();
+    await panel.deliver(stale(false));
+    await panel.deliver(stale(true));
+    expect(panel.q('#stale')).not.toBeNull();
+  });
+
+  it('shows a closed warning again once it left the status and came back', async () => {
+    panel = await finished();
+    const result = (unplaced: string[]) => panel.deliver({ job: 'j1', busy: false, path: '/s/P-arranged.3mf', text: 'x', msg: { ...doneMsg, unplaced } });
+    await result(['Part A']);
+    panel.q<HTMLButtonElement>('#status .oui-banner[data-tone=warn] .oui-banner-close')!.click();
+    await panel.flush();
+    expect(panel.q('#status .oui-banner[data-tone=warn]')).toBeNull();
+    await result(['Part A']);
+    expect(panel.q('#status .oui-banner[data-tone=warn]'), 'still the same condition').toBeNull();
+    await result([]);
+    await result(['Part A']);
+    expect(panel.q('#status .oui-banner[data-tone=warn]')).not.toBeNull();
+  });
+
+  it('shows a closed start failure again when the plugin sends it again, word for word', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX }));
+    const startFailed = () => panel.deliver({ text: 'EN', error: true, busy: false, msg: { code: 'start_failed', cause: { code: 'unexpected' }, detail: 'd' } });
+    await startFailed();
+    panel.q<HTMLButtonElement>('#status-error .oui-banner-close')!.click();
+    await panel.flush();
+    expect(panel.q('#status-error')).toBeNull();
+    await panel.deliver(sync({ ctx: CTX })); // a poll keeps it closed
+    expect(panel.q('#status-error')).toBeNull();
+    await startFailed(); // a second click that fails the same way
+    expect(panel.q('#status-error')).not.toBeNull();
   });
 
   it('hides an old result on a reload with no finished job', async () => {
@@ -585,6 +715,23 @@ describe('polling, offline and retry (B-27)', () => {
     panel.take();
     await vi.advanceTimersByTimeAsync(1000); // busy: every second
     expect(panel.take()).toEqual([{ action: 'poll' }]);
+  });
+
+  it('lets the offline banner be dismissed while the plugin stays silent, and shows it for the next silence', async () => {
+    vi.useFakeTimers();
+    panel = await mountPanel();
+    await panel.deliver(sync({ msg: null, ctx: CTX }));
+    await vi.advanceTimersByTimeAsync(14000);
+    panel.q<HTMLButtonElement>('#offline .oui-banner-close')!.click();
+    await panel.flush();
+    expect(panel.q('#offline')).toBeNull();
+    await vi.advanceTimersByTimeAsync(6000); // more polls, still no answer
+    expect(panel.q('#offline')).toBeNull();
+    expect(panel.text('#context .oui-status[data-state=offline]')).toBe('No answer'); // the bar still says so
+    await panel.deliver(sync({ msg: null, ctx: CTX })); // back
+    expect(sessionStorage.length, 'the dismissal is forgotten once the plugin answers').toBe(0);
+    await vi.advanceTimersByTimeAsync(14000); // silent again: a new episode
+    expect(panel.q('#offline')).not.toBeNull();
   });
 
   it('asks right away when the tab becomes visible again, and a sync never moves focus', async () => {
@@ -725,5 +872,69 @@ describe('structure and accessibility', () => {
     expect(panel.text('#context')).toContain('<img src=x onerror=alert(1)>');
     await panel.deliver(sync({ job: 'j1', busy: false, path: '/x/<b>y</b>.3mf', text: 't', msg: null }));
     expect(panel.q('#path b')).toBeNull();
+  });
+});
+
+describe('requirements', () => {
+  const found = [
+    { id: 'numpy', name: 'numpy', status: 'ok', version: '2.5.5', detail: null },
+    { id: 'pillow', name: 'Pillow', status: 'ok', version: '13.0.0', detail: null },
+  ] as const;
+  const noPillow = [found[0], { id: 'pillow', name: 'Pillow', status: 'missing', version: null, detail: "ImportError: No module named 'PIL'" }] as const;
+
+  it('lists what Arrange and Fill need, with versions, collapsed while everything is found', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX, requirements: [...found] }));
+    expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
+    expect(panel.q('#req-hint')).toBeNull();
+    expect(panel.q<HTMLDetailsElement>('details:has(#req)')!.open).toBe(false);
+    expect(panel.text('#req')).toContain('all found');
+    expect(panel.text('[data-req=numpy] .oui-status[data-state=ok]')).toBe('Found, version 2.5.5');
+  });
+
+  it('turns Arrange and Fill off with a one-line reason and says how to fix it', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX, requirements: [...noPillow] }));
+    panel.take();
+    for (const id of ['#go', '#fill']) {
+      const button = panel.q<HTMLButtonElement>(id)!;
+      expect(button.disabled).toBe(true);
+      expect(button.getAttribute('aria-describedby')).toContain('req-hint');
+    }
+    expect(panel.text('#req-hint')).toBe('Arrange and Fill are off: Pillow could not be loaded. See Requirements below.');
+    expect(panel.q<HTMLDetailsElement>('details:has(#req)')!.open).toBe(true);
+    expect(panel.text('[data-req=pillow] .oui-status[data-state=warn]')).toBe('Not found');
+    expect(panel.q('[data-req=pillow] a')!.getAttribute('href')).toBe('https://pillow.readthedocs.io/en/stable/installation/');
+    expect(panel.q('[data-req=numpy] a')).toBeNull(); // found: no install line
+    expect(panel.text('[data-req=pillow]')).toContain('Reinstall the plugin from Orca Cloud');
+    expect(panel.text('[data-req=pillow]')).toContain("No module named 'PIL'");
+    panel.organizer.run('arrange');
+    expect(panel.take()).toEqual([]); // nothing is sent while a requirement is missing
+
+    panel.q<HTMLButtonElement>('[data-req=pillow] .oui-req-check')!.click();
+    await panel.flush();
+    expect(panel.takeRequests()).toEqual([{ action: 'recheck' }]);
+    expect(panel.text('[data-req=pillow] .oui-req-check')).toBe('Checking…');
+    expect(panel.q<HTMLButtonElement>('[data-req=pillow] .oui-req-check')!.disabled).toBe(true);
+    await panel.deliver(sync({ ctx: CTX, requirements: [...found] }));
+    expect(panel.text('[data-req=pillow] .oui-req-check')).toBe('Check again');
+    expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
+    expect(panel.q('#req-hint')).toBeNull();
+  });
+
+  it('says it is still checking while the plugin loads the packages, and leaves Arrange on', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX, requirements: found.map((r) => ({ ...r, status: 'unknown', version: null })) }));
+    expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
+    expect(panel.text('#req')).toContain('Checking…');
+    expect(panel.text('[data-req=numpy] .oui-status[data-state=busy]')).toBe('Checking…');
+    await panel.deliver(sync({ ctx: CTX, requirements: [...found] }));
+    expect(panel.text('#req')).toContain('all found');
+  });
+
+  it('explains the plugin refusing a run for a missing requirement, in the page language', async () => {
+    panel = await mountPanel({ language: 'de-DE' });
+    await panel.deliver(sync({ ctx: CTX, text: 'EN', error: true, msg: { code: 'start_failed', cause: { code: 'missing_requirements', names: 'numpy' }, detail: 'd' } }));
+    expect(panel.status()).toContain('Anordnen und Füllen benötigen numpy');
   });
 });

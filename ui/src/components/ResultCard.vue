@@ -35,7 +35,6 @@ function selectPath() {
         <template #icon><OuiIcon :icon="copy" :size="14" /></template>
       </Button>
     </div>
-    <p v-if="state.pathNote" id="path-note" class="oui-meta" role="status">{{ state.pathNote === 'copied' ? s.copied : s.copyFail }}</p>
     <code id="path" ref="pathEl" class="path oui-mono">{{ state.path }}</code>
     <div v-if="notes.length" id="notes" class="notes">
       <p v-for="line in notes" :key="line.key" class="oui-meta" :data-i="line.index">{{ line.text }}</p>
@@ -51,6 +50,10 @@ function selectPath() {
 .row > .p-button { white-space: normal; flex-wrap: wrap; }
 /* Words wrap whole; a single word is split only when it is wider than the button on its own line. */
 .row :deep(.p-button-label) { flex: 0 1 auto; min-width: 0; overflow-wrap: break-word; }
+/* Dock: Open stays above the fold of the 360 px dock under an outcome and its warnings. */
+@container oui-page (max-width: 620px) {
+  .result { padding: var(--oui-s2); gap: 6px; }
+}
 /* 200 % zoom in the dock: room for "OrcaSlicer" on one line. */
 @container oui-page (max-width: 200px) {
   .result { padding: var(--oui-s2); }

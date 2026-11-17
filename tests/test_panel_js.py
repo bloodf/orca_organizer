@@ -32,7 +32,8 @@ def english_fixtures() -> list[dict]:
     label, ref = "P, plate 2", {"stem": "P", "plate": 2}
     out = []
     for code in sa.ERRORS_EN:
-        cause = {"code": code, "plate": 3, "plates": 2, "unit": "inch", "res": 0.5, "spacing": 300, "limit": 37.5, "clearance": 65, "max": 300}
+        cause = {"code": code, "plate": 3, "plates": 2, "unit": "inch", "res": 0.5, "spacing": 300, "limit": 37.5, "clearance": 65, "max": 300,
+                 "names": "numpy, Pillow"}
         for action in ("arrange", "fill"):
             out.append({"msg": {**ref, "action": action, "code": "failed", "cause": cause, "detail": "d"},
                         "text": sa.failure_text(action, label, cause, "d"), "error": True})
@@ -111,7 +112,9 @@ def test_embedded_page_is_offline_and_needs_no_unsafe_eval():
     assert not re.search(r"\beval\(|new Function|\bFunction\(", html), "needs unsafe-eval: templates must be compiled ahead of time"
     assert not re.search(r"\bfetch\(|XMLHttpRequest|WebSocket|sendBeacon|importScripts", html), "the page only talks to the host bridge"
     urls = set(re.findall(r"https?://[^\s\"'`)<>]+", html))
-    allowed = ("http://www.w3.org/", "https://vuejs.org/error-reference")  # XML namespaces and a Vue error-doc string, never loaded
+    # XML namespaces and a Vue error-doc string, never loaded; the install guides of the requirements, opened only on a click
+    allowed = ("http://www.w3.org/", "https://vuejs.org/error-reference", "https://numpy.org/install/",
+               "https://pillow.readthedocs.io/en/stable/installation/")
     assert all(u.startswith(allowed) for u in urls), urls
     assert "bootstrap" not in html.lower() and "cdn." not in html.lower()
 
