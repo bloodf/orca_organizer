@@ -58,5 +58,6 @@ from its pixels, puts the matching screenshot into it, exports the listing sizes
 `assets/marketing/asset-manifest.json` (source, operation, size, bytes, hash, date). Every export stays under
 2 MB. The screenshots show the panel, not OrcaSlicer's 3D view.
 
-`assets/icon.svg` and `assets/icon.png` are the plugin's own mark and are attached to every release; the
-listing tile (`assets/orca-cloud/orca_organizer-tile.png`) is separate artwork and does not replace them.
+The plugin icon is the listing tile (`assets/orca-cloud/orca_organizer-tile.png`). `assets/icon.png` is the tile at
+256x256 and is attached to every release; the Organizer tab's icon is the tile at 64x64, embedded in
+`shape_arrange.py` as `ICON_PNG` and written to the storage folder when OrcaSlicer asks for it.

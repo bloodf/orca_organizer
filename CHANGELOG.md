@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.14.1 (2026-11-16)
+
+- Changed: the plugin icon is the new brand tile. The Organizer tab in OrcaSlicer shows it (the tab had no icon before), and it is the `icon.png` attached to each release.
+
 ## 0.14.0 (2026-11-16)
 
 - Organizer now speaks Spanish, German and Simplified Chinese, next to English and Brazilian Portuguese. It follows the language OrcaSlicer runs in (Español, Deutsch, 简体中文); Traditional Chinese shows Simplified, and any other language shows English. There is no language setting in the plugin: change OrcaSlicer's language and the tab and the dock follow.

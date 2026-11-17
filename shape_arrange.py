@@ -7,7 +7,7 @@
 # type = "script"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Irregular and concave parts interlock to fit more on the plate, or fill the whole plate with copies. Just set the spacing."
 # author = "Heitor Ramon"
-# version = "0.14.0"
+# version = "0.14.1"
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Heitor Ramon
@@ -4566,6 +4566,71 @@ def _storage_path():
 
 PAGE_NAME = "Organizer"  # tab label; must be unique within the plugin and have no ';'
 
+# The tab icon: the brand tile (assets/orca-cloud/orca_organizer-tile.png) at 64x64, quantised PNG. OrcaSlicer reads
+# a page icon from a file and draws it at 20 px, so get_icon() writes it to the storage folder.
+ICON_FILE = "organizer-icon.png"  # no organizer-icon.svg next to it: the host would load an .svg of the same name first
+ICON_PNG = _base64.b64decode(
+    "iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAMAAACdt4HsAAADAFBMVEX///////7+/////v///v7//v3+/v/+/v7+/v3+/f7+/f39"
+    "/v79/f79/f38/f78/f38/P37/P37/Pz7+/z6+/z5+/z0+Pns8vXm7/Pg6u/c5+3b5uzY5evT4unM3ebE2OLD1+G/1eC70t61z9uv"
+    "ytiuydetyNesyNarx9apxtWoxtWnxdSmxdSlxNOjw9OhwdGewNGcvs+WucyTt8uQtsmPtcmMtcqMtcmOtMiMtMmMssaLs8eKs8eK"
+    "sseIscaHssaHscaHscWIsMWHsMaHsMWGsMWFr8SErsSDrsSDrsOCrsSCrsOBrcKBrMKArMGAq8F/q8B8q8F8qcB6qL97p754p794"
+    "pr11pLx0pbx0o7xzpL1zpLxzo7xyo7xxortuobpuoLlsoLlsn7hrn7hunbdsnrdrnrhkmrRimbNimLNelbFUkK5SjatOjKtPi6pM"
+    "iadHiKdFhqZDhaVChaVBg6RAgqI/gqM7gKE5f6I6fZ84e501fJ81e540fJ40e580e541eZwwep0weZwxd5oud5sudJkqdJkmcpgq"
+    "cJYkcZcjcJYibpUgbpUebpQdbpQfbZQdbZQdbJQcbZQcbJQcbJMbbJQda5IeaZEZapIXaZEXaJAWaJEWaJAWZ5AVZ5ATZo8SZo8S"
+    "ZY4RZY4UY40QZY4QZI0QY40PZI0OY4wNY40OYYsLYo0JYo0JYowLYYwHYIsGYIsFYIwFYIsJXokGX4oFX4sFX4oFXooFXokEX4sE"
+    "X4oEXooEXokEXYkDX4oDXooDXokCXooCXokDXYoDXYkDXYgCXYoCXYkCXYgBXooBXokBXYoBXYkBXYgAXYkCXIgBXIkBXIgBXIcA"
+    "XIgDWYYBW4cBWocBWIYAW4cAWocAWoYAWYcAWYYAWYUAWIYAWIUEV4QAV4UAV4QDVYMAVoQAVoMAVYMAVYIAVIMAVIIAVIEEUoEC"
+    "UoEAU4IAU4EAUoEAUoAEUYACUX8AUYEAUYAAUX8AUIAAUH8AUH4CT34AT38AT34ATHwASHoARXcARHcln3D5AAAJeklEQVR42pVX"
+    "e1wU1xW+UerycIsxqNQHio88fKPiI0arFjW2pjHig9YXrUnE5CdE4jNiMT5Qo6ipRG2CGk2JmGgwG2ZQWFmgmw66M2XGShC6ZcNm"
+    "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"
+)
+
+
+def _icon_path() -> str:
+    """The tab icon file in the storage folder, written when missing or stale; "" when it cannot be written."""
+    folder = _remember_storage()
+    if not folder:
+        return ""
+    path = Path(folder) / ICON_FILE
+    try:
+        if not path.is_file() or path.read_bytes() != ICON_PNG:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            path.write_bytes(ICON_PNG)
+    except OSError:
+        return ""
+    return str(path)
+
 if orca is not None:
     _panel = None
     _session = _Session(_storage_path)
@@ -4594,6 +4659,9 @@ if orca is not None:
 
             def get_name(self):
                 return PAGE_NAME
+
+            def get_icon(self):
+                return _icon_path()
 
             def get_ui(self):  # called when the tab is first shown
                 _remember_storage()

@@ -507,6 +507,32 @@ def test_pages_capability_registered_next_to_the_script():
         assert log["hooks"] == [] and sa._page_sink not in sa._session.sinks
 
 
+def _close_to_tile(path: Path, size: int) -> bool:
+    """The image at `path` is `size` px square and matches the brand tile scaled to that size."""
+    from PIL import Image, ImageChops, ImageStat
+
+    icon = Image.open(path).convert("RGB")
+    tile = Image.open(ROOT / "assets" / "orca-cloud" / "orca_organizer-tile.png").convert("RGB")
+    tile = tile.resize((size, size), Image.Resampling.LANCZOS)
+    return icon.size == (size, size) and max(ImageStat.Stat(ImageChops.difference(icon, tile)).mean) < 4
+
+
+def test_tab_icon_is_the_brand_tile():
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa, log, *_ = load(tmp, project)
+        page = log["caps"][1]()
+        path = Path(page.get_icon())
+        assert path == tmp / "storage" / "organizer-icon.png" and path.read_bytes() == sa.ICON_PNG
+        assert not path.with_suffix(".svg").exists()  # the host would load an .svg of the same name first
+        assert _close_to_tile(path, 64) and len(sa.ICON_PNG) < 16_000
+        path.write_bytes(b"stale")  # an older or damaged copy is replaced
+        assert Path(page.get_icon()) == path and path.read_bytes() == sa.ICON_PNG
+    assert _close_to_tile(ROOT / "assets" / "icon.png", 256)  # the icon attached to each release
+
+
 def test_old_hosts_keep_only_the_script():
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d)
@@ -1032,6 +1058,7 @@ if __name__ == "__main__":
     test_bad_spacing_is_rejected_before_export()
     test_result_text_is_honest_about_estimates_and_limits()
     test_pages_capability_registered_next_to_the_script()
+    test_tab_icon_is_the_brand_tile()
     test_old_hosts_keep_only_the_script()
     test_page_hooks_are_safe_without_base_hooks()
     test_page_arranges_and_opens_without_the_plugin_manager()
