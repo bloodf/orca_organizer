@@ -1042,7 +1042,7 @@ def test_plugin_loads_without_numpy_and_pillow_and_refuses_to_run():
             panel = sa._panel
             panel.on_message({"action": "hello"})  # first sync: the imports start on a worker, the page waits
             assert {r["status"] for r in log["posts"][-1]["requirements"]} <= {"unknown", "missing"}
-            pump(pending, lambda: sa._DEPS is not None)
+            pump(pending, lambda: sa._DEPS is not None and not sa._checking.is_set())
             panel.on_message({"action": "poll"})
             rows = {r["id"]: r for r in log["posts"][-1]["requirements"]}
             assert [rows[i]["status"] for i in ("numpy", "pillow")] == ["missing", "missing"], rows
@@ -1054,10 +1054,15 @@ def test_plugin_loads_without_numpy_and_pillow_and_refuses_to_run():
                 assert msg["text"].startswith("Could not start: Arrange and Fill need numpy, Pillow")
             assert log["exports"] == [] and sa._session.job is None
             panel.on_message({"action": "recheck"})  # still not installed
+            assert log["posts"][-1]["requirements"][0]["status"] in ("unknown", "missing")  # on a worker; may be done
+            pump(pending, lambda: not sa._checking.is_set())
+            panel.on_message({"action": "poll"})
             assert log["posts"][-1]["requirements"][0]["status"] == "missing"
         finally:
             builtins.__import__ = real
         panel.on_message({"action": "recheck"})  # installed meanwhile: Check again finds them and Arrange runs
+        pump(pending, lambda: not sa._checking.is_set())
+        panel.on_message({"action": "poll"})
         rows = {r["id"]: r for r in log["posts"][-1]["requirements"]}
         assert rows["numpy"]["status"] == rows["pillow"]["status"] == "ok" and rows["numpy"]["version"]
         sa._current_plate = lambda: 1
@@ -1110,6 +1115,76 @@ def test_nothing_is_checked_at_import_or_while_registering():
         assert tried == [] and sa._DEPS is None and sa.np is None, tried
 
 
+def test_check_again_runs_off_the_ui_thread_and_sees_new_installs():
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa, log, pending, opened, ui = load(tmp, project)
+        sa._DEPS = {"numpy": ImportError("gone"), "pillow": "13"}  # a first check that found numpy missing
+        real, threads = sa._load_deps, []
+        sa._load_deps = lambda: (threads.append(threading.get_ident()), real())[1]
+        import importlib
+
+        real_invalidate, invalidated = importlib.invalidate_caches, []
+        importlib.invalidate_caches = lambda: invalidated.append(threading.get_ident())
+        try:
+            sa._panel.on_message({"action": "recheck"})
+            pump(pending, lambda: not sa._checking.is_set())
+        finally:
+            importlib.invalidate_caches = real_invalidate
+        assert threads and ui not in threads, "Check again imported on the UI thread"
+        assert invalidated and ui not in invalidated, "import caches are refreshed before the retry"
+        sa._panel.on_message({"action": "poll"})
+        assert [r["status"] for r in log["posts"][-1]["requirements"]] == ["ok", "ok"]
+
+
+def test_start_does_not_wait_for_the_first_check():
+    """Arrange clicked while numpy and Pillow are still loading: the UI thread starts the run at once and the worker
+    waits for the imports."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa, log, pending, opened, ui = load(tmp, project)
+        real, release, entered = sa._load_deps, threading.Event(), threading.Event()
+
+        def slow():
+            entered.set()
+            assert release.wait(DEADLINE)
+            return real()
+
+        sa._load_deps = slow
+        sa._current_plate = lambda: 1
+        panel = sa._panel
+        panel.on_message({"action": "hello"})  # starts the check, which now holds the imports
+        assert entered.wait(DEADLINE)
+        assert log["posts"][-1]["requirements"][0]["status"] == "unknown"
+        began = time.monotonic()
+        panel.on_message({"action": "arrange", "spacing": 1})
+        assert time.monotonic() - began < 5 and sa._session.job.state == "running", "the UI thread waited"
+        release.set()
+        pump(pending, panel.done.is_set)
+        assert not log["posts"][-1]["error"] and len(opened) == 1
+
+
+def test_package_names_what_is_missing():
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa, log, pending, opened, _ = load(tmp, project)
+        sa._DEPS = {"numpy": "2", "pillow": ImportError("No module named 'PIL'")}
+        try:
+            sa.Package(project)
+        except sa.PlanError as e:
+            assert sa.error_args(e) == {"code": "missing_requirements", "names": "Pillow"}
+            assert sa.failure_text("arrange", "P, plate 1", sa.error_args(e), str(e)).split("\n")[1] == \
+                "Arrange and Fill need Pillow, which could not be loaded."
+        else:
+            raise AssertionError("Package opened without Pillow")
+
+
 if __name__ == "__main__":
     test_arrange_runs_off_ui_thread_and_finishes_on_it()
     test_fill_button_adds_copies()
@@ -1147,4 +1222,7 @@ if __name__ == "__main__":
     test_plugin_loads_without_numpy_and_pillow_and_refuses_to_run()
     test_requirements_are_reported_found_with_their_version()
     test_nothing_is_checked_at_import_or_while_registering()
+    test_check_again_runs_off_the_ui_thread_and_sees_new_installs()
+    test_start_does_not_wait_for_the_first_check()
+    test_package_names_what_is_missing()
     print("ok")

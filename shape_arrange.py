@@ -23,6 +23,7 @@ core works on any 3MF and is also usable from the command line:
 from __future__ import annotations
 
 import functools
+import importlib
 import json
 import math
 import numbers
@@ -39,6 +40,7 @@ from pathlib import Path
 np = Image = ImageDraw = None  # numpy and Pillow, bound by _deps(); OrcaSlicer pip-installs them with the plugin
 _DEPS = None  # what _load_deps() found; None until first needed. Never loaded at import or while the plugin registers
 _DEPS_LOCK = threading.Lock()
+REQUIREMENTS = (("numpy", "numpy"), ("pillow", "Pillow"))  # (id, name): both rasterise footprints for Arrange and Fill
 
 
 def _load_deps() -> dict:
@@ -46,6 +48,7 @@ def _load_deps() -> dict:
     pip error) the plugin still loads, Arrange and Fill are refused and the page says why (see requirements()).
     Returns {id: version str, or the import error}. Call through _deps()."""
     global np, Image, ImageDraw
+    importlib.invalidate_caches()  # a retry must see packages installed since the last attempt
     found = {}
     try:
         import numpy
@@ -70,6 +73,17 @@ def _deps() -> dict:
         if _DEPS is None:
             _DEPS = _load_deps()
         return _DEPS
+
+
+def _missing_error(names: str) -> Exception:
+    return PlanError(f"Arrange and Fill need {names}, which could not be loaded", "missing_requirements", names=names)
+
+
+def _need_deps():
+    """Load numpy and Pillow if needed; raise the explained error naming any that are missing."""
+    missing = [name for rid, name in REQUIREMENTS if not isinstance(_deps().get(rid), str)]
+    if missing:
+        raise _missing_error(", ".join(missing))
 
 try:  # only present inside OrcaSlicer
     import orca
@@ -234,7 +248,7 @@ class Package:
     """Read-only view of a 3MF zip plus the bits needed to rewrite it."""
 
     def __init__(self, path: Path):
-        _deps()
+        _need_deps()
         self.path = Path(path)
         self.zip = zipfile.ZipFile(self.path)
         try:
@@ -4330,29 +4344,35 @@ PREFS_FILE = "settings.json"  # in the plugin's storage folder: the panel settin
 
 WATCH_GAP = 5.0  # s. A page that polls every second while a run is busy has watched it; a longer silence has not
 
-REQUIREMENTS = (("numpy", "numpy"), ("pillow", "Pillow"))  # (id, name): both rasterise footprints for Arrange and Fill
+_checking = threading.Event()  # set while a worker loads or retries numpy and Pillow
 
 
-_warming = threading.Event()
-
-
-def _warm_deps():
-    """Load numpy and Pillow on a worker thread (once), so the page's first sync never waits for the imports."""
-    if _DEPS is None and not _warming.is_set():
-        _warming.set()
-        threading.Thread(target=_deps, daemon=True).start()
-
-
-def requirements(refresh: bool = False, wait: bool = True) -> list[dict]:
-    """What Arrange and Fill need, for the page: [{id, name, status: "ok" | "missing" | "unknown", version, detail}].
-    The imports run once (_deps()); `wait=False` reports "unknown" until they did instead of running them here.
-    `refresh` (Check again) retries the imports of anything missing (they succeed once the packages are installed,
-    usually after a restart)."""
+def _check(refresh: bool):
     global _DEPS
-    with _DEPS_LOCK:
-        if refresh and _DEPS is not None and any(isinstance(v, Exception) for v in _DEPS.values()):
-            _DEPS = _load_deps()
-    found_all = _deps() if wait else _DEPS
+    try:
+        with _DEPS_LOCK:
+            if _DEPS is None or (refresh and any(isinstance(v, Exception) for v in _DEPS.values())):
+                _DEPS = _load_deps()
+    finally:
+        _checking.clear()
+
+
+def _warm_deps(refresh: bool = False):
+    """Load numpy and Pillow on a worker thread, so the UI thread never waits for the imports: once on the page's
+    first sync, and again for Check again (`refresh`) while something is missing. The page reads the result on its
+    next poll."""
+    if _checking.is_set():
+        return
+    if _DEPS is not None and not (refresh and any(isinstance(v, Exception) for v in _DEPS.values())):
+        return
+    _checking.set()
+    threading.Thread(target=_check, args=(refresh,), daemon=True).start()
+
+
+def requirements(wait: bool = True) -> list[dict]:
+    """What Arrange and Fill need, for the page: [{id, name, status: "ok" | "missing" | "unknown", version, detail}].
+    `wait=False` never imports: "unknown" while a worker is still loading or retrying them."""
+    found_all = _deps() if wait else None if _checking.is_set() else _DEPS
     rows = []
     for rid, name in REQUIREMENTS:
         found = (found_all or {}).get(rid)
@@ -4364,7 +4384,8 @@ def requirements(refresh: bool = False, wait: bool = True) -> list[dict]:
 
 
 def missing_requirements() -> list[str]:
-    return [r["name"] for r in requirements() if r["status"] != "ok"]
+    """Names known to be missing; never imports (a still unknown result lets a run go ahead: Package loads them)."""
+    return [r["name"] for r in requirements(wait=False) if r["status"] == "missing"]
 
 
 class _Session:
@@ -4438,7 +4459,7 @@ class _Session:
         elif action == "open" and mine and job.path:
             job.open()
         elif action == "recheck":
-            requirements(refresh=True, wait=False)
+            _warm_deps(refresh=True)
             self.sync()
         elif action in ("arrange", "fill"):
             if job is not None and job.active:
@@ -4540,9 +4561,7 @@ class _Session:
     def start(self, action: str, data: dict):
         missing = missing_requirements()
         if missing:  # the page disables both actions too; this covers an old or stale page
-            names = ", ".join(missing)
-            raise PlanError(f"Arrange and Fill need {names}, which could not be loaded", "missing_requirements",
-                            names=names)
+            raise _missing_error(", ".join(missing))
         spacing = _number(data.get("spacing"), "spacing")
         rotation = data.get("rotation", "auto")
         if rotation not in ROTATIONS:
