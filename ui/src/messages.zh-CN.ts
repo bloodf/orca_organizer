@@ -121,6 +121,8 @@ export function zhCN(num: Num): Strings {
       none: '未找到 OrcaSlicer 启动程序：请手动打开已保存的副本。',
     },
     copied: '路径已复制。',
+    close: '关闭',
+    notifications: '通知',
     copyFail: '无法自动复制。路径已选中：请按 Ctrl+C（Mac 上按 ⌘C）。',
   };
 }

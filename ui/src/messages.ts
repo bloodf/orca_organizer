@@ -161,6 +161,8 @@ function en(num: Num) {
       none: 'No OrcaSlicer launcher found: open the saved copy by hand.',
     } as Record<string, string | ((a: { detail: string }) => string)>,
     copied: 'Path copied.',
+    close: 'Close',
+    notifications: 'Notifications',
     copyFail: 'Could not copy automatically. The path is selected: press Ctrl+C (⌘C on Mac).',
   };
 }
@@ -308,6 +310,8 @@ function ptBR(num: Num): Strings {
       none: 'Nenhum inicializador do OrcaSlicer encontrado: abra a cópia salva manualmente.',
     },
     copied: 'Caminho copiado.',
+    close: 'Fechar',
+    notifications: 'Notificações',
     copyFail: 'Não foi possível copiar automaticamente. O caminho está selecionado: pressione Ctrl+C (⌘C no Mac).',
   };
 }

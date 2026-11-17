@@ -149,6 +149,8 @@ export function de(num: Num, plural: Plural): Strings {
       none: 'Kein Startprogramm für OrcaSlicer gefunden: Öffnen Sie die gespeicherte Kopie von Hand.',
     },
     copied: 'Pfad kopiert.',
+    close: 'Schließen',
+    notifications: 'Benachrichtigungen',
     copyFail: 'Automatisches Kopieren nicht möglich. Der Pfad ist markiert: Drücken Sie Strg+C (⌘C auf dem Mac).',
   };
 }

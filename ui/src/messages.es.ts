@@ -143,6 +143,8 @@ export function es(num: Num, plural: Plural): Strings {
       none: 'No se encontró ningún lanzador de OrcaSlicer: abre la copia guardada manualmente.',
     },
     copied: 'Ruta copiada.',
+    close: 'Cerrar',
+    notifications: 'Notificaciones',
     copyFail: 'No se pudo copiar automáticamente. La ruta está seleccionada: usa Ctrl+C (⌘C en Mac).',
   };
 }
