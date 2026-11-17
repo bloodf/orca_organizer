@@ -1,4 +1,5 @@
 import { computed, reactive } from 'vue';
+import { showToast } from '../shared/src/components/toast';
 import { numberFormat, pickLang, strings, type Lang } from './messages';
 import { MAX_COPIES, type Bridge, type Ctx, type HostMessage, type Prefs, type Rotation, type StaleRef } from './protocol';
 import { describe, jobRef, splitLines, translate, type StatusLine, type StatusSource, type StatusView } from './status';
@@ -36,13 +37,14 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     staleRef: null as StaleRef | null,
     status: null as StatusSource | null,
     offline: false,
+    offlineAt: 0, // when the plugin went silent: the offline banner's identity, so a new silence shows it again
     retrying: false,
     busy: false,
     cancelling: false,
     path: null as string | null,
     resultVisible: false,
     formOpen: false, // the dock shows one thing at a time: true once the user went from a result back to the form
-    pathNote: null as 'copied' | 'copyFail' | null,
+    job: null as string | null, // the job the status is about: the identity of its banners (dismissed per run)
     clipboard: false,
     spacing: 2 as number | null,
     rotation: 'auto' as Rotation,
@@ -179,6 +181,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     if (m.sync || m.start) {
       if (m.job !== job) state.cancelling = false;
       job = m.job ?? null;
+      state.job = job;
       if (!m.path) {
         state.resultVisible = false;
         state.path = null;
@@ -193,10 +196,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     }
     if (m.path) {
       done = m.job ?? null;
-      if (state.path !== m.path) {
-        state.pathNote = null;
-        state.formOpen = false;
-      }
+      if (state.path !== m.path) state.formOpen = false;
       state.path = m.path;
       state.resultVisible = true;
     }
@@ -252,7 +252,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     bridge.postMessage({ action: 'open', job: done });
   }
 
-  /** The WebView may refuse the clipboard: then `select` marks the path for Ctrl/Cmd+C and the note says so. */
+  /** The WebView may refuse the clipboard: then `select` marks the path for Ctrl/Cmd+C and a toast says so. */
   function copyPath(select: () => void) {
     const text = state.path ?? '';
     const fail = () => {
@@ -261,11 +261,11 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
       } catch {
         /* selection is a courtesy; the note below still tells the user what to do */
       }
-      state.pathNote = 'copyFail';
+      showToast({ tone: 'warn', title: s.value.copyFail, key: 'copy' });
     };
     try {
       navigator.clipboard.writeText(text).then(() => {
-        state.pathNote = 'copied';
+        showToast({ tone: 'success', title: s.value.copied, key: 'copy' });
       }, fail);
     } catch {
       fail();
@@ -293,6 +293,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     if (!alive) return;
     options.onTick?.();
     if (!document.hidden && now() - last > SILENCE_MS && now() - retryAt > SILENCE_MS) {
+      if (!state.offline) state.offlineAt = now();
       state.offline = true;
       state.retrying = false;
     }

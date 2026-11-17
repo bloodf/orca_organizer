@@ -158,13 +158,15 @@ try {
     error: async (l) => { await S.idle(l); await deliver({ ...base(l), job: 'j2', error: true, text: 'e', msg: { ...ref, action: 'arrange', code: 'failed', cause: { code: 'plate_empty', plate: 2 }, detail: 'x' } }); },
     errorUnknown: async (l) => { await S.idle(l); await deliver({ ...base(l), job: 'j2', error: true, text: 'e', msg: { ...ref, action: 'fill', code: 'failed', cause: { code: 'unexpected' }, detail: 'zipfile.BadZipFile: File is not a zip file' } }); },
     offline: async (l) => { await S.idle(l); await delay(14500); },
+    // Copy on a result: the clipboard answer (or its refusal, without a permission) is a toast in the shared host, bottom-left.
+    toast: async (l) => { await S.done(l); await evaluate('document.querySelector("#copy").click()'); await delay(150); },
   };
 
   const THEMES = ['light', 'dark'];
   const LANGS = [['en', 'en_US'], ['pt-BR', 'pt_BR'], ['es', 'es'], ['de', 'de'], ['zh-CN', 'zh_CN']]; // [page language, what Orca's app_language() says]
   const WIDTHS = [['dock280', { width: 280, scale: 1 }], ['tab1280', { width: 1280, height: 720, scale: 1 }], ['tab1900', { width: 1900, height: 1000, scale: 1 }], ['zoom200-dock', { width: 140, height: 360, scale: 2 }], ['zoom200-tab', { width: 640, height: 360, scale: 2 }]];
   const MATRIX_STATES = ['idle', 'running', 'done', 'error'];
-  const EXTRA_STATES = ['loading', 'empty', 'unreadable', 'stale', 'validation', 'runningFill', 'errorUnknown', 'offline'];
+  const EXTRA_STATES = ['loading', 'empty', 'unreadable', 'stale', 'validation', 'runningFill', 'errorUnknown', 'offline', 'toast'];
   const results = [];
   const reducedMotionWait = 500;
   const shot = async (name) => {
@@ -182,7 +184,7 @@ try {
     await S[state](state === 'loading' ? undefined : hostLang);
     await delay(reducedMotionWait); // let enter transitions (Message) settle before measuring
     const expected = { offline: '#offline', error: '#status-error', errorUnknown: '#status-error', validation: '#spacing-error', stale: '#stale',
-      unreadable: '.context-problem', running: '#cancel', runningFill: '#cancel', done: '#result', loading: '#context .oui-status[data-state=connecting] ~ [role=progressbar]', empty: '#status .oui-banner' };
+      unreadable: '.context-problem', toast: '.oui-toast .oui-toast-close', running: '#cancel', runningFill: '#cancel', done: '#result', loading: '#context .oui-status[data-state=connecting] ~ [role=progressbar]', empty: '#status .oui-banner' };
     if (expected[state]) assert(await evaluate(`!!document.querySelector(${JSON.stringify(expected[state])})`), `${state}: ${expected[state]} is not on screen`);
     const m = await evaluate(MEASURE);
     assert.equal(m.lang, langTag, `${state}: the page is in ${m.lang}, not ${langTag}`);
@@ -256,7 +258,35 @@ try {
   assert.deepEqual(interaction.openByKeyboard, [{ action: 'open', job: 'j9' }]);
   // the copy fallback in a real page: clipboard permission is not granted here, so the honest note must show
   interaction.copyButtonShown = await evaluate('!!document.querySelector("#copy")');
-  if (interaction.copyButtonShown) { await click('#copy'); await delay(300); interaction.copyNote = await evaluate('document.querySelector("#path-note")?.textContent ?? null'); }
+  if (interaction.copyButtonShown) { await click('#copy'); await delay(300); interaction.copyNote = await evaluate('document.querySelector(".oui-toast strong")?.textContent ?? null'); }
+
+  // notices: a toast sits bottom-left inside the dock and goes when closed; a banner closed stays closed while its
+  // condition lasts (polls, a reload) and comes back when the condition changes
+  for (const [theme, width] of [['light', 280], ['dark', 280], ['light', 380], ['dark', 380]]) {
+    await open({ theme, width, height: 360, language: 'en-US' });
+    await S.toast('en_US');
+    await delay(400);
+    const box = await evaluate('(() => { const r = document.querySelector(".oui-toast").getBoundingClientRect(); return { left: r.left, right: r.right, bottom: r.bottom, vw: innerWidth, vh: innerHeight }; })()');
+    assert(box.left === 16 && Math.abs(box.vh - 16 - box.bottom) < 1 && box.right <= box.vw - 16 + 0.5, `toast not bottom-left inside ${width} px: ${JSON.stringify(box)}`);
+    if (only.test(`organizer-notices-toast-${theme}-${width}`)) await shot(`organizer-notices-toast-${theme}-${width}`);
+    if (width === 280) {
+      await click('.oui-toast .oui-toast-close'); await delay(400);
+      assert.equal(await evaluate('document.querySelectorAll(".oui-toast").length'), 0, 'a closed toast leaves');
+    }
+  }
+  interaction.toastBottomLeft = true;
+  await open({ theme: 'light', width: 280, language: 'en-US' });
+  await S.stale('en_US');
+  await click('#stale .oui-banner-close');
+  const staleAgain = (plate) => deliver({ ...base('en_US'), ctx: ctx({ plate: 1, name: 'Other' }), stale: 'x', stale_ref: { ...ref, plate, action: 'arrange' }, job: 'j', text: 't', msg: done, path: longPath });
+  await staleAgain(2);
+  assert.equal(await evaluate('!!document.querySelector("#stale")'), false, 'a dismissed banner stays closed while the condition lasts');
+  await open({ theme: 'light', width: 280, language: 'en-US' });
+  await S.stale('en_US');
+  assert.equal(await evaluate('!!document.querySelector("#stale")'), false, 'and after a reload in the same session');
+  await staleAgain(3);
+  assert.equal(await evaluate('!!document.querySelector("#stale")'), true, 'a banner comes back when its condition changes');
+  interaction.bannerDismissal = true;
 
   // keyboard: Advanced, the rotation radio group
   await open({ theme: 'light', width: 280, language: 'en-US' });
