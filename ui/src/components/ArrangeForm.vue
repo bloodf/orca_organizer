@@ -4,11 +4,11 @@ import InputNumber from 'primevue/inputnumber';
 import Message from 'primevue/message';
 import RadioButton from 'primevue/radiobutton';
 import { computed } from 'vue';
-import { OuiIcon } from '../../shared/src/components';
+import { OuiIcon, OuiRequirement } from '../../shared/src/components';
 import { arrange, chevronRight, fill, info } from '../../shared/src/icons';
 import { localeOf } from '../messages';
 import { MAX_COPIES, type Rotation } from '../protocol';
-import RequirementRow from './RequirementRow.vue';
+import type { Requirement } from '../protocol';
 import { useOrganizer } from '../useOrganizer';
 
 const { s, lang, state, goLabel, fillLabel, statusView, ready, missing, blockedText, run, recheck, setSpacing, setRotation, setCopies } = useOrganizer();
@@ -42,6 +42,10 @@ const spacingPt = computed(() => ({
 }));
 // A disabled action points at the one sentence that says why (busy, or a missing requirement), after its own description.
 const describedBy = (id: string) => [id, state.busy && 'busy-hint', blockedText.value && 'req-hint'].filter(Boolean).join(' ');
+// The rows of the Requirements section (ui-foundation OuiRequirement). "unknown" from the plugin means it is still loading them.
+const GUIDES: Record<string, string> = { numpy: 'https://numpy.org/install/', pillow: 'https://pillow.readthedocs.io/en/stable/installation/' };
+const reqStatus = (r: Requirement) => (r.status === 'ok' ? 'found' : r.status === 'missing' ? 'missing' : 'checking');
+const reqLabel = (r: Requirement) => (r.status === 'ok' ? s.value.reqFound({ version: r.version ?? '' }) : r.status === 'missing' ? s.value.reqMissing : s.value.reqChecking);
 const off = computed(() => state.busy || missing.value.length > 0);
 // Before anything ran, the status is the one-line promise under the form; outcomes are banners (StatusBlock).
 const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.lines : []));
@@ -133,10 +137,24 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
     <details v-if="state.requirements.length" class="more" :open="missing.length > 0">
       <summary id="req"><span class="sum"><OuiIcon :icon="chevronRight" :size="14" />{{ s.req }}<span class="oui-meta">{{ missing.length ? s.reqMissingMeta({ names: missing.join(s.list) }) : state.requirements.some((r) => r.status === 'unknown') ? s.reqChecking : s.reqAllFound }}</span></span></summary>
       <div class="more-body">
-        <ul class="reqs">
-          <RequirementRow v-for="r in state.requirements" :key="r.id" :req="r" />
-        </ul>
-        <Button id="recheck" :label="state.rechecking ? s.reqChecking : s.reqCheck" severity="secondary" size="small" :disabled="state.rechecking" @click="recheck" />
+        <div class="reqs">
+          <OuiRequirement
+            v-for="r in state.requirements"
+            :key="r.id"
+            :data-req="r.id"
+            :name="r.name"
+            :why="s.reqWhy[r.id]"
+            :status="reqStatus(r)"
+            :status-label="reqLabel(r)"
+            :detail="r.status === 'missing' ? (r.detail ?? undefined) : undefined"
+            :install-text="s.reqFix"
+            :install-url="GUIDES[r.id]"
+            :install-label="s.reqGuide"
+            :check-label="state.rechecking ? s.reqChecking : s.reqCheck"
+            :checking="state.rechecking"
+            @check="recheck"
+          />
+        </div>
       </div>
     </details>
 
@@ -168,8 +186,7 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 .rotation legend { padding: 0; margin-bottom: var(--oui-s2); font-size: var(--oui-text-sm); font-weight: 600; color: var(--oui-muted); }
 .choice { display: flex; align-items: flex-start; gap: var(--oui-s2); }
 .terms { display: grid; gap: 2px; }
-.reqs { display: grid; gap: var(--oui-s3); margin: 0; padding: 0; list-style: none; }
-#recheck { justify-self: start; }
+.reqs { display: grid; margin: 0 calc(-1 * var(--oui-s4)); }
 .terms dt { font-weight: 600; }
 .terms dd + dt { margin-top: var(--oui-s2); }
 </style>
