@@ -543,6 +543,58 @@ describe('result', () => {
     expect(panel.text('.context-problem')).toMatch(/locked/);
   });
 
+  it('shows a closed project problem again once it cleared and came back', async () => {
+    panel = await mountPanel();
+    const problem = (p: string | null) => sync({ msg: null, ctx: { plate: 0, objects: 0, name: '', problem: p } });
+    await panel.deliver(problem('no plate'));
+    panel.q<HTMLButtonElement>('.context-problem .oui-banner-close')!.click();
+    await panel.flush();
+    await panel.deliver(problem(null)); // solved: the dismissal is forgotten
+    expect(panel.q('.context-problem')).toBeNull();
+    await panel.deliver(problem('no plate')); // the same problem, later
+    expect(panel.text('.context-problem')).toMatch(/no plate/);
+  });
+
+  it('shows a closed stale note again once it cleared and came back', async () => {
+    panel = await finished();
+    const keep = { job: 'j1', busy: false, text: 'done text', path: '/s/P-arranged.3mf', msg: doneMsg, ctx: { plate: 1, objects: 1, name: 'Q', problem: null } };
+    const stale = (on: boolean) => sync({ ...keep, stale: on ? 'x' : '', stale_ref: on ? { stem: 'P', plate: 2, action: 'arrange' } : null });
+    await panel.deliver(stale(true));
+    panel.q<HTMLButtonElement>('#stale .oui-banner-close')!.click();
+    await panel.flush();
+    await panel.deliver(stale(false));
+    await panel.deliver(stale(true));
+    expect(panel.q('#stale')).not.toBeNull();
+  });
+
+  it('shows a closed warning again once it left the status and came back', async () => {
+    panel = await finished();
+    const result = (unplaced: string[]) => panel.deliver({ job: 'j1', busy: false, path: '/s/P-arranged.3mf', text: 'x', msg: { ...doneMsg, unplaced } });
+    await result(['Part A']);
+    panel.q<HTMLButtonElement>('#status .oui-banner[data-tone=warn] .oui-banner-close')!.click();
+    await panel.flush();
+    expect(panel.q('#status .oui-banner[data-tone=warn]')).toBeNull();
+    await result(['Part A']);
+    expect(panel.q('#status .oui-banner[data-tone=warn]'), 'still the same condition').toBeNull();
+    await result([]);
+    await result(['Part A']);
+    expect(panel.q('#status .oui-banner[data-tone=warn]')).not.toBeNull();
+  });
+
+  it('shows a closed start failure again when the plugin sends it again, word for word', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX }));
+    const startFailed = () => panel.deliver({ text: 'EN', error: true, busy: false, msg: { code: 'start_failed', cause: { code: 'unexpected' }, detail: 'd' } });
+    await startFailed();
+    panel.q<HTMLButtonElement>('#status-error .oui-banner-close')!.click();
+    await panel.flush();
+    expect(panel.q('#status-error')).toBeNull();
+    await panel.deliver(sync({ ctx: CTX })); // a poll keeps it closed
+    expect(panel.q('#status-error')).toBeNull();
+    await startFailed(); // a second click that fails the same way
+    expect(panel.q('#status-error')).not.toBeNull();
+  });
+
   it('hides an old result on a reload with no finished job', async () => {
     panel = await finished();
     await panel.deliver(sync({ msg: null }));
@@ -677,6 +729,7 @@ describe('polling, offline and retry (B-27)', () => {
     expect(panel.q('#offline')).toBeNull();
     expect(panel.text('#context .oui-status[data-state=offline]')).toBe('No answer'); // the bar still says so
     await panel.deliver(sync({ msg: null, ctx: CTX })); // back
+    expect(sessionStorage.length, 'the dismissal is forgotten once the plugin answers').toBe(0);
     await vi.advanceTimersByTimeAsync(14000); // silent again: a new episode
     expect(panel.q('#offline')).not.toBeNull();
   });

@@ -8,3 +8,6 @@ Object.defineProperty(window, 'matchMedia', {
     addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false,
   }),
 });
+
+// jsdom never has focus; timed toasts count down only while the page is visible and focused (foundation 4.2.1).
+Object.defineProperty(document, 'hasFocus', { configurable: true, writable: true, value: () => true });

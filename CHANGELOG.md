@@ -3,6 +3,7 @@
 ## Unreleased
 
 - Notifications appear bottom-left and each one can be closed; warnings and notices on the page can be dismissed. "Path copied" (or how to copy it by hand) is now one of those notifications instead of a line in the result card. A closed notice stays closed while the same thing is true and comes back when it changes: a new run, another problem with the project, the plugin going silent again.
+- A closed notice also comes back when its problem goes away and later returns, and a start that fails again shows its error again. Notifications wait while OrcaSlicer is in another tab or app; errors stay until closed.
 - The page fills the whole tab at every height, also after the window is resized: no more grey under a short page.
 
 ## 0.14.0 (2026-11-16)

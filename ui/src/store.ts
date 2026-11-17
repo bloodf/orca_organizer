@@ -45,6 +45,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     resultVisible: false,
     formOpen: false, // the dock shows one thing at a time: true once the user went from a result back to the form
     job: null as string | null, // the job the status is about: the identity of its banners (dismissed per run)
+    errorSeq: 0, // errors the plugin sent outside a job (start_failed): each one is news, even the same sentence again
     clipboard: false,
     spacing: 2 as number | null,
     rotation: 'auto' as Rotation,
@@ -193,6 +194,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     if ('text' in m) {
       state.status = { kind: 'job', msg: m.msg || null, text: m.text ?? '', error: !!m.error, hasPath: !!m.path };
       if (m.msg?.code === 'start_failed') state.cancelling = false;
+      // A job's error is already its own (the job id is in the banner key); one outside a job is counted.
+      if (m.error && !('job' in m)) state.errorSeq++;
     }
     if (m.path) {
       done = m.job ?? null;

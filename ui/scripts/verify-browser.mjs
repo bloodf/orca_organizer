@@ -83,6 +83,8 @@ try {
 
   async function open({ theme, width, height = 360, scale = 1, language = 'en-US', reducedMotion = false }) {
     await call('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: scale, mobile: false });
+    // Headless Chrome reports no focus: timed toasts (foundation 4.2.1) count down only in a focused page.
+    await call('Emulation.setFocusEmulationEnabled', { enabled: true });
     await call('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-color-scheme', value: theme }, { name: 'prefers-reduced-motion', value: reducedMotion ? 'reduce' : 'no-preference' }] });
     await call('Emulation.setUserAgentOverride', { userAgent: await evaluate('navigator.userAgent'), acceptLanguage: language });
     await call('Page.navigate', { url: url + `?${Date.now()}` });
@@ -333,7 +335,7 @@ try {
     assert(fonts.some((f) => f.familyName !== 'Manrope'), `${sel}: no system font was used for Chinese: ${JSON.stringify(fonts)}`);
   }
   // Chinese quotes and ellipsis are drawn full width by the Chinese font, not as Manrope's narrow Latin marks
-  await evaluate('(() => { const s = document.createElement("span"); s.id = "cjk-punct"; s.textContent = "“”‘’…"; document.querySelector("#notes").append(s); })()');
+  await evaluate('(() => { const s = document.createElement("span"); s.id = "cjk-punct"; s.textContent = "“”‘’…"; document.querySelector("#notes").append(s); return s.offsetWidth; })()'); // laid out before its fonts are asked for
   const { nodeId: punctNode } = await call('DOM.querySelector', { nodeId: (await call('DOM.getDocument')).root.nodeId, selector: '#cjk-punct' });
   const punctFonts = (await call('CSS.getPlatformFontsForNode', { nodeId: punctNode })).fonts;
   interaction.chineseFonts['#cjk-punct'] = punctFonts.map((f) => `${f.familyName} (${f.glyphCount})`);

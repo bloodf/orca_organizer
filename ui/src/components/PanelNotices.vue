@@ -8,8 +8,8 @@ const { s, state, staleText, ctxProblem, retry } = useOrganizer();
 </script>
 
 <template>
-  <!-- Page-level states, each said once and each dismissible; the key names the condition, so it comes back when that changes. Offline and an unreadable project interrupt (alert); a stale result informs (status). -->
-  <OuiBanner v-if="state.offline" id="offline" tone="error" :title="s.offline" dismissible :dismiss-key="`offline:${state.offlineAt}`" :close-label="s.close">
+  <!-- Page-level states, each said once and each dismissible; the key names the condition, so it comes back when that changes, and `show` binds it to the condition: once that clears, a dismissal is forgotten. Offline and an unreadable project interrupt (alert); a stale result informs (status). -->
+  <OuiBanner :show="state.offline" id="offline" tone="error" :title="s.offline" dismissible :dismiss-key="`offline:${state.offlineAt}`" :close-label="s.close">
     <span id="offline-text">{{ s.offlineHelp }}</span>
     <template #actions>
       <Button id="retry" :label="state.retrying ? s.retrying : s.retry" severity="secondary" size="small" :loading="state.retrying" @click="retry()">
@@ -18,8 +18,8 @@ const { s, state, staleText, ctxProblem, retry } = useOrganizer();
     </template>
   </OuiBanner>
   <!-- No project to arrange: it interrupts (alert), as it did before. -->
-  <OuiBanner v-if="ctxProblem" class="context-problem" tone="warn" role="alert" :title="ctxProblem" dismissible :dismiss-key="`ctx-problem:${ctxProblem}`" :close-label="s.close" />
-  <OuiBanner v-if="state.stale || state.staleRef" id="stale" tone="warn" :title="staleText" dismissible :dismiss-key="`stale:${staleText}`" :close-label="s.close" />
+  <OuiBanner :show="!!ctxProblem" class="context-problem" tone="warn" role="alert" :title="ctxProblem" dismissible :dismiss-key="`ctx-problem:${ctxProblem}`" :close-label="s.close" />
+  <OuiBanner :show="!!(state.stale || state.staleRef)" id="stale" tone="warn" :title="staleText" dismissible :dismiss-key="`stale:${staleText}`" :close-label="s.close" />
 </template>
 
 <style scoped>

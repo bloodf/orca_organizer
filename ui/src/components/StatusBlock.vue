@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, watch } from 'vue';
 import { OuiBanner } from '../../shared/src/components';
 import type { StatusLine } from '../status';
 import { useOrganizer } from '../useOrganizer';
@@ -16,25 +16,31 @@ const error = computed(() => statusView.value.error);
 const outcome = computed(() => (ready.value ? [] : lines.value.filter((l) => l.kind !== 'warn' && l.kind !== 'note')));
 const warnings = computed(() => lines.value.filter((l) => l.kind === 'warn'));
 // Dismissed per run and per sentence: the next run, or a different outcome of this one, shows its banner again.
-const key = (kind: string, text: string) => `status:${kind}:${state.job ?? ''}:${text}`;
+const key = (kind: string, text = '') => `status:${kind}:${state.job ?? ''}:${text}`;
+// A banner forgets its dismissal when its `show` turns false; a warning that leaves the list unmounts instead, so its
+// key is forgotten here (foundation-gap: OuiBanner has no forget for an unmounted banner; the prefix is its store key).
+const warnKeys = computed(() => (error.value ? [] : warnings.value.map((l) => key('warn', l.text))));
+watch(warnKeys, (now, old) => old.filter((k) => !now.includes(k)).forEach((k) => {
+  try { sessionStorage.removeItem('oui-banner:' + k); } catch { /* nothing stored */ }
+}));
 </script>
 
 <template>
   <!-- The polite region stays in the DOM; errors move to an alert, which interrupts once. While a run is busy the
        job card shows the same thing, so the sentence is kept for screen readers only. -->
   <div id="status" class="status" :class="{ 'oui-sr': state.busy }" role="status" aria-live="polite" aria-atomic="true" :aria-busy="state.busy">
-    <template v-if="!error">
-      <OuiBanner v-if="outcome.length" role="none" :class="{ tall: outcome.length > 1 }" :tone="state.resultVisible ? 'success' : 'neutral'" :title="split(outcome).head.text" :data-i="split(outcome).head.index"
-        dismissible :dismiss-key="key('outcome', split(outcome).head.text)" :close-label="s.close">
-        <template v-if="split(outcome).rest.length" #default>
-          <span v-for="line in split(outcome).rest" :key="line.key" :class="['line', line.kind]" :data-i="line.index">{{ line.text }}</span>
-        </template>
-      </OuiBanner>
-      <OuiBanner v-for="line in warnings" :key="line.key" role="none" tone="warn" :title="line.text" :data-i="line.index" dismissible :dismiss-key="key('warn', line.text)" :close-label="s.close" />
-    </template>
+    <!-- Each banner is bound to its condition (show): when it clears, a dismissal is forgotten. -->
+    <OuiBanner :show="!error && outcome.length > 0" role="none" :class="{ tall: outcome.length > 1 }" :tone="state.resultVisible ? 'success' : 'neutral'" :title="split(outcome).head?.text ?? ''" :data-i="split(outcome).head?.index"
+      dismissible :dismiss-key="key('outcome', split(outcome).head?.text)" :close-label="s.close">
+      <template v-if="split(outcome).rest.length" #default>
+        <span v-for="line in split(outcome).rest" :key="line.key" :class="['line', line.kind]" :data-i="line.index">{{ line.text }}</span>
+      </template>
+    </OuiBanner>
+    <OuiBanner v-for="line in warnings" :key="line.key" :show="!error" role="none" tone="warn" :title="line.text" :data-i="line.index" dismissible :dismiss-key="key('warn', line.text)" :close-label="s.close" />
   </div>
-  <OuiBanner v-if="error" id="status-error" :class="{ tall: lines.length > 1 }" tone="error" :title="split(lines).head.text" :data-i="split(lines).head.index"
-    dismissible :dismiss-key="key('error', split(lines).head.text)" :close-label="s.close">
+  <!-- An error outside a job (start_failed) is counted: the same sentence sent again shows again. -->
+  <OuiBanner :show="error" id="status-error" :class="{ tall: lines.length > 1 }" tone="error" :title="split(lines).head?.text ?? ''" :data-i="split(lines).head?.index"
+    dismissible :dismiss-key="`${key('error', split(lines).head?.text)}:${state.errorSeq}`" :close-label="s.close">
     <template v-if="split(lines).rest.length" #default>
       <span v-for="line in split(lines).rest" :key="line.key" :class="['line', line.kind]" :data-i="line.index">{{ line.text }}</span>
     </template>
