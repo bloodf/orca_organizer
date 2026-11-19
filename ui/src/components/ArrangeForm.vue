@@ -98,7 +98,7 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
         <div class="oui-field">
           <div class="labelled">
             <label for="copies">{{ s.copiesLabel }}</label>
-            <OuiHint :label="s.copiesLabel" end><span id="copies-help">{{ s.copiesHelp }}</span></OuiHint>
+            <OuiHint :label="s.copiesLabel"><span id="copies-help">{{ s.copiesHelp }}</span></OuiHint>
           </div>
           <InputNumber
             input-id="copies"
@@ -187,8 +187,7 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 /* The (i) sits on the legend's line: a legend cannot be a flex item, so it floats and the hint follows it. */
 .rotation legend { float: left; padding: 0; margin-inline-end: var(--oui-s1); font-size: var(--oui-text-sm); line-height: 22px; font-weight: 600; color: var(--oui-muted); }
 .rotation > .choice { clear: both; padding-top: var(--oui-s2); }
-/* The (i) at the field's right edge, opening inwards: its bubble then fits the 280 px dock whatever the label's length. */
-.labelled { display: flex; align-items: center; justify-content: space-between; gap: var(--oui-s1); min-width: 0; }
+.labelled { display: flex; align-items: center; gap: var(--oui-s1); min-width: 0; }
 .choice { display: flex; align-items: flex-start; gap: var(--oui-s2); }
 .terms { display: grid; gap: 2px; }
 .reqs { display: grid; margin: 0 calc(-1 * var(--oui-s4)); }
