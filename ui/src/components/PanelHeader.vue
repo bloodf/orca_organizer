@@ -53,4 +53,10 @@ const { s, state, ctxText, ctxShort, ctxProblem, projectName, loading, again } =
 @container oui-appbar (min-width: 621px) {
   .oui-appbar-actions:has(> #again) { display: none; }
 }
+/* Dock: the plate gives way (it is cut with an ellipsis) so the way back stays on the bar's one line. */
+@container oui-appbar (max-width: 620px) {
+  .oui-appbar-row:has(#again) { gap: 0 var(--oui-s2); }
+  .oui-appbar-row:has(#again) > .oui-spacer { display: none; }
+  .oui-appbar-row:has(#again) > .oui-appbar-status { flex: 1 1 0; justify-content: flex-end; }
+}
 </style>

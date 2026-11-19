@@ -296,6 +296,15 @@ try {
   await click('#adv'); await delay(300);
   interaction.advancedExpanded = await evaluate('document.querySelector("#adv").parentElement.open');
   assert.equal(interaction.advancedExpanded, true, 'Advanced opens');
+  // What Rotation does is behind its (i): it opens on keyboard focus and is the group's description.
+  await evaluate('document.querySelector(".rotation .oui-hint-btn").focus()'); await delay(200);
+  interaction.rotationHint = await evaluate('getComputedStyle(document.querySelector("#rotation-help").parentElement).visibility');
+  assert.equal(interaction.rotationHint, 'visible', 'the rotation (i) opens on focus');
+  await evaluate('document.querySelector(".labelled .oui-hint-btn").focus()'); await delay(200);
+  const bubble = await evaluate('(() => { const r = document.querySelector("#copies-help").parentElement.getBoundingClientRect(); return { left: r.left, right: r.right, vw: innerWidth }; })()');
+  assert(bubble.left >= 0 && bubble.right <= bubble.vw, `the copies (i) is cut by the dock: ${JSON.stringify(bubble)}`);
+  if (only.test('organizer-advanced-light-en-dock280')) await shot('organizer-advanced-light-en-dock280');
+  await evaluate('document.activeElement.blur()');
   await click('#help'); await delay(200);
   interaction.helpExpanded = await evaluate('document.querySelector("#help").parentElement.open');
   assert.equal(interaction.helpExpanded, true, 'How it works opens');

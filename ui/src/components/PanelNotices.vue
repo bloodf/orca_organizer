@@ -4,7 +4,7 @@ import { OuiBanner, OuiIcon } from '../../shared/src/components';
 import { refresh } from '../../shared/src/icons';
 import { useOrganizer } from '../useOrganizer';
 
-const { s, state, staleText, ctxProblem, retry } = useOrganizer();
+const { s, state, staleText, ctxProblem, blockedText, retry } = useOrganizer();
 </script>
 
 <template>
@@ -19,6 +19,8 @@ const { s, state, staleText, ctxProblem, retry } = useOrganizer();
   </OuiBanner>
   <!-- No project to arrange: it interrupts (alert), as it did before. -->
   <OuiBanner :show="!!ctxProblem" class="context-problem" tone="warn" role="alert" :title="ctxProblem" dismissible :dismiss-key="`ctx-problem:${ctxProblem}`" :close-label="s.close" />
+  <!-- Why Arrange and Fill are off (a missing requirement): said once, here; the two buttons point at it. -->
+  <OuiBanner :show="!!blockedText" id="req-hint" tone="warn" :title="blockedText" dismissible :dismiss-key="`req:${blockedText}`" :close-label="s.close" />
   <OuiBanner :show="!!(state.stale || state.staleRef)" id="stale" tone="warn" :title="staleText" dismissible :dismiss-key="`stale:${staleText}`" :close-label="s.close" />
 </template>
 
