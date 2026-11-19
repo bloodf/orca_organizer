@@ -26,6 +26,12 @@ for (const name of (await readdir(licenseDir)).filter((f) => f.endsWith('.txt'))
 }
 
 const html = await readFile(htmlPath);
+// OrcaSlicer on Windows shows the page in WebView2, which renders a page over 2 MiB of base64 (1,572,864 bytes) blank.
+const PAGE_LIMIT = Math.floor(1_572_864 * 0.9); // bytes of UTF-8, with 10% headroom
+if (html.length > PAGE_LIMIT) {
+  console.error(`The page is ${html.length} bytes, over the ${PAGE_LIMIT}-byte limit (90% of WebView2's 1,572,864).`);
+  process.exit(1);
+}
 const sha = createHash('sha256').update(html).digest('hex');
 const b64 = deflateSync(html, { level: 9 }).toString('base64');
 const lines = b64.match(/.{1,96}/g).map((l) => `    "${l}"`).join('\n');
