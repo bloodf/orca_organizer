@@ -4,7 +4,7 @@ import InputNumber from 'primevue/inputnumber';
 import Message from 'primevue/message';
 import RadioButton from 'primevue/radiobutton';
 import { computed } from 'vue';
-import { OuiIcon, OuiRequirement } from '../../shared/src/components';
+import { OuiHint, OuiIcon, OuiRequirement } from '../../shared/src/components';
 import { arrange, chevronRight, fill, info } from '../../shared/src/icons';
 import { localeOf } from '../messages';
 import { MAX_COPIES, type Rotation } from '../protocol';
@@ -89,14 +89,17 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
       <div class="more-body">
         <fieldset class="rotation" aria-describedby="rotation-help">
           <legend id="rotation-label">{{ s.rotationLabel }}</legend>
+          <OuiHint class="hint" :label="s.rotationLabel"><span id="rotation-help">{{ s.rotationHelp }}</span></OuiHint>
           <div v-for="option in rotations" :key="option.value" class="choice">
             <RadioButton :model-value="state.rotation" :input-id="'rotation-' + option.value" name="rotation" :value="option.value" :disabled="state.busy" @update:model-value="setRotation" />
             <label :for="'rotation-' + option.value">{{ option.label }}</label>
           </div>
-          <p id="rotation-help" class="oui-meta">{{ s.rotationHelp }}</p>
         </fieldset>
         <div class="oui-field">
-          <label for="copies">{{ s.copiesLabel }}</label>
+          <div class="labelled">
+            <label for="copies">{{ s.copiesLabel }}</label>
+            <OuiHint :label="s.copiesLabel" end><span id="copies-help">{{ s.copiesHelp }}</span></OuiHint>
+          </div>
           <InputNumber
             input-id="copies"
             :model-value="state.copies"
@@ -110,7 +113,6 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
             fluid
             @update:model-value="setCopies"
           />
-          <p id="copies-help" class="oui-meta">{{ s.copiesHelp }}</p>
         </div>
       </div>
     </details>
@@ -130,8 +132,6 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
         </dl>
       </div>
     </details>
-
-    <p v-if="blockedText" id="req-hint" class="oui-meta">{{ blockedText }}</p>
 
     <!-- What Arrange and Fill need; opens by itself while something is missing. -->
     <details v-if="state.requirements.length" class="more" :open="missing.length > 0">
@@ -158,7 +158,8 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
       </div>
     </details>
 
-    <p v-if="state.busy" id="busy-hint" class="oui-meta">{{ s.busyHint }}</p>
+    <!-- Why the controls are off during a run: the job block beside the form shows it; the sentence is their description. -->
+    <p v-if="state.busy" id="busy-hint" class="oui-sr">{{ s.busyHint }}</p>
     <p v-for="(line, index) in idleNote" :key="line.key" class="oui-meta" :data-i="index">{{ line.text }}</p>
     <!-- The safety note is always on screen: what the spacing does not cover, and to check the plate before printing. -->
     <p id="foot" class="oui-meta">{{ s.foot }}</p>
@@ -182,8 +183,12 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 .sum > .oui-meta { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .more + .more { margin-top: calc(-1 * var(--oui-s2)); }
 .more-body { display: grid; gap: var(--oui-s3); padding-top: var(--oui-s2); }
-.rotation { border: 0; margin: 0; padding: 0; min-width: 0; display: grid; gap: var(--oui-s2); }
-.rotation legend { padding: 0; margin-bottom: var(--oui-s2); font-size: var(--oui-text-sm); font-weight: 600; color: var(--oui-muted); }
+.rotation { border: 0; margin: 0; padding: 0; min-width: 0; }
+/* The (i) sits on the legend's line: a legend cannot be a flex item, so it floats and the hint follows it. */
+.rotation legend { float: left; padding: 0; margin-inline-end: var(--oui-s1); font-size: var(--oui-text-sm); line-height: 22px; font-weight: 600; color: var(--oui-muted); }
+.rotation > .choice { clear: both; padding-top: var(--oui-s2); }
+/* The (i) at the field's right edge, opening inwards: its bubble then fits the 280 px dock whatever the label's length. */
+.labelled { display: flex; align-items: center; justify-content: space-between; gap: var(--oui-s1); min-width: 0; }
 .choice { display: flex; align-items: flex-start; gap: var(--oui-s2); }
 .terms { display: grid; gap: 2px; }
 .reqs { display: grid; margin: 0 calc(-1 * var(--oui-s4)); }

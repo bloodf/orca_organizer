@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- New look on the shared Orca UI foundation 5.0.0: the page uses OrcaSlicer's own greys and its teal for **Arrange**, progress and focus, in the tab and in the dock. Organizer's blue is now only on its mark. Arranging and filling work as before.
+- What **Rotation** and **Most copies to add when filling** do is behind an (i) beside each label instead of a paragraph under it. When a requirement is missing, the reason Arrange and Fill are off is a notice at the top of the page. While a run is busy the job block says so; the line under the form is gone.
+- In the dock, the button that goes back to the form after a result stays on the title bar's line.
+
 ## 0.14.2 (2026-11-17)
 
 - Polish (pl) translation. Thanks to @xtronets for asking (u1control#20). Organizer follows OrcaSlicer when it runs in Polish (Polski, `pl_PL`): every button, tooltip, setting, progress line, result and error is in Polish, numbers are written the Polish way (2,5 mm) and counts use Polish's three plural forms (1 obiekt, 2 obiekty, 5 obiektów).

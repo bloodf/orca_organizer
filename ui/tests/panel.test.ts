@@ -219,6 +219,8 @@ describe('a run', () => {
     expect(panel.isError()).toBe(false);
     expect(panel.status()).toBe('Starting…');
     expect(panel.text('#busy-hint')).toMatch(/run is in progress/); // a disabled control says why, once
+    expect(panel.q('#busy-hint')!.classList.contains('oui-sr')).toBe(true); // the job block shows it; no paragraph under the form
+    expect(panel.q('#job .oui-job')!.hasAttribute('data-hero')).toBe(false); // ui-foundation 5: a neutral block, no filled hero
     expect(panel.q('#go')!.getAttribute('aria-describedby')).toBe('go-help busy-hint');
     expect(panel.q('#fill')!.getAttribute('aria-describedby')).toBe('fill-help busy-hint');
   });
@@ -793,6 +795,10 @@ describe('structure and accessibility', () => {
     panel.q('#adv')!.click();
     await panel.flush();
     expect(panel.q('fieldset')!.getAttribute('aria-describedby')).toBe('rotation-help');
+    // The explanation is behind the (i) beside the legend, not a paragraph under the radios.
+    expect(panel.q('#rotation-help')!.closest('.oui-hint-bubble[role=tooltip]')).not.toBeNull();
+    expect(panel.q('fieldset .oui-hint-btn')!.getAttribute('aria-label')).toBe('Rotation');
+    expect(panel.text('#rotation-help')).toMatch(/^Automatic tries every angle/);
     expect(panel.text('legend')).toBe('Rotation');
     expect(panel.q<HTMLInputElement>('#rotation-auto')!.checked).toBe(true);
     expect(document.querySelector('label[for=rotation-keep]')!.textContent).toBe("Keep each part's orientation");
@@ -829,6 +835,7 @@ describe('structure and accessibility', () => {
     await panel.flush();
     expect(document.querySelector('label[for=copies]')!.textContent).toBe('Most copies to add when filling');
     expect(panel.q('#copies')!.getAttribute('aria-describedby')).toBe('copies-help');
+    expect(panel.q('#copies-help')!.closest('.oui-hint-bubble[role=tooltip]')).not.toBeNull();
     expect(panel.q<HTMLInputElement>('#copies')!.value).toBe('');
     panel.take();
     panel.q('#fill')!.click();
@@ -902,6 +909,8 @@ describe('requirements', () => {
       expect(button.getAttribute('aria-describedby')).toContain('req-hint');
     }
     expect(panel.text('#req-hint')).toBe('Arrange and Fill are off: Pillow could not be loaded. See Requirements below.');
+    expect(panel.q('#req-hint')!.matches('.oui-banner[data-tone=warn]')).toBe(true); // the reason is the page's banner, said once
+    expect(panel.q('.pane-form #req-hint')).toBeNull();
     expect(panel.q<HTMLDetailsElement>('details:has(#req)')!.open).toBe(true);
     expect(panel.text('[data-req=pillow] .oui-status[data-state=warn]')).toBe('Not found');
     expect(panel.q('[data-req=pillow] a')!.getAttribute('href')).toBe('https://pillow.readthedocs.io/en/stable/installation/');
