@@ -38,13 +38,14 @@ describe('host theme', () => {
     applyOrcaTheme('dark');
     expect(document.documentElement.classList.contains('orca-dark')).toBe(true);
     expect(document.documentElement.dataset.orcaUiAccent).toBe('sky');
-    expect(token('--oui-primary')).toBe('#72cdf4');
-    expect(token('--oui-background')).toBe('#0b1a23'); // the page is tinted by the accent
-    expect(token('--oui-band')).toBe('#00628c');
+    expect(token('--oui-primary')).toBe('#00675b'); // OrcaSlicer's teal, whatever the plugin
+    expect(token('--oui-background')).toBe('#242428'); // OrcaSlicer's grey: the page is not tinted by the accent
+    expect(token('--oui-accent-solid')).toBe('#00628c'); // sky: the mark tile
     applyOrcaTheme('light');
     expect(document.documentElement.classList.contains('orca-dark')).toBe(false);
-    expect(token('--oui-primary')).toBe('#00628c');
-    expect(token('--oui-background')).toBe('#d6e2ea');
-    expect(token('--oui-band')).toBe('#00628c'); // the app bar is the same band in both themes
+    expect(token('--oui-primary')).toBe('#008172');
+    expect(token('--oui-background')).toBe('#f0f0f0');
+    expect(token('--oui-accent-solid')).toBe('#00628c'); // the mark tile is the same in both themes
+    expect(token('--oui-band')).toBe(''); // 5.0: no accent-filled band
   });
 });
