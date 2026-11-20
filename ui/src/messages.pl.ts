@@ -79,7 +79,7 @@ export function pl(num: Num, _plural: Plural): Strings {
       fill: 'Dodawanie kopii',
     },
     plateLabel: (a) => 'Płyta ' + a.plate,
-    ctxShort: (a) => 'Płyta ' + a.plate + (a.objects == null ? '' : ' · ' + obiekty(a.objects)),
+    ctxShort: (a) => 'Płyta ' + a.plate + (a.objects == null ? '' : ' · ' + obiekty(a.objects) + ' w projekcie'),
     countShort: (a) => num(a.i + 1) + ' z ' + num(a.n),
     count: (a) =>
       a.n != null
@@ -158,6 +158,7 @@ export function pl(num: Num, _plural: Plural): Strings {
     },
     open_: {
       asked: 'Poproszono OrcaSlicer o otwarcie kopii. Jeśli nic się nie pojawi, użyj „Otwórz tę kopię w OrcaSlicer”.',
+      dirty: 'Poproszono OrcaSlicer o otwarcie kopii, ale otwarty projekt ma niezapisane zmiany, więc OrcaSlicer może go zachować. Zapisz lub odrzuć te zmiany, a potem użyj „Otwórz tę kopię w OrcaSlicer”.',
       later: 'Zakończono, gdy panel był zamknięty. Użyj „Otwórz tę kopię w OrcaSlicer”, aby ją wczytać.',
       failed: (a: { detail: string }) =>
         'Nie udało się poprosić OrcaSlicer o otwarcie kopii (' + a.detail + '). Użyj „Otwórz tę kopię w OrcaSlicer” albo otwórz plik ręcznie.',

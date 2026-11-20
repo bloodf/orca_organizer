@@ -121,7 +121,7 @@ export function describe(lang: Lang, ref: (m: JobMsg) => string, m: JobMsg): Des
       out.push(['note', t.res.foot]);
       if (m.open) {
         const open = t.open_[m.open];
-        out.push(['note', typeof open === 'function' ? open({ detail: m.detail ?? '' }) : open]);
+        out.push([m.open === 'dirty' ? 'warn' : 'note', typeof open === 'function' ? open({ detail: m.detail ?? '' }) : open]);
       }
       return { lines: out.map(([kind, text], index) => ({ key: `res-${index}`, kind, text })), progress: null };
     }

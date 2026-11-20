@@ -52,7 +52,7 @@ describe('loading, language and context', () => {
     expect(panel.text('#fill')).toContain('Fill plate 2');
     expect(panel.text('#context .oui-sr')).toBe('P · plate 2 selected · 0 objects in the project'); // the whole sentence, for screen readers and the tooltip
     expect(panel.q('#context')!.getAttribute('title')).toBe('P · plate 2 selected · 0 objects in the project');
-    expect(panel.text('#context [aria-hidden]')).toBe('P · Plate 2 · 0 objects'); // what the bar shows; the dock drops the name
+    expect(panel.text('#context [aria-hidden]')).toBe('P · Plate 2 · 0 objects in the project'); // what the bar shows; the dock drops the name
     expect(panel.status()).toMatch(/No objects found/);
     expect(panel.q('#status .oui-banner[data-tone=neutral]')).not.toBeNull();
     expect(panel.q('#context .oui-status')).toBeNull();
@@ -68,7 +68,7 @@ describe('loading, language and context', () => {
     expect(panel.text('#go')).toContain('Arrumar placa 2');
     expect(panel.text('#fill')).toContain('Preencher placa 2');
     expect(panel.text('#context .oui-sr')).toBe('Projeto sem título · placa 2 selecionada · 1 objeto no projeto');
-    expect(panel.text('#context [aria-hidden]')).toBe('Projeto sem título · Placa 2 · 1 objeto');
+    expect(panel.text('#context [aria-hidden]')).toBe('Projeto sem título · Placa 2 · 1 objeto no projeto');
     expect(panel.text('h1')).toBe('Organizer');
     expect(panel.status()).toBe('Pronto. O resultado é salvo em um arquivo novo; o seu projeto não é alterado.');
     expect(document.title).toBe('Organizer');

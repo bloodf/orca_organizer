@@ -67,7 +67,7 @@ export function zhCN(num: Num): Strings {
       fill: '正在添加副本',
     },
     plateLabel: (a) => '盘 ' + a.plate,
-    ctxShort: (a) => '盘 ' + a.plate + (a.objects == null ? '' : ' · ' + num(a.objects) + ' 个对象'),
+    ctxShort: (a) => '盘 ' + a.plate + (a.objects == null ? '' : ' · 项目中有 ' + num(a.objects) + ' 个对象'),
     countShort: (a) => num(a.i + 1) + ' / ' + num(a.n),
     count: (a) => (a.n != null ? num(a.i + 1) + ' / ' + num(a.n) + (a.subject ? ' · ' + a.subject : '') : '已添加 ' + num(a.count ?? 0) + ' 个副本'),
     cancelling: (a) => a.ref + '：正在取消…',
@@ -120,6 +120,7 @@ export function zhCN(num: Num): Strings {
     },
     open_: {
       asked: '已请求 OrcaSlicer 打开该副本。如果没有反应，请使用“在 OrcaSlicer 中打开此副本”。',
+      dirty: '已请求 OrcaSlicer 打开该副本，但当前打开的项目有未保存的更改，OrcaSlicer 可能会保留它。请先保存或放弃这些更改，然后使用“在 OrcaSlicer 中打开此副本”。',
       later: '任务在面板关闭期间完成。请使用“在 OrcaSlicer 中打开此副本”加载它。',
       failed: (a: { detail: string }) => '无法请求 OrcaSlicer 打开该副本（' + a.detail + '）。请使用“在 OrcaSlicer 中打开此副本”，或手动打开文件。',
       none: '未找到 OrcaSlicer 启动程序：请手动打开已保存的副本。',

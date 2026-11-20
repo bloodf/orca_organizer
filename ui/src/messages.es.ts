@@ -69,7 +69,7 @@ export function es(num: Num, plural: Plural): Strings {
       fill: 'Añadiendo copias',
     },
     plateLabel: (a) => 'Cama ' + a.plate,
-    ctxShort: (a) => 'Cama ' + a.plate + (a.objects == null ? '' : ' · ' + objetos(a.objects)),
+    ctxShort: (a) => 'Cama ' + a.plate + (a.objects == null ? '' : ' · ' + objetos(a.objects) + ' en el proyecto'),
     countShort: (a) => num(a.i + 1) + ' de ' + num(a.n),
     count: (a) =>
       a.n != null
@@ -141,6 +141,7 @@ export function es(num: Num, plural: Plural): Strings {
     },
     open_: {
       asked: 'Se pidió a OrcaSlicer que abriera la copia. Si no aparece nada, usa “Abrir esta copia en OrcaSlicer”.',
+      dirty: 'Se pidió a OrcaSlicer que abriera la copia, pero el proyecto abierto tiene cambios sin guardar, así que OrcaSlicer puede conservarlo. Guarda o descarta esos cambios y usa “Abrir esta copia en OrcaSlicer”.',
       later: 'Terminó con el panel cerrado. Usa “Abrir esta copia en OrcaSlicer” para cargarla.',
       failed: (a: { detail: string }) =>
         'No se pudo pedir a OrcaSlicer que abriera la copia (' + a.detail + '). Usa “Abrir esta copia en OrcaSlicer” o abre el archivo manualmente.',

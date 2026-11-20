@@ -55,7 +55,7 @@ export interface JobMsg {
   keep?: boolean;
   right?: boolean;
   unplaced?: string[];
-  open?: 'asked' | 'later' | 'failed' | 'none';
+  open?: 'asked' | 'dirty' | 'later' | 'failed' | 'none';
 }
 
 export interface StaleRef {

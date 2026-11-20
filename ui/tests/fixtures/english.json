@@ -1206,6 +1206,34 @@
      "c",
      "d"
     ],
+    "open": "dirty",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy, but the project open now has unsaved changes, so OrcaSlicer may keep it instead. Save or discard those changes, then use Open this copy in OrcaSlicer.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 2,
+    "added": 300,
+    "by_object": {
+     "a": 150,
+     "b": 150
+    },
+    "limit": true,
+    "max": 300,
+    "tower": true,
+    "clearance": 20.0,
+    "keep": true,
+    "right": false,
+    "unplaced": [
+     "c",
+     "d"
+    ],
     "open": "later",
     "detail": "no permission"
    },
@@ -1306,6 +1334,28 @@
     "keep": false,
     "right": false,
     "unplaced": [],
+    "open": "dirty",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 1 object.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy, but the project open now has unsaved changes, so OrcaSlicer may keep it instead. Save or discard those changes, then use Open this copy in OrcaSlicer.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 1,
+    "added": 0,
+    "by_object": {},
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "right": false,
+    "unplaced": [],
     "open": "later",
     "detail": "no permission"
    },
@@ -1378,6 +1428,30 @@
     "detail": "no permission"
    },
    "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 5,
+    "added": 1,
+    "by_object": {
+     "block": 1
+    },
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": 12.5,
+    "keep": false,
+    "right": false,
+    "unplaced": [],
+    "open": "dirty",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy, but the project open now has unsaved changes, so OrcaSlicer may keep it instead. Save or discard those changes, then use Open this copy in OrcaSlicer.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1490,6 +1564,28 @@
     "keep": false,
     "right": true,
     "unplaced": [],
+    "open": "dirty",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 3 objects.\nRotation was limited to 90° steps.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy, but the project open now has unsaved changes, so OrcaSlicer may keep it instead. Save or discard those changes, then use Open this copy in OrcaSlicer.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 3,
+    "added": 0,
+    "by_object": {},
+    "limit": false,
+    "max": 300,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "right": true,
+    "unplaced": [],
     "open": "later",
     "detail": "no permission"
    },
@@ -1562,6 +1658,30 @@
     "detail": "no permission"
    },
    "text": "P, plate 2: placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "path": "/s/P-arranged.3mf"
+  },
+  {
+   "msg": {
+    "stem": "P",
+    "plate": 2,
+    "action": "fill",
+    "code": "done",
+    "placed": 1,
+    "added": 12,
+    "by_object": {
+     "block": 12
+    },
+    "limit": true,
+    "max": 12,
+    "tower": false,
+    "clearance": null,
+    "keep": false,
+    "right": false,
+    "unplaced": [],
+    "open": "dirty",
+    "detail": "no permission"
+   },
+   "text": "P, plate 2: placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy, but the project open now has unsaved changes, so OrcaSlicer may keep it instead. Save or discard those changes, then use Open this copy in OrcaSlicer.",
    "path": "/s/P-arranged.3mf"
   },
   {

@@ -65,7 +65,7 @@ def english_fixtures() -> list[dict]:
           "unplaced": []}, sa.Params(spacing=2, fill=True, copies=12)),
     ]
     for report, p in reports:
-        for how in ("asked", "later", "failed", "none"):
+        for how in ("asked", "dirty", "later", "failed", "none"):
             tail = sa.OPEN_EN[how].format(detail="no permission")
             msg = {**ref, "action": "fill", "code": "done", **sa.result_msg(report, p), "open": how,
                    "detail": "no permission"}
