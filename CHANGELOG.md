@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.15.1 (2026-11-19)
+
+- The panel page ships inside the plugin file as plain text instead of a compressed, base64-encoded block, so the whole file reads as what it is. Nothing changes in OrcaSlicer.
+
 ## 0.15.0 (2026-11-19)
 
 - New look on the shared Orca UI foundation 5.0.2: the page uses OrcaSlicer's own greys and its teal for **Arrange**, progress and focus, in the tab and in the dock. Organizer's blue is now only on its mark. Arranging and filling work as before.
