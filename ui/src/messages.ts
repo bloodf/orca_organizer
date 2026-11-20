@@ -85,8 +85,9 @@ function en(num: Num) {
       fill: 'Adding copies',
     } as Record<string, string>,
     plateLabel: (a: { plate: number }) => 'Plate ' + a.plate,
+    // The count is the whole project's: OrcaSlicer's plugin API says which plate is selected, not which objects are on it.
     ctxShort: (a: { plate: number; objects: number | null }) =>
-      'Plate ' + a.plate + (a.objects == null ? '' : ' · ' + num(a.objects) + ' ' + one(a.objects, 'object', 'objects')),
+      'Plate ' + a.plate + (a.objects == null ? '' : ' · ' + num(a.objects) + ' ' + one(a.objects, 'object', 'objects') + ' in the project'),
     countShort: (a: { i: number; n: number }) => num(a.i + 1) + ' of ' + num(a.n),
     count: (a: { i: number; n: number | null; count: number | null; subject: string }) =>
       a.n != null
@@ -160,6 +161,7 @@ function en(num: Num) {
     },
     open_: {
       asked: 'Asked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.',
+      dirty: 'Asked OrcaSlicer to open the copy, but the project open now has unsaved changes, so OrcaSlicer may keep it instead. Save or discard those changes, then use Open this copy in OrcaSlicer.',
       later: 'Finished while the panel was closed. Use Open this copy in OrcaSlicer to load it.',
       failed: (a: { detail: string }) =>
         'Could not ask OrcaSlicer to open it (' + a.detail + '). Use Open this copy in OrcaSlicer or open the file by hand.',
@@ -254,7 +256,7 @@ function ptBR(num: Num): Strings {
       fill: 'Adicionando cópias',
     },
     plateLabel: (a) => 'Placa ' + a.plate,
-    ctxShort: (a) => 'Placa ' + a.plate + (a.objects == null ? '' : ' · ' + num(a.objects) + ' ' + one(a.objects, 'objeto', 'objetos')),
+    ctxShort: (a) => 'Placa ' + a.plate + (a.objects == null ? '' : ' · ' + num(a.objects) + ' ' + one(a.objects, 'objeto', 'objetos') + ' no projeto'),
     countShort: (a) => num(a.i + 1) + ' de ' + num(a.n),
     count: (a) =>
       a.n != null
@@ -327,6 +329,7 @@ function ptBR(num: Num): Strings {
     },
     open_: {
       asked: 'Pedi ao OrcaSlicer que abrisse a cópia. Se nada aparecer, use Abrir esta cópia no OrcaSlicer.',
+      dirty: 'Pedi ao OrcaSlicer que abrisse a cópia, mas o projeto aberto agora tem alterações não salvas, então o OrcaSlicer pode mantê-lo. Salve ou descarte essas alterações e use Abrir esta cópia no OrcaSlicer.',
       later: 'Concluído com o painel fechado. Use Abrir esta cópia no OrcaSlicer para carregá-la.',
       failed: (a: { detail: string }) =>
         'Não foi possível pedir ao OrcaSlicer que abrisse a cópia (' + a.detail + '). Use Abrir esta cópia no OrcaSlicer ou abra o arquivo manualmente.',

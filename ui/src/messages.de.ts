@@ -69,7 +69,7 @@ export function de(num: Num, plural: Plural): Strings {
       fill: 'Kopien werden hinzugefügt',
     },
     plateLabel: (a) => 'Platte ' + a.plate,
-    ctxShort: (a) => 'Platte ' + a.plate + (a.objects == null ? '' : ' · ' + objekte(a.objects)),
+    ctxShort: (a) => 'Platte ' + a.plate + (a.objects == null ? '' : ' · ' + objekte(a.objects) + ' im Projekt'),
     countShort: (a) => num(a.i + 1) + ' von ' + num(a.n),
     count: (a) =>
       a.n != null
@@ -147,6 +147,7 @@ export function de(num: Num, plural: Plural): Strings {
     },
     open_: {
       asked: 'OrcaSlicer wurde gebeten, die Kopie zu öffnen. Falls nichts erscheint, verwenden Sie „Kopie in OrcaSlicer öffnen“.',
+      dirty: 'OrcaSlicer wurde gebeten, die Kopie zu öffnen, aber das geöffnete Projekt hat ungespeicherte Änderungen, daher behält OrcaSlicer es womöglich. Speichern oder verwerfen Sie diese Änderungen und verwenden Sie dann „Kopie in OrcaSlicer öffnen“.',
       later: 'Fertig geworden, während das Panel geschlossen war. Laden Sie die Kopie mit „Kopie in OrcaSlicer öffnen“.',
       failed: (a: { detail: string }) =>
         'OrcaSlicer konnte nicht gebeten werden, die Kopie zu öffnen (' + a.detail + '). Verwenden Sie „Kopie in OrcaSlicer öffnen“ oder öffnen Sie die Datei von Hand.',

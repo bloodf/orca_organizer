@@ -65,6 +65,9 @@ def install_stub(tmp: Path, project: Path, pages: bool = True, base_hooks: bool 
     class Plater:
         project_path = property(lambda self: log["project_path"])
 
+        def is_project_dirty(self):
+            return log.get("dirty", False)
+
         def export_3mf_copy(self, path):
             log["export_thread"] = threading.get_ident()
             log["exports"].append(Path(path))
@@ -1040,6 +1043,11 @@ def test_result_message_is_structured_and_open_wording_is_neutral():
         sa._open_in_orca = lambda p: False
         panel.on_message({"action": "open", "job": sa._session.job.id})
         assert log["posts"][-1]["msg"]["open"] == "none" and "open the saved copy by hand" in log["posts"][-1]["text"]
+        # Unsaved changes in the open project: OrcaSlicer may keep it, and the panel says so instead of "asked".
+        sa._open_in_orca = lambda p: True
+        log["dirty"] = True
+        panel.on_message({"action": "open", "job": sa._session.job.id})
+        assert log["posts"][-1]["msg"]["open"] == "dirty" and "has unsaved changes" in log["posts"][-1]["text"]
 
 
 def test_start_error_is_explained_for_the_page():
