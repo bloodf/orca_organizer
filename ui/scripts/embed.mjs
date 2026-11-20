@@ -3,13 +3,13 @@
 //   node scripts/embed.mjs           rewrite the generated block
 //   node scripts/embed.mjs --check   fail if the block does not match dist/index.html (CI)
 //
-// The plugin ships as ONE .py file, so the page cannot be a sibling file at runtime. The HTML is stored
-// zlib-compressed and base64-encoded between the markers below, with its SHA-256 next to it.
+// The plugin ships as ONE .py file, so the page cannot be a sibling file at runtime. The HTML is stored as plain
+// text between the markers below (one string literal per line of the page), with its SHA-256 next to it, so the
+// shipped file reads as what it is.
 import { createHash } from 'node:crypto';
 import { readdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { deflateSync, inflateSync } from 'node:zlib';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const pyPath = resolve(root, '..', 'shape_arrange.py');
@@ -33,20 +33,16 @@ if (html.length > PAGE_LIMIT) {
   process.exit(1);
 }
 const sha = createHash('sha256').update(html).digest('hex');
-const b64 = deflateSync(html, { level: 9 }).toString('base64');
-const lines = b64.match(/.{1,96}/g).map((l) => `    "${l}"`).join('\n');
+// JSON string syntax is valid Python string syntax: quotes, backslashes and control characters come out escaped.
+const lines = html.toString('utf8').split(/(?<=\n)/).map((l) => `    ${JSON.stringify(l)}`).join('\n');
 const block = `${BEGIN}
 # Third-party notices for the code and font bundled in PANEL_HTML (Vue, PrimeVue, PrimeUIX, Lucide icons,
 # Manrope font). They ship inside this file because the page does.
 ${notices.join('\n')}
-import base64 as _base64
-import zlib as _zlib
-
 PANEL_HTML_SHA256 = "${sha}"
-_PANEL_HTML_Z = (
+PANEL_HTML = (
 ${lines}
 )
-PANEL_HTML = _zlib.decompress(_base64.b64decode(_PANEL_HTML_Z)).decode("utf-8")
 ${END}`;
 
 const py = await readFile(pyPath, 'utf8');
@@ -56,20 +52,13 @@ if (from < 0 || to < from) throw new Error('shape_arrange.py has no PANEL_HTML m
 const next = py.slice(0, from) + block + py.slice(to + END.length);
 
 if (check) {
-  const m = /PANEL_HTML_SHA256 = "([0-9a-f]{64})"/.exec(py.slice(from, to));
-  const z = [...py.slice(from, to).matchAll(/^    "([A-Za-z0-9+/=]+)"$/gm)].map((x) => x[1]).join('');
-  const embedded = inflateSync(Buffer.from(z, 'base64'));
-  const embeddedSha = createHash('sha256').update(embedded).digest('hex');
+  // The block is a pure function of the built page and the notices: equal text means the embedded page is the build.
   if (next !== py) {
     console.error('The PANEL_HTML block (page or licence notices) is stale. Run: npm run build (in ui/)');
-    process.exit(1);
-  }
-  if (!m || m[1] !== sha || embeddedSha !== sha) {
-    console.error(`Embedded page is stale: built ${sha}, declared ${m && m[1]}, embedded ${embeddedSha}. Run: npm run build (in ui/)`);
     process.exit(1);
   }
   console.log(`Embedded page matches the build: ${sha} (${html.length} bytes)`);
 } else {
   await writeFile(pyPath, next);
-  console.log(`Embedded ${html.length} bytes (sha256 ${sha}, ${b64.length} base64 chars) into shape_arrange.py`);
+  console.log(`Embedded ${html.length} bytes (sha256 ${sha}) into shape_arrange.py`);
 }
