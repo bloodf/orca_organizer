@@ -1,4 +1,87 @@
-# Orca UI foundation 5.0.2 — Vue and PrimeVue
+# Orca UI foundation 5.0.8 — Vue and PrimeVue
+
+Version 5.0.8 updates dependencies only; no source, style or API changes:
+
+- Vue 3.5.45 → 3.5.46 (runtime dependency; consumers pin the same version in their own `ui/package.json`).
+- lucide-static 1.73.0 → 1.77.0 (build-time icon source for `src/icons.ts`).
+- PrimeVue and PrimeUIX stay as they were.
+
+To update from 5.0.7, replace `ui/shared/` with the 5.0.8 snapshot, set `vue` to 3.5.46 in the plugin's `ui/package.json`, update its lockfile and rebuild.
+
+## 5.0.7
+
+Version 5.0.7 fixes `OuiFileBrowser` in narrow windows; nothing else changes:
+
+- Stacked (the browser narrower than 980 px), the detail pane sat under the table in a row as tall as its content and took the height first: with a tall detail the table was left one row, or none. The detail now gets at most 40 % of the height (30 % when the tree is stacked above as well, which gets at most 26 %) and scrolls inside it; the table keeps the rest.
+- A toolbar that wrapped to two lines was cut off by the rows below it. The toolbar, the selection bar and the foot keep their height; only the rows give way.
+- With no folders, the `#toolbar` slot sat at the right end of the bar. It is now as wide as the bar and starts at its left; a page spreads its items with `.oui-spacer`.
+
+To update from 5.0.6, replace `ui/shared/` with the 5.0.7 snapshot and rebuild. Remove any plugin rule on `.oui-files-grid`'s rows or on `.oui-files-tools`.
+
+## 5.0.6
+
+Version 5.0.6 fixes what the U1 Control migration found in `OuiSetpoint` and the file browser. Nothing is removed.
+
+`OuiSetpoint`, fixes:
+
+- A reading that changed while the user typed erased the field: every render gave PrimeVue's number field new objects for two of its props, so it redrew itself from its model, which did not yet hold what was being typed. A printer's status tick did it every second or two. The objects are now the same between renders and the model follows every keystroke.
+- Set stayed disabled until the field was left. It is enabled from the first digit, and a click that does not take focus from the field (a test, a script) sends what was typed.
+- Without `validate`, what is sent is always within `min`..`max`, however Set was reached.
+
+`OuiSetpoint`, new and optional:
+
+- `v-model:draft`: what the field holds at every keystroke (a number, or null when blank), so the page can judge a value while it is typed, and clear the field.
+- `invalid`: the page's verdict on what is typed. Set is disabled and the field marked at once, with no press of Set; the reason goes in `error`. `errorId` sets the id of that reason line.
+- `maxFractionDigits` (decimals; default none, as before), `locale` (the language numbers are typed in), `inputProps` (more props, attributes and listeners for the number field).
+- `setAriaLabel` and `offAriaLabel`: accessible names for Set and Off on a page with several rows.
+
+File browser:
+
+- Focus after a delete or a move was lost when the storage answered after the question had closed (any real printer): the component could update twice in one flush and forget that it had focus. It now remembers until it has acted.
+- `useFileBackend` asks for the open folder's files alongside the folder tree instead of after it.
+
+To update from 5.0.5, replace `ui/shared/` with the 5.0.6 snapshot and rebuild.
+
+## 5.0.5
+
+Version 5.0.5 keeps a state chip whole in a narrow `OuiPanel` header; nothing else changes:
+
+- In 5.0.4 the meta gave way first, so an `OuiStatus` in the header's meta could shrink to just its mark when the title and the actions still fitted on the line ("1 needs attention" became a lone warning triangle at 380 px). A meta that holds a state chip is now as wide as the chip, and it is the actions that go to the second line. Text meta still shortens with an ellipsis.
+- This uses `:has()`. In a web view without it (WebKit before 15.4) the chip shrinks as it did in 5.0.4; nothing else is affected.
+
+To update from 5.0.4, replace `ui/shared/` with the 5.0.5 snapshot and rebuild. A header with a state chip, a title and actions can be one line taller in a narrow dock than it was.
+
+## 5.0.4
+
+Version 5.0.4 fixes `OuiPanel`'s header in narrow places; nothing else changes:
+
+- A header that could not shrink (a title, a state chip and two buttons; or one holding a select) set the least width of its whole column: a page in the 380 px dock came out about 445 px wide and scrolled sideways. The header now wraps inside its panel: the meta gives way first, then the actions go to a second line, then they wrap among themselves, and a long title breaks beside its icon. Where there is room it is one 40 px line, as before.
+
+To update from 5.0.3, replace `ui/shared/` with the 5.0.4 snapshot and rebuild. Remove any `flex-wrap` a plugin put on `.oui-panel-head`.
+
+## 5.0.3
+
+Version 5.0.3 takes in what the Kobra Control and U1 Control migrations found. It is additive: no prop, slot or event is removed, and a component given none of the new props behaves as in 5.0.2, apart from the fixes.
+
+Fixes:
+
+- `OuiFileBrowser`, detail pane: when its content was taller than the browser, the picture's row shrank to nothing and the picture was drawn over the name and facts. Rows are now as tall as their content and the pane scrolls.
+- `OuiFileBrowser`, Delete key: on a focused row with nothing selected, the first press selected the row and asked nothing. It now asks at once.
+- `OuiFileBrowser`, focus: after a delete or a move, focus stays in the list (the first row, or the list when it is empty) instead of falling to the page.
+- `OuiFileBrowser`, the last column is 168 px (was 132): a short date and time fits in English and pt-BR.
+- `OuiConfirm`: once closed, focus goes back to what had it when the dialog opened, if that is still on the page; then it emits the new `closed` event.
+- `OuiSetpoint`: `describedby` now reaches the number field itself (PrimeVue was putting it on the field's wrapper).
+
+New, all optional:
+
+- `OuiSetpoint`: `inputId` (an id for the field, and a real `<label>`), `error` (a line under the row, from the page), `validate` (asked before every `set`; it can refuse a value, with a reason shown in that line, and may be async; with it the field no longer clamps to `min`..`max`), `offAlways` (Off stays enabled with no target).
+- `OuiFileBrowser`: `sort` (the order the list opens in, e.g. `{ key: 'modified', down: true }`); a `#folder` slot beside the path for what can be done to the open folder (rename, move, delete, new folder); `readonly` on a folder (its files can be looked at, not moved, deleted or added to).
+- `OuiCamera`: a `frame` event each time the built-in picture has loaded; `fit="contain"` to show a picture that is not 16:9 whole; a `#picture` slot for a page's own player (`<video>`, canvas).
+- `OuiPanel`: `hintId`, the id of the hint's text, for a control's `aria-describedby` (`OuiHint` takes `id`).
+
+To update from 5.0.2, replace `ui/shared/` with the 5.0.3 snapshot and rebuild. Then remove what a plugin added to work around these: its own heater row, CSS on `.oui-files-detail`, `.oui-files-move` or the date column, a click on a column header at mount, folder actions in `#toolbar`, a `<video>` laid over `OuiCamera`, a captured `load` listener on the camera, and focus moved by hand after a delete.
+
+## 5.0.2
 
 Version 5.0.2 fixes `OuiHint` (and so every `OuiPanel` with a `hint`); nothing else changes:
 
@@ -115,7 +198,7 @@ Version 2.0.2 omits the locale option for English so PrimeVue retains its built-
 
 Version 2.0.1 fixes focus-ring contrast for secondary/info/success/warn buttons and ensures reduced-motion preferences override runtime-injected component styles. Remove equivalent temporary per-app motion overrides after updating the shared snapshot.
 
-All six plugin frontends use **Vue 3.5.45 + PrimeVue 5.0.5**, with the same custom preset on `@primeuix/themes/aura-compat` from **@primeuix/themes 3.1.1**. Vue is MIT; PrimeVue and PrimeUIX are under the PrimeUI License (Community tier); all three license texts are in `licenses/`. Documentation: https://primevue.org/vite/ and the PrimeVue 5.0.5 source. Bootstrap is not part of this foundation or an accepted implementation.
+All six plugin frontends use **Vue 3.5.46 + PrimeVue 5.0.5**, with the same custom preset on `@primeuix/themes/aura-compat` from **@primeuix/themes 3.1.1**. Vue is MIT; PrimeVue and PrimeUIX are under the PrimeUI License (Community tier); all three license texts are in `licenses/`. Documentation: https://primevue.org/vite/ and the PrimeVue 5.0.5 source. Bootstrap is not part of this foundation or an accepted implementation.
 
 ## Shared source and builds
 

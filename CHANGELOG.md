@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Shared Orca UI foundation 5.0.8 (Vue 3.5.46, lucide-static 1.77.0); no visible change.
+
 ## 0.15.1 (2026-11-19)
 
 - The panel page ships inside the plugin file as plain text instead of a compressed, base64-encoded block, so the whole file reads as what it is. Nothing changes in OrcaSlicer.
