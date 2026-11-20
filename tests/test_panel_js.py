@@ -128,7 +128,7 @@ def test_shipped_file_carries_the_bundled_licence_notices():
     assert "Copyright (c) 2026 Lucide Icons and Contributors" in block and "ISC License" in block
     assert "# ---- Vue " in block and "# ---- PrimeVue " in block and "# ---- PrimeUIX " in block
     for name in ("Lucide", "Manrope", "PrimeUIX", "PrimeVue", "Vue"):  # verbatim, line by line
-        text = (UI / "shared" / "licenses" / f"{name}.txt").read_text(encoding="utf-8").rstrip()
+        text = (UI / "node_modules" / "@orca-plugins" / "ui-foundation" / "licenses" / f"{name}.txt").read_text(encoding="utf-8").rstrip()
         assert "\n".join(("# " + l) if l else "#" for l in text.splitlines()) in block, name
 
 

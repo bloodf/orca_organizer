@@ -5,14 +5,14 @@
   "type": "module",
   "description": "Vue 3 + PrimeVue panel of the Organizer plugin. Built into one offline HTML file and embedded in ../shape_arrange.py.",
   "scripts": {
-    "typecheck": "node shared/scripts/vue-tsc.mjs --noEmit",
+    "typecheck": "node node_modules/@orca-plugins/ui-foundation/scripts/vue-tsc.mjs --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
-    "build": "node shared/scripts/vue-tsc.mjs --noEmit && vite build && node scripts/embed.mjs",
-    "check:embedded": "vite build && node scripts/embed.mjs --check",
-    "check:shared": "node shared/scripts/check.mjs"
+    "build": "node node_modules/@orca-plugins/ui-foundation/scripts/vue-tsc.mjs --noEmit && vite build && node scripts/embed.mjs",
+    "check:embedded": "vite build && node scripts/embed.mjs --check"
   },
   "dependencies": {
+    "@orca-plugins/ui-foundation": "github:bloodf/orca-ui-foundation#v5.0.8",
     "@primeuix/themes": "3.1.1",
     "primevue": "5.0.5",
     "vue": "3.5.46"

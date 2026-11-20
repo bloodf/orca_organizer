@@ -1,5 +1,5 @@
 import { createApp } from 'vue';
-import { applyOrcaTheme, installOrcaUI } from '../shared/src';
+import { applyOrcaTheme, installOrcaUI } from '@orca-plugins/ui-foundation/src';
 import App from './App.vue';
 import { detectHostTheme } from './hostTheme';
 import { hostBridge } from './protocol';

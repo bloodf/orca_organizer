@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from 'vitest';
-import { applyOrcaTheme, setOrcaAccent } from '../shared/src';
+import { applyOrcaTheme, setOrcaAccent } from '@orca-plugins/ui-foundation/src';
 import { detectHostTheme, luminance, parseColor } from '../src/hostTheme';
 
 afterEach(() => {

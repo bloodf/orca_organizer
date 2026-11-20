@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import Button from 'primevue/button';
 import { ref, watchEffect } from 'vue';
-import { OuiIcon, OuiJob, OuiStatus } from '../../shared/src/components';
-import { x } from '../../shared/src/icons';
+import { OuiIcon, OuiJob, OuiStatus } from '@orca-plugins/ui-foundation/src/components';
+import { x } from '@orca-plugins/ui-foundation/src/icons';
 import { useOrganizer } from '../useOrganizer';
 
 const { s, state, percent, jobView, countText, cancel } = useOrganizer();

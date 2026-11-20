@@ -1,5 +1,5 @@
 import { createApp, nextTick, type App as VueApp } from 'vue';
-import { installOrcaUI } from '../shared/src';
+import { installOrcaUI } from '@orca-plugins/ui-foundation/src';
 import AppRoot from '../src/App.vue';
 import { createOrganizer, type OrganizerOptions } from '../src/store';
 import type { Bridge, HostMessage, OutMessage } from '../src/protocol';

@@ -3,7 +3,7 @@
 // state, message and protocol assertion of the imperative page still holds for the Vue one.
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { JobMsg } from '../src/protocol';
-import { clearToasts } from '../shared/src/components/toast';
+import { clearToasts } from '@orca-plugins/ui-foundation/src/components/toast';
 import { CTX, mountPanel, REF, type Panel } from './helpers';
 
 let panel: Panel;

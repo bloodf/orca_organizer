@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, watch, watchEffect } from 'vue';
 import { usePrimeVue, type PrimeVueLocaleOptions } from 'primevue/config';
-import { primeVueOptions } from '../shared/src';
-import { OuiToastHost } from '../shared/src/components';
+import { primeVueOptions } from '@orca-plugins/ui-foundation/src';
+import { OuiToastHost } from '@orca-plugins/ui-foundation/src/components';
 import { organizerKey } from './useOrganizer';
 import type { Organizer } from './store';
 import ArrangeForm from './components/ArrangeForm.vue';

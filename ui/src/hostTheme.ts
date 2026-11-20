@@ -1,4 +1,4 @@
-import type { OrcaTheme } from '../shared/src';
+import type { OrcaTheme } from '@orca-plugins/ui-foundation/src';
 
 /** `#rgb`, `#rrggbb` or `rgb()/rgba()` to [r, g, b]; anything else (named colors, hsl) is normalised by a canvas. */
 export function parseColor(value: string): [number, number, number] | null {

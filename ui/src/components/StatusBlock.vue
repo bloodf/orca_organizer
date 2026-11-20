@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue';
-import { OuiBanner } from '../../shared/src/components';
+import { OuiBanner } from '@orca-plugins/ui-foundation/src/components';
 import type { StatusLine } from '../status';
 import { useOrganizer } from '../useOrganizer';
 

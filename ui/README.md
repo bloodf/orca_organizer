@@ -13,7 +13,7 @@ at run time, nothing is downloaded, and the page needs no `unsafe-eval` (templat
 | `src/store.ts` | all reactive state, polling, focus requests; the plugin owns the job, the page only shows it |
 | `src/messages.ts`, `src/messages.<lang>.ts`, `src/status.ts` | strings in en, pt-BR, es, de, zh-CN and pl (language detection, number and plural rules), structured `msg` to text lines |
 | `src/protocol.ts`, `src/hostTheme.ts` | message types and the host bridge; light/dark detection |
-| `shared/` | vendored ui-foundation 5.0.8 (see `shared/manifest.json`). Do not edit; `npm run check:shared` |
+| `@orca-plugins/ui-foundation` | shared UI foundation, a dependency pinned to a release tag of [bloodf/orca-ui-foundation](https://github.com/bloodf/orca-ui-foundation); Renovate updates it |
 | `tests/` | vitest + jsdom component tests (`panel`, `messages`, `languages`, `english-parity`, `theme`) |
 | `scripts/embed.mjs` | embeds `dist/index.html` into `shape_arrange.py` (`--check` for CI) |
 | `scripts/verify-browser.mjs` | production page under CSP in headless Chrome with a MOCK host bridge, screenshots |
@@ -25,7 +25,6 @@ cd ui
 npm ci --ignore-scripts
 npm run build          # vue-tsc, vite build -> dist/index.html, embed into ../shape_arrange.py
 npm test               # component tests
-npm run check:shared   # shared manifest hashes + palette contrast
 npm run check:embedded # CI: rebuild and fail if shape_arrange.py is stale
 ```
 
@@ -43,6 +42,6 @@ embedded page so that releases need only Python.
 
 ## Third-party code in the embedded page
 
-Vue 3.5.45 (MIT), PrimeVue 5.0.5 (PrimeUI Community License), @primeuix/themes 3.1.1 (MIT), Lucide icons (ISC), Manrope font (OFL-1.1). Licenses: `shared/licenses/`; `scripts/embed.mjs` copies them as comments into the `PANEL_HTML` block of
+Vue 3.5.45 (MIT), PrimeVue 5.0.5 (PrimeUI Community License), @primeuix/themes 3.1.1 (MIT), Lucide icons (ISC), Manrope font (OFL-1.1). Licenses: `node_modules/@orca-plugins/ui-foundation/licenses/`; `scripts/embed.mjs` copies them as comments into the `PANEL_HTML` block of
 `../shape_arrange.py`, so they ship with the plugin file (`check:embedded` fails if they are stale). Dev tools
 (Vite, vitest, jsdom, TypeScript) are not shipped.

@@ -37,7 +37,7 @@ plate 2 only if their teeth interlock. It arranges the project, then checks
 that every part sits on the bed with no overlap and that plate 1 and every
 other file in the 3MF are unchanged.
 
-CI (`.github/workflows/ci.yml`) runs `npm run check:shared`, `npm run typecheck` and `npm run check:embedded`
+CI (`.github/workflows/ci.yml`) runs `npm run typecheck` and `npm run check:embedded`
 in `ui/`, then the four test files above.
 
 ## Listing and README images
