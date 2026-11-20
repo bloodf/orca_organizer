@@ -1,5 +1,5 @@
 import { computed, reactive } from 'vue';
-import { showToast } from '../shared/src/components/toast';
+import { showToast } from '@orca-plugins/ui-foundation/src/components/toast';
 import { numberFormat, pickLang, strings, type Lang } from './messages';
 import { MAX_COPIES, type Bridge, type Ctx, type HostMessage, type Prefs, type Requirement, type Rotation, type StaleRef } from './protocol';
 import { describe, jobRef, splitLines, translate, type StatusLine, type StatusSource, type StatusView } from './status';

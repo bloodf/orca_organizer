@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Button from 'primevue/button';
-import { OuiAppBar, OuiIcon, OuiStatus } from '../../shared/src/components';
-import { arrange } from '../../shared/src/icons';
+import { OuiAppBar, OuiIcon, OuiStatus } from '@orca-plugins/ui-foundation/src/components';
+import { arrange } from '@orca-plugins/ui-foundation/src/icons';
 import { useOrganizer } from '../useOrganizer';
 
 const { s, state, ctxText, ctxShort, ctxProblem, projectName, loading, again } = useOrganizer();

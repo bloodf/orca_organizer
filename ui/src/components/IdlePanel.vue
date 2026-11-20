@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { OuiEmpty, OuiPanel } from '../../shared/src/components';
-import { file } from '../../shared/src/icons';
+import { OuiEmpty, OuiPanel } from '@orca-plugins/ui-foundation/src/components';
+import { file } from '@orca-plugins/ui-foundation/src/icons';
 import plateArt from '../assets/organizer-plate.webp';
 import { useOrganizer } from '../useOrganizer';
 
