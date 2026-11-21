@@ -191,6 +191,15 @@ describe('spacing validation', () => {
     await paste('1,5');
     expect(panel.organizer.state.spacing).toBe(1.5);
   });
+
+  it('en: a pasted comma decimal is read as one, not as a thousands sign', async () => {
+    panel = await mountPanel({ language: 'en' });
+    await panel.deliver(sync({ ctx: CTX }));
+    await paste('1,5');
+    expect(panel.organizer.state.spacing).toBe(1.5);
+    await paste('1,234.5');
+    expect(panel.organizer.state.spacing).toBe(1234.5);
+  });
 });
 
 describe('a run', () => {
