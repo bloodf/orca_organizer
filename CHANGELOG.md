@@ -2,7 +2,7 @@
 
 ## 0.16.2 (2026-11-21)
 
-- The install steps in the README and on the Orca Cloud listing say where **File > Plugins** is: at the top-left of the OrcaSlicer window on Windows and Linux, in the menu bar at the top of the screen on macOS. They also name OrcaSlicer 2.5's real buttons: **Install plugin** opens Orca Cloud's plugin list, and the arrow on its left end switches it to **Install local plugin**.
+- The install steps in the README and on the Orca Cloud listing say where the **Plugins** window is: on Windows and Linux, behind the small ▾ arrow right of **File** at the top-left of the OrcaSlicer window (it is not in the **File** menu there); on macOS, **File > Plugins** in the menu bar at the top of the screen. They also name OrcaSlicer 2.5's real buttons: **Install plugin** opens Orca Cloud's plugin list, and the arrow on its left end switches it to **Install local plugin**.
 - Checked again for "parts overlap with instances": still fixed since 0.9.5, and covered by the tests added in 0.13.0.
 
 ### Fixed
