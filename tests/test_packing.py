@@ -51,6 +51,7 @@ SHAPES = {
     "sliver": [[(0, 0), (30, 0), (30, 0.2)]],           # thinner than one fine pixel
     "washer50": ring(25, 17),
     "disc12": [ngon(6, 48)],
+    "T30": [rect(0, 0, 30, 8), rect(11, 8, 19, 30)],
 }
 
 
@@ -364,34 +365,43 @@ def test_fill_reaches_the_best_pattern_for_round_parts():
     except 22 and 24 mm on 256), at the spacing, every part from the pattern (none dropped in a gap).
     Before -> after: 22 mm on 220: 72 -> 85, 24 mm on 220: 61 -> 68, 15 mm on 220: 141 -> 168,
     22 mm on 180: 46 -> 52, 24 mm on 256: 85 -> 91, 22 mm on 270: 111 -> 126."""
-    searched, filling = [], []
-    real, real_fill = sa._try_place, sa._fill
+    fills, filling, result = [], [], []  # fills: (copies returned, searched) of every _fill call
+    real, real_fill, real_nest = sa._try_place, sa._fill, sa.nest
 
     def spy(*a, **k):  # a copy placed by searching the bed, not on the pattern
         r = real(*a, **k)
         if filling:
-            searched.append(r is not None)
+            filling[-1].append(r is not None)
         return r
 
-    def fill(*a, **k):
-        filling.append(1)
+    def fill(*a, **k):  # several patterns may be tried; only the fill of the kept one counts
+        filling.append([])
         try:
-            return real_fill(*a, **k)
+            r = real_fill(*a, **k)
+            fills.append((r, filling[-1]))
+            return r
         finally:
             filling.pop()
-    sa._try_place, sa._fill = spy, fill
+
+    def nest(*a, **k):
+        r = real_nest(*a, **k)
+        result.append(r[2])
+        return r
+    sa._try_place, sa._fill, sa.nest = spy, fill, nest
     try:
         for d, bed in ((22, 220.0), (24, 220.0), (15, 220.0), (30, 220.0), (22, 180.0), (24, 256.0), (22, 270.0)):
             SHAPES[f"round{d}"] = [ngon(d / 2, 96)]
-            searched.clear()
+            fills.clear()
+            result.clear()
             p = sa.Params(spacing=2.0, fill=True, **sa.AUTO)
             parts, copies, failed, _ = run_nest([(f"round{d}", 1)], p, bed=bed)
             got, want = len(parts) + len(copies), best_disc_lattice(d, 2.0, bed, pad=0.3)
             assert not failed and got >= want, f"{d} mm on {bed:g}: {got} parts, the best pattern holds {want}"
+            searched = next(f for r, f in fills if r is result[0])
             assert not any(searched), f"{d} mm on {bed:g}: {sum(searched)} parts placed outside the pattern"
             check_round_layout(parts, copies, d, 2.0, bed)
     finally:
-        sa._try_place, sa._fill = real, real_fill
+        sa._try_place, sa._fill, sa.nest = real, real_fill, real_nest
 
 
 def test_fine_pattern_keeps_the_spacing_around_obstacles_and_other_parts():
@@ -403,6 +413,17 @@ def test_fine_pattern_keeps_the_spacing_around_obstacles_and_other_parts():
         parts, copies, failed, _ = run_nest(spec, p, obstacles=obstacle, bed=180.0)
         assert not failed and len(copies) >= 20, (spec, len(copies))
         check_layout(list(parts.values()) + copies, 2.0, obstacles=obstacle, bed=180.0)
+
+
+def test_fill_keeps_the_pattern_whose_gaps_take_more_copies():
+    """T-parts (30 mm) at 90° steps on a 220 mm bed: the fine pattern counts 54 copies, the pattern
+    of nested pairs only 52, but 7 more go into its gaps. 0.13.0 kept the fine one (54, down from
+    59 in 0.12.0); the pattern that ends with more parts wins now (with small discs as well: 96 to 98)."""
+    p = sa.Params(spacing=2.0, fill=True, **dict(sa.AUTO, step=90.0))
+    for spec, want in (([("T30", 1)], 59), ([("T30", 1), ("disc12", 1)], 98)):
+        parts, copies, failed, _ = run_nest(spec, p, bed=220.0)
+        assert not failed and len(parts) + len(copies) >= want, (spec, len(parts) + len(copies))
+        check_layout(list(parts.values()) + copies, 2.0, bed=220.0)
 
 
 def check_round_layout(parts, copies, d, spacing, bed):
@@ -432,4 +453,5 @@ if __name__ == "__main__":
     test_fill_with_rotation_off_never_turns_parts()
     test_fill_reaches_the_best_pattern_for_round_parts()
     test_fine_pattern_keeps_the_spacing_around_obstacles_and_other_parts()
+    test_fill_keeps_the_pattern_whose_gaps_take_more_copies()
     print("ok")

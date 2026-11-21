@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.16.2 (2026-11-21)
+
+- The install steps in the README and on the Orca Cloud listing say where **File > Plugins** is: at the top-left of the OrcaSlicer window on Windows and Linux, in the menu bar at the top of the screen on macOS. They also name OrcaSlicer 2.5's real buttons: **Install plugin** opens Orca Cloud's plugin list, and the arrow on its left end switches it to **Install local plugin**.
+- Checked again for "parts overlap with instances": still fixed since 0.9.5, and covered by the tests added in 0.13.0.
+
+### Fixed
+
+- Fill with rotation in 90° steps placed fewer copies than 0.12.0 for some shapes: 54 T-shaped parts on a 220 mm bed instead of 59, 52 instead of 60 with a second object. Since 0.13.0 the pattern measured on fine pixels won whenever it counted more copies on its own, even when a looser pattern of nested pairs left gaps that held more. Fill now tries both and keeps the one that ends with more parts.
+
 ## 0.16.1 (2026-11-21)
 
 - Shared Orca UI foundation 5.6.2, with its focus and drag fixes for shared parts.
