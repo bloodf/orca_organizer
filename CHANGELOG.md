@@ -1,8 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.16.0 (2026-11-21)
 
-- Shared Orca UI foundation 5.0.8 (Vue 3.5.46, lucide-static 1.77.0); no visible change.
+- Shared Orca UI foundation 5.6.0 (Vue 3.5.46, lucide-static 1.77.0). The page also stops shipping the styles of shared parts it never shows, so the plugin file is smaller.
+
+### Fixed
+
+- The panel header said "Plate 1 · 3 objects" when only one of the project's three objects was on plate 1. OrcaSlicer does not tell plugins which objects are on a plate, so the header now says "3 objects in the project", like the line under it.
+- After **Arrange**, the panel said it asked OrcaSlicer to open the copy even when the open project had unsaved changes, where OrcaSlicer may keep the current project. It now warns about that, in every language.
+- Pasting "1,5" as the spacing with OrcaSlicer in English gave 15 mm. A single comma is now read as the decimal sign in every language, so it gives 1.5 mm.
 
 ## 0.15.1 (2026-11-19)
 
