@@ -32,13 +32,18 @@ O Organizar do próprio OrcaSlicer trata cada objeto como o seu fecho convexo, e
 
 ## 📦 Instalação
 
-O Organizer está no Orca Cloud com o nome *Shape-Aware Arrange*. Entre no Orca Cloud pelo OrcaSlicer, abra **File > Plugins > Browse plugins**, encontre o plugin e assine, ou comece pela [página do plugin](https://cloud.orcaslicer.com/p/5bf381fd42d4). As atualizações chegam sozinhas.
+Primeiro, encontre a janela **Plugins** do OrcaSlicer:
+
+- **Windows e Linux:** clique em **File** no canto superior esquerdo da janela do OrcaSlicer e depois em **Plugins**. O menu ▾ à direita de **File** também tem **Plugins**.
+- **macOS:** clique em **File** na barra de menus no alto da tela (ao lado de **OrcaSlicer**) e depois em **Plugins**.
+
+Pelo Orca Cloud: entre no Orca Cloud pelo OrcaSlicer, abra **Plugins** e clique em **Install plugin**. A lista de plugins do Orca Cloud abre no navegador: encontre o *Shape-Aware Arrange* e assine, ou vá direto à [página do plugin](https://cloud.orcaslicer.com/p/5bf381fd42d4). As atualizações chegam sozinhas.
 
 A partir de um arquivo:
 
 1. Baixe `shape_arrange_any.py` da [última versão](https://github.com/bloodf/orca_organizer/releases/latest).
-2. No OrcaSlicer, abra **File > Plugins**.
-3. Clique na seta ao lado de **Browse plugins**, escolha **Install local plugin** e selecione o arquivo.
+2. Abra **Plugins** como acima.
+3. Clique na setinha na ponta esquerda do botão **Install plugin** e escolha **Install local plugin**. O botão passa a dizer **Install local plugin**: clique nele e selecione o arquivo.
 4. Marque **Activate** e aceite o pedido de permissão para threads. A arrumação roda em segundo plano, e o OrcaSlicer continua respondendo.
 
 Os nomes de menu acima são os do OrcaSlicer em inglês.

@@ -32,13 +32,18 @@ OrcaSlicer's built-in Arrange treats every object as its convex hull, so concave
 
 ## 📦 Install
 
-Organizer is on Orca Cloud as *Shape-Aware Arrange*. Sign in to Orca Cloud in OrcaSlicer, open **File > Plugins > Browse plugins**, find it and subscribe, or start from the [plugin page](https://cloud.orcaslicer.com/p/5bf381fd42d4). Updates arrive automatically.
+First find OrcaSlicer's **Plugins** window:
+
+- **Windows and Linux:** click **File** at the top-left corner of the OrcaSlicer window, then **Plugins**. The ▾ menu right of **File** has **Plugins** too.
+- **macOS:** click **File** in the menu bar at the top of the screen (next to **OrcaSlicer**), then **Plugins**.
+
+From Orca Cloud: sign in to Orca Cloud in OrcaSlicer, open **Plugins** and click **Install plugin**. Orca Cloud's plugin list opens in your browser: find *Shape-Aware Arrange* and subscribe, or go straight to the [plugin page](https://cloud.orcaslicer.com/p/5bf381fd42d4). Updates arrive automatically.
 
 From a file:
 
 1. Download `shape_arrange_any.py` from the [latest release](https://github.com/bloodf/orca_organizer/releases/latest).
-2. In OrcaSlicer, open **File > Plugins**.
-3. Click the arrow next to **Browse plugins**, choose **Install local plugin** and select the file.
+2. Open **Plugins** as above.
+3. Click the small arrow on the left end of the **Install plugin** button and choose **Install local plugin**. The button now reads **Install local plugin**: click it and select the file.
 4. Tick **Activate** and allow the thread permission prompt. The arranging runs in the background so OrcaSlicer stays responsive.
 
 | Requirement | Version |

@@ -7,7 +7,7 @@
 # type = "script"
 # description = "Arranges a plate using each object's real footprint, not its bounding box or convex hull. Irregular and concave parts interlock to fit more on the plate, or fill the whole plate with copies. Just set the spacing."
 # author = "Heitor Ramon"
-# version = "0.16.1"
+# version = "0.16.2"
 # ///
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright (C) 2026 Heitor Ramon
@@ -1077,9 +1077,23 @@ def _lattice_layout(prepared, blocked, p: Params, progress=None):
     if p.step > 0:  # a part and its half-turn twin can nest closer than two copies facing the same way
         by_angle = {round(s.angle % 360, 4): s for s in shapes}
         twins = {id(s): by_angle.get(round((s.angle + 180.0) % 360, 4)) for s in tried}
-    spots = _lattice(tried, occ, need, progress, twins)
-    if not spots:
+    found = _lattice(tried, occ, need, progress, twins)
+    if not found:
         return None
+    if len(found) > 1:  # rank the patterns by the group alone: its copies on the pattern and in its gaps
+        solo = [e for e in prepared if any(e is g for g in group)]
+        trials = [_pattern_layout(solo, group, blocked, p, spots, progress) for spots in found]
+        i = max(range(len(found)), key=lambda i: (len(trials[i][0]), len(trials[i][2])))  # ties: the first
+        if len(solo) == len(prepared):
+            return trials[i]
+        found = [found[i]]
+    return _pattern_layout(prepared, group, blocked, p, found[0], progress)
+
+
+def _pattern_layout(prepared, group, blocked, p: Params, spots, progress=None):
+    """The group's originals on the first spots of the pattern, the other parts placed greedily,
+    then (fill) the round-robin copies. Returns (placed, failed, copies, bbox)."""
+    (lead, center, _), occ = group[0], blocked.astype(float)
     mine = np.zeros(occ.shape, bool)  # cells of pattern copies: they keep the spacing by the pattern's pitch
 
     # Copies of one pattern are not checked against each other here: they are spaced by the pattern itself
@@ -1107,7 +1121,8 @@ def _lattice_layout(prepared, blocked, p: Params, progress=None):
 
 
 def _lattice(shapes: list[Shape], occ: np.ndarray, need: int, progress=None, twins=None):
-    """Best repeating pattern of one shape on the bed: [(shape, x, y)], nearest the origin first.
+    """Best repeating patterns of one shape on the bed, each [(shape, x, y)] nearest the origin first:
+    the fine-pixel one when it counts more copies, then the best on cells; [] when none fits.
 
     `twins` maps id(shape) to its half-turn twin; then patterns of pairs (shape + twin, nested)
     compete too, scored per part. A pair pattern wins only with more parts, or the same parts
@@ -1154,7 +1169,9 @@ def _lattice(shapes: list[Shape], occ: np.ndarray, need: int, progress=None, twi
             key, found = _fine_lattice(shapes[n], occ_f, occ.shape, need, tick)
             if key > fine:
                 fine, fine_spots = key, found
-    return fine_spots or spots
+    # The fine pattern counts more copies, but the coarse one (pairs, maybe) can leave gaps that take
+    # more by search: T-parts at 90° steps on 220 mm, 54 on the fine pattern, 59 on the pair one.
+    return [c for c in (fine_spots, spots) if c]
 
 
 def _fine_lattice(s: Shape, occ_f, occ_shape, need: int, tick=None):

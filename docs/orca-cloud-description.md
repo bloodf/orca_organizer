@@ -1,6 +1,6 @@
 # Orca Cloud description
 
-The text of the Orca Cloud listing ([Shape-Aware Arrange](https://cloud.orcaslicer.com/p/5bf381fd42d4)). Paste the English block into the English description and the Portuguese block into the Portuguese one. Each block is under 4000 characters (3354 and 3499). The images load from `main` on GitHub, so they show once the commit that adds them is merged. The listing slots and image files are in [release.md](release.md).
+The text of the Orca Cloud listing ([Shape-Aware Arrange](https://cloud.orcaslicer.com/p/5bf381fd42d4)). Paste the English block into the English description and the Portuguese block into the Portuguese one. Each block is under 4000 characters (3530 and 3664). The images load from `main` on GitHub, so they show once the commit that adds them is merged. The listing slots and image files are in [release.md](release.md).
 
 ## English
 
@@ -33,7 +33,7 @@ Arrange parts by their real outline and fill a plate with more copies.
 
 ![Set spacing and rotation](https://raw.githubusercontent.com/bloodf/orca_organizer/main/assets/orca-cloud/orca_organizer-feature-03-spacing-en.png)
 
-Where OrcaSlicer has no plugin tabs, click **Run** on *Shape-Aware Arrange* in **File > Plugins** for the same controls in a docked panel.
+Where OrcaSlicer has no plugin tabs, click **Run** on *Shape-Aware Arrange* in **File > Plugins** for the same controls in a docked panel. **File** is at the top-left of the OrcaSlicer window on Windows and Linux, and in the menu bar at the top of the screen on macOS.
 
 ## Privacy
 
@@ -93,7 +93,7 @@ Organize as peças pelo contorno real e encha a mesa com mais cópias.
 
 ![Ajuste distância e rotação](https://raw.githubusercontent.com/bloodf/orca_organizer/main/assets/orca-cloud/orca_organizer-feature-03-spacing-pt-BR.png)
 
-Onde o OrcaSlicer não tem abas de plugin, clique em **Run** no *Shape-Aware Arrange* em **File > Plugins** para ter os mesmos controles em um painel encaixado.
+Onde o OrcaSlicer não tem abas de plugin, clique em **Run** no *Shape-Aware Arrange* em **File > Plugins** para ter os mesmos controles em um painel encaixado. O **File** fica no canto superior esquerdo da janela do OrcaSlicer no Windows e no Linux, e na barra de menus no alto da tela no macOS.
 
 ## Privacidade
 
