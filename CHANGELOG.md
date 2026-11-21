@@ -2,7 +2,7 @@
 
 ## 0.16.0 (2026-11-21)
 
-- Shared Orca UI foundation 5.6.0 (Vue 3.5.46, lucide-static 1.77.0). The page also stops shipping the styles of shared parts it never shows, so the plugin file is smaller.
+- Shared Orca UI foundation 5.6.1 (Vue 3.5.46, lucide-static 1.77.0). The page also stops shipping the styles of shared parts it never shows, so the plugin file is smaller.
 
 ### Fixed
 
