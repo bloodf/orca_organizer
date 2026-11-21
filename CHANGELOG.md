@@ -2,6 +2,8 @@
 
 ## 0.16.1 (2026-11-21)
 
+- Shared Orca UI foundation 5.6.2, with its focus and drag fixes for shared parts.
+
 ### Fixed
 
 - Pressing **Cancel** right after **Arrange** or **Fill**, before the panel showed the first progress line, did nothing: the run went on and finished. The cancel is now sent as soon as OrcaSlicer names the run.
