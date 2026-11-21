@@ -189,9 +189,12 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
       state.staleRef = m.stale_ref || null;
     }
     if (m.sync || m.start) {
-      if (m.job !== job) state.cancelling = false;
+      // Cancel pressed before the plugin named the new job: send it now that the id is known.
+      const cancelNew = !!m.start && state.cancelling && state.status?.kind === 'starting';
+      if (m.job !== job && !cancelNew) state.cancelling = false;
       job = m.job ?? null;
       state.job = job;
+      if (cancelNew && job) bridge.postMessage({ action: 'cancel', job });
       if (!m.path) {
         state.resultVisible = false;
         state.path = null;
@@ -258,7 +261,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   function cancel() {
     if (!state.busy || state.cancelling) return;
     state.cancelling = true;
-    bridge.postMessage({ action: 'cancel', job });
+    if (state.status?.kind !== 'starting') bridge.postMessage({ action: 'cancel', job }); // else sent on the start reply
   }
 
   function open() {

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.16.1 (2026-11-21)
+
+### Fixed
+
+- Pressing **Cancel** right after **Arrange** or **Fill**, before the panel showed the first progress line, did nothing: the run went on and finished. The cancel is now sent as soon as OrcaSlicer names the run.
+- When the panel asked for its state before OrcaSlicer had told the plugin where its storage folder is, the saved spacing, rotation and copy limit were ignored until OrcaSlicer restarted. They are now read as soon as the folder is known.
+
 ## 0.16.0 (2026-11-21)
 
 - Shared Orca UI foundation 5.6.1 (Vue 3.5.46, lucide-static 1.77.0). The page also stops shipping the styles of shared parts it never shows, so the plugin file is smaller.

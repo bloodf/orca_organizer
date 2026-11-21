@@ -680,6 +680,20 @@ describe('cancel', () => {
     expect(panel.q('#result')).toBeNull();
   });
 
+  it('cancels a run pressed before the plugin named the job, once the start reply gives its id', async () => {
+    panel = await mountPanel();
+    await panel.deliver(sync({ ctx: CTX }));
+    panel.take();
+    panel.q('#go')!.click();
+    await panel.flush();
+    panel.q('#cancel')!.click();
+    await panel.flush();
+    expect(panel.takeRequests()).toEqual([{ action: 'arrange', spacing: panel.organizer.state.spacing, rotation: 'auto' }]);
+    await panel.deliver({ job: 'j1', start: true, busy: true, text: 'r', msg: { stem: 'P', plate: 2, action: 'arrange', code: 'reading' } });
+    expect(panel.takeRequests()).toEqual([{ action: 'cancel', job: 'j1' }]);
+    expect(panel.text('#cancel')).toContain('Cancelling…');
+  });
+
   it('moves focus back to Arrange when the cancelled run ends with Cancel focused', async () => {
     panel = await mountPanel();
     await panel.deliver(sync({ ctx: CTX }));

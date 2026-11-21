@@ -837,6 +837,27 @@ def test_last_settings_are_remembered_for_the_next_session():
         assert log["page_posts"][-1][0]["prefs"] == {} and not log["page_posts"][-1][0].get("error")
 
 
+def test_settings_are_read_once_storage_is_known():
+    """A sync before the storage folder is known must not hide the saved settings for the whole session."""
+    with tempfile.TemporaryDirectory() as d:
+        tmp = Path(d)
+        project = tmp / "proj.3mf"
+        t.make_project(project)
+        sa = load(tmp, project)[0]
+        (tmp / "settings.json").write_text('{"spacing": 2, "rotation": "keep"}')
+        known = []
+
+        def storage():
+            if not known:
+                raise RuntimeError("the plugin's storage folder is not known yet")
+            return str(tmp)
+
+        session = sa._Session(storage)
+        assert session.prefs() == {}
+        known.append(True)
+        assert session.prefs() == {"spacing": 2, "rotation": "keep"}
+
+
 def test_failed_run_is_flagged_as_error_for_the_page():
     with tempfile.TemporaryDirectory() as d:
         tmp = Path(d)
@@ -1258,6 +1279,7 @@ if __name__ == "__main__":
     test_keep_orientation_option()
     test_right_angle_rotation_option()
     test_last_settings_are_remembered_for_the_next_session()
+    test_settings_are_read_once_storage_is_known()
     test_failed_run_is_flagged_as_error_for_the_page()
     test_old_failed_snapshots_are_pruned_but_never_a_running_job()
     test_unexpected_failure_keeps_the_raw_error_as_details()
