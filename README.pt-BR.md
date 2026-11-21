@@ -34,7 +34,7 @@ O Organizar do próprio OrcaSlicer trata cada objeto como o seu fecho convexo, e
 
 Primeiro, encontre a janela **Plugins** do OrcaSlicer:
 
-- **Windows e Linux:** clique em **File** no canto superior esquerdo da janela do OrcaSlicer e depois em **Plugins**. O menu ▾ à direita de **File** também tem **Plugins**.
+- **Windows e Linux:** clique na setinha ▾ à direita de **File**, no canto superior esquerdo da janela do OrcaSlicer, e depois em **Plugins**. (Aqui o **Plugins** não fica dentro do **File**.)
 - **macOS:** clique em **File** na barra de menus no alto da tela (ao lado de **OrcaSlicer**) e depois em **Plugins**.
 
 Pelo Orca Cloud: entre no Orca Cloud pelo OrcaSlicer, abra **Plugins** e clique em **Install plugin**. A lista de plugins do Orca Cloud abre no navegador: encontre o *Shape-Aware Arrange* e assine, ou vá direto à [página do plugin](https://cloud.orcaslicer.com/p/5bf381fd42d4). As atualizações chegam sozinhas.
@@ -113,7 +113,7 @@ Os nomes de menu acima são os do OrcaSlicer em inglês.
 
 Em **Avançado**, *Só passos de 90°* gira as peças só em quartos de volta, então peças que estão no esquadro da mesa continuam no esquadro. *Manter a orientação de cada peça* desliga a rotação e só move as peças. Nos dois casos cabem menos peças do que com *Automática (passos de 1°)*.
 
-Onde o OrcaSlicer não tem abas de plugin, clique em **Run** no *Shape-Aware Arrange* em **File > Plugins**. Ele abre os mesmos controles em um painel encaixado à direita, e as duas entradas compartilham uma só execução.
+Onde o OrcaSlicer não tem abas de plugin, clique em **Run** no *Shape-Aware Arrange* na janela **Plugins** (veja [Instalação](#-instalação)). Ele abre os mesmos controles em um painel encaixado à direita, e as duas entradas compartilham uma só execução.
 
 O espaçamento é a folga entre os contornos das peças vistos de cima e nunca fica menor do que o pedido. As posições ficam em uma grade de 0,5 mm, então a folga real costuma ser cerca de 1 mm maior, até cerca de 2 mm em bordas inclinadas. Os detalhes de cada etapa estão em [como funciona](docs/how-it-works.md) (em inglês).
 
@@ -162,7 +162,7 @@ As versões 0.9.0 a 0.9.2 derrubavam o OrcaSlicer ao abrir. Isso foi corrigido n
 <details>
 <summary>Não vejo a aba Organizer.</summary>
 
-A aba precisa de um OrcaSlicer com páginas de plugin, e o número de abas visíveis é definido em <b>Preferences > General > Plugins > Visible plugin pages</b>. Sem a aba, clique em <b>Run</b> no <i>Shape-Aware Arrange</i> em <b>File > Plugins</b>.
+A aba precisa de um OrcaSlicer com páginas de plugin, e o número de abas visíveis é definido em <b>Preferences > General > Plugins > Visible plugin pages</b>. Sem a aba, clique em <b>Run</b> no <i>Shape-Aware Arrange</i> na janela <b>Plugins</b>.
 </details>
 
 <details>

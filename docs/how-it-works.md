@@ -61,7 +61,8 @@ settings and other plates are kept.
    script. The tab shows the project, the selected plate and its object
    count, and follows your selection. Where the host has no plugin tabs
    (see Known limits), click **Run** on *Shape-Aware Arrange* in
-   **File > Plugins** instead: it opens the same controls in a panel docked
+   the **Plugins** window instead (▾ next to **File** on Windows and Linux,
+   **File > Plugins** on macOS): it opens the same controls in a panel docked
    on the right.
 3. Set the spacing and click **Arrange plate N**. Everything else is
    automatic: every part tries all 360 rotations (1° steps) and keeps the one
@@ -121,7 +122,7 @@ The plugin registers two entries that drive one run (they share state):
 - **Organizer** is a Pages capability: a tab in the main window, built when
   first shown. Orca's Pages API only offers tabs, so the plugin does not add
   a toolbar button or menu item.
-- **Shape-Aware Arrange** is the Script (File > Plugins > Run). It stays for
+- **Shape-Aware Arrange** is the Script (Plugins window > Run). It stays for
   hosts and workflows that use it, and opens the same controls docked.
 
 **Language.** The panel is in English, Brazilian Portuguese (pt-BR), Spanish, German, Simplified Chinese and Polish. It

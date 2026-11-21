@@ -34,7 +34,7 @@ OrcaSlicer's built-in Arrange treats every object as its convex hull, so concave
 
 First find OrcaSlicer's **Plugins** window:
 
-- **Windows and Linux:** click **File** at the top-left corner of the OrcaSlicer window, then **Plugins**. The ▾ menu right of **File** has **Plugins** too.
+- **Windows and Linux:** click the small ▾ arrow right of **File** at the top-left corner of the OrcaSlicer window, then **Plugins**. (**Plugins** is not inside **File** here.)
 - **macOS:** click **File** in the menu bar at the top of the screen (next to **OrcaSlicer**), then **Plugins**.
 
 From Orca Cloud: sign in to Orca Cloud in OrcaSlicer, open **Plugins** and click **Install plugin**. Orca Cloud's plugin list opens in your browser: find *Shape-Aware Arrange* and subscribe, or go straight to the [plugin page](https://cloud.orcaslicer.com/p/5bf381fd42d4). Updates arrive automatically.
@@ -111,7 +111,7 @@ From a file:
 
 Under **Advanced**, *Only 90° steps* turns parts only by quarter turns, so parts that are square to the bed stay square to it. *Keep each part's orientation* turns rotation off and only moves parts. Both fit fewer parts than *Automatic (1° steps)*.
 
-Where OrcaSlicer has no plugin tabs, click **Run** on *Shape-Aware Arrange* in **File > Plugins**. It opens the same controls in a panel docked on the right, and both entries share one run.
+Where OrcaSlicer has no plugin tabs, click **Run** on *Shape-Aware Arrange* in the **Plugins** window (see [Install](#-install)). It opens the same controls in a panel docked on the right, and both entries share one run.
 
 The spacing is the gap between the parts' top-down outlines and is never undercut. Positions sit on a 0.5 mm grid, so the real gap is typically about 1 mm larger, up to about 2 mm along slanted edges. The details of every step are in [how it works](docs/how-it-works.md).
 
@@ -160,7 +160,7 @@ Versions 0.9.0 to 0.9.2 crashed OrcaSlicer on start. This is fixed in 0.9.3. If 
 <details>
 <summary>I do not see the Organizer tab.</summary>
 
-The tab needs an OrcaSlicer with plugin pages, and the number of visible tabs is set under <b>Preferences > General > Plugins > Visible plugin pages</b>. Without the tab, click <b>Run</b> on <i>Shape-Aware Arrange</i> in <b>File > Plugins</b>.
+The tab needs an OrcaSlicer with plugin pages, and the number of visible tabs is set under <b>Preferences > General > Plugins > Visible plugin pages</b>. Without the tab, click <b>Run</b> on <i>Shape-Aware Arrange</i> in the <b>Plugins</b> window.
 </details>
 
 <details>
