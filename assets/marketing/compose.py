@@ -17,19 +17,19 @@ from PIL import Image, ImageDraw, ImageFilter
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent.parent
 SRC = HERE / "source"
-DATE = "2026-11-16"
+DATE = "2026-11-24"
 ID = "orca_organizer"
 LANGS = ("en", "pt-BR")
 
 # (source artwork, screenshot, export path, export size)
 JOBS = [(f"{ID}-workshop-tile.png", None, f"assets/orca-cloud/{ID}-tile.png", (512, 512))]
+# the listing is English only; pt-BR is exported only where README.pt-BR.md shows it (gallery and README images)
+JOBS += [
+    (f"{ID}-workshop-cover-en.png", "screen-filled-dark-en.png", f"assets/orca-cloud/{ID}-main-en.png", (1600, 900)),
+    (f"{ID}-workshop-main-square-en.png", "screen-form-dark-en-small.png", f"assets/orca-cloud/{ID}-main-square-en.png", (900, 900)),
+    (f"{ID}-workshop-social-preview-en.png", "screen-form-dark-en-medium.png", f"assets/social/{ID}-social-preview-en.png", (1280, 640)),
+]
 for lang in LANGS:
-    main = f"{ID}-workshop-cover-en.png" if lang == "en" else f"{ID}-workshop-main-pt-BR.png"
-    JOBS += [
-        (main, f"screen-filled-dark-{lang}.png", f"assets/orca-cloud/{ID}-main-{lang}.png", (1600, 900)),
-        (f"{ID}-workshop-main-square-{lang}.png", f"screen-form-dark-{lang}-small.png", f"assets/orca-cloud/{ID}-main-square-{lang}.png", (900, 900)),
-        (f"{ID}-workshop-social-preview-{lang}.png", f"screen-form-dark-{lang}-medium.png", f"assets/social/{ID}-social-preview-{lang}.png", (1280, 640)),
-    ]
     JOBS += [
         (f"{ID}-workshop-feature-{name}-{lang}.png", f"screen-{state}-dark-{lang}.png", f"assets/orca-cloud/{ID}-feature-{name}-{lang}.png", (1600, 900))
         for name, state in (("01-shape", "outlines"), ("02-fill", "filling"), ("03-spacing", "advanced"), ("04-review", "arranged"))

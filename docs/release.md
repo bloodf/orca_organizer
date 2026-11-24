@@ -22,11 +22,11 @@ a tag on its own does nothing. If a run fails, fix the cause and re-run it.
 The listing text and images are uploaded by hand on Orca Cloud (**Edit plugin**). The release workflow only
 publishes the plugin file and the changelog (cut to the 4000 characters Orca Cloud keeps).
 
-The description comes from [orca-cloud-description.md](orca-cloud-description.md): the English block for the
-English listing, the Portuguese block for the Portuguese one. Each block is under 4000 characters and already
-ends with the other five plugins, so nothing else is pasted after it.
+The listing is English only. The description is the one block in
+[orca-cloud-description.md](orca-cloud-description.md): under 4000 characters, it links to README.md for the full
+description and already ends with the other five plugins, so nothing else is pasted after it.
 
-All images are PNG and under 2 MB. Use the `-pt-BR` files for a Portuguese listing.
+All images are PNG and under 2 MB.
 
 | Listing slot | File | Size |
 |---|---|---|
@@ -43,6 +43,8 @@ once the commit that adds them is merged.
 
 The GitHub social preview (**Settings > General > Social preview**) is
 `assets/social/orca_organizer-social-preview-en.png` (1280x640).
+
+The `-pt-BR` gallery and `assets/readme/` images are kept only for README.pt-BR.md.
 
 To rebuild any of these, see "Listing and README images" in [development.md](development.md).
 `assets/marketing/asset-manifest.json` records how each file was made.

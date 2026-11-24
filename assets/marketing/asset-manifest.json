@@ -12,7 +12,7 @@
       ],
       "bytes": 185048,
       "sha256": "be8aaa40fc9830e48796a12c42df988855c13a37e91fa98aac5e834a233cf7c4",
-      "date": "2026-11-16"
+      "date": "2026-11-24"
     },
     {
       "file": "assets/orca-cloud/orca_organizer-main-en.png",
@@ -23,9 +23,9 @@
         1600,
         900
       ],
-      "bytes": 1317473,
-      "sha256": "3bb51114fe0109a6c67c3f8f1beb2cbc1b29253c9bba45354ea94798f8a1274a",
-      "date": "2026-11-16"
+      "bytes": 1319813,
+      "sha256": "32d8206cc2cc661ebcd60403ede32b438e1a631bd1a189a26fa91f0a2ba39ae3",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/orca-cloud/orca_organizer-main-square-en.png",
@@ -36,9 +36,9 @@
         900,
         900
       ],
-      "bytes": 849272,
-      "sha256": "e80a0f2274b1314d75850f43f38e9343f3d9ad619b8ddc1d386d8d68106bc14c",
-      "date": "2026-11-16"
+      "bytes": 851240,
+      "sha256": "cc55aa58aa753291b8e4f7c38412755a0e8285e45a994045f0a309175d7c570d",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/social/orca_organizer-social-preview-en.png",
@@ -49,9 +49,9 @@
         1280,
         640
       ],
-      "bytes": 793400,
-      "sha256": "b40576ba95772d2fe9cdb60cd792c7d945d101494a99dbd04111f8dd2a29254e",
-      "date": "2026-11-16"
+      "bytes": 796060,
+      "sha256": "65b532c09c574cc0c657d1f24b81255477542d19ceecbd55362827138e7a0ad6",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/orca-cloud/orca_organizer-feature-01-shape-en.png",
@@ -62,9 +62,9 @@
         1600,
         900
       ],
-      "bytes": 1245191,
-      "sha256": "7aecd8ea507f48fb10be592e44a76db763f780535d20bf0c757cbfd9c5c08f5d",
-      "date": "2026-11-16"
+      "bytes": 1247908,
+      "sha256": "ee9ef149cdc12c05f792691a1f9ffb2276215a2ff04c3e95d0b0a72c6343e543",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/orca-cloud/orca_organizer-feature-02-fill-en.png",
@@ -75,9 +75,9 @@
         1600,
         900
       ],
-      "bytes": 1196794,
-      "sha256": "07125a1f113722873af48a83804c9eb51387d7d78c485dd45e186c58a6c72e12",
-      "date": "2026-11-16"
+      "bytes": 1198909,
+      "sha256": "6681abeeb55d141d58cc0e21116bfa466bf6024a93116d194f72ba81c995e64e",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/orca-cloud/orca_organizer-feature-03-spacing-en.png",
@@ -88,9 +88,9 @@
         1600,
         900
       ],
-      "bytes": 1280901,
-      "sha256": "ee4d456a993d275e0752dbca8c1bf0caae1c10a3c2d19a45c6c9d88beb9b62f1",
-      "date": "2026-11-16"
+      "bytes": 1282908,
+      "sha256": "5143ab1976b0c9bcdd563a47d17de2b70d43e64d10345e4ca79a7ba7bdfbebe2",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/orca-cloud/orca_organizer-feature-04-review-en.png",
@@ -101,9 +101,9 @@
         1600,
         900
       ],
-      "bytes": 1264566,
-      "sha256": "19e85935bf352205778d84bf7829012811f0edeffdcec6a6ffad4830fc1558f6",
-      "date": "2026-11-16"
+      "bytes": 1267280,
+      "sha256": "8cfc833ff13f8f187d61c60a8bec66f45101194386d9c03df97b3b80c84a123e",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-hero-dark-en.png",
@@ -114,9 +114,9 @@
         1600,
         900
       ],
-      "bytes": 1257419,
-      "sha256": "0f05b54d9ca99c8448a12b8be3d3575d59d36b6b7630eb0f36fb074445c8cb12",
-      "date": "2026-11-16"
+      "bytes": 1261082,
+      "sha256": "32ec6f13b3a41d8798211bc114491d42aa254d6fb74b2213e0f66256f38db182",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-hero-light-en.png",
@@ -127,48 +127,9 @@
         1600,
         900
       ],
-      "bytes": 1270827,
-      "sha256": "e5902e649fb9f55a739000bd2e822c59a88272620e6be9933b0efb51cd64666e",
-      "date": "2026-11-16"
-    },
-    {
-      "file": "assets/orca-cloud/orca_organizer-main-pt-BR.png",
-      "source": "assets/marketing/source/orca_organizer-workshop-main-pt-BR.png",
-      "screenshot": "assets/marketing/source/screens/screen-filled-dark-pt-BR.png",
-      "operation": "screenshot scaled to cover the empty square [885, 100, 1597, 787] and blended under the frame's inner edge; scale 1672x941 to 1600x900 (Lanczos)",
-      "size": [
-        1600,
-        900
-      ],
-      "bytes": 1305804,
-      "sha256": "84bfd3a2c777d5bfa89e13aa3eef6cc172a75d679639bcd1099fd2cb53641360",
-      "date": "2026-11-16"
-    },
-    {
-      "file": "assets/orca-cloud/orca_organizer-main-square-pt-BR.png",
-      "source": "assets/marketing/source/orca_organizer-workshop-main-square-pt-BR.png",
-      "screenshot": "assets/marketing/source/screens/screen-form-dark-pt-BR-small.png",
-      "operation": "screenshot scaled to cover the empty square [721, 420, 1219, 911] and blended under the frame's inner edge; scale 1254x1254 to 900x900 (Lanczos)",
-      "size": [
-        900,
-        900
-      ],
-      "bytes": 855483,
-      "sha256": "5558909cc5361af442b97c4f66e0182e81965cd63b200fb35616ee5ed69e1471",
-      "date": "2026-11-16"
-    },
-    {
-      "file": "assets/social/orca_organizer-social-preview-pt-BR.png",
-      "source": "assets/marketing/source/orca_organizer-workshop-social-preview-pt-BR.png",
-      "screenshot": "assets/marketing/source/screens/screen-form-dark-pt-BR-medium.png",
-      "operation": "screenshot scaled to cover the empty square [993, 86, 1701, 757] and blended under the frame's inner edge; scale 1774x887 to 1280x640 (Lanczos)",
-      "size": [
-        1280,
-        640
-      ],
-      "bytes": 784456,
-      "sha256": "475c2909ac929838fe481536a1681fae5f31448edb298f9bc146c918ae3bbf96",
-      "date": "2026-11-16"
+      "bytes": 1274532,
+      "sha256": "f400fc8705e011c1e060f3c14b59e19758e277a53ffb6d586cfe6b4084e91c41",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/orca-cloud/orca_organizer-feature-01-shape-pt-BR.png",
@@ -179,9 +140,9 @@
         1600,
         900
       ],
-      "bytes": 1268261,
-      "sha256": "858bda89fa81cfc732500016f1cef795c1168b8ec0b09d62139cb562155d7578",
-      "date": "2026-11-16"
+      "bytes": 1269938,
+      "sha256": "c027ca8fda4555a94631a966134ca7914e82d09537ca47346d5a92b61feea8ba",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/orca-cloud/orca_organizer-feature-02-fill-pt-BR.png",
@@ -192,9 +153,9 @@
         1600,
         900
       ],
-      "bytes": 1188180,
-      "sha256": "de73c4ae7d7cac6ff01031136f2ddea9bb74184bb171a9f37dda2d4c0ef031fc",
-      "date": "2026-11-16"
+      "bytes": 1190273,
+      "sha256": "60be9462fa682dee505de829e85649a71dda61ea185b6058f13b44589dd49ca2",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/orca-cloud/orca_organizer-feature-03-spacing-pt-BR.png",
@@ -205,9 +166,9 @@
         1600,
         900
       ],
-      "bytes": 1297617,
-      "sha256": "8033f321136cd27924b47b1f026f54ad61c932b9cb24d267df291a603fcc8a7a",
-      "date": "2026-11-16"
+      "bytes": 1299317,
+      "sha256": "70166a5615a1e1700799f5b1841680f1f9dd778a99cc94a2f12e1465e0228af6",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/orca-cloud/orca_organizer-feature-04-review-pt-BR.png",
@@ -218,9 +179,9 @@
         1600,
         900
       ],
-      "bytes": 1293245,
-      "sha256": "e91ab653007da37d2f2d0d125abe987379a92bb4256642ef6fba8f618148a04a",
-      "date": "2026-11-16"
+      "bytes": 1295536,
+      "sha256": "f8efa93da5c7e1310dde4dfb06c9ee3e991dabdc9ddc7e54fe0deac10fe526d5",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-hero-dark-pt-BR.png",
@@ -231,9 +192,9 @@
         1600,
         900
       ],
-      "bytes": 1281292,
-      "sha256": "7ec9752d1a74a3e8aab2e7607b61904003729f0cb9ae269c177d12d8f239e9bd",
-      "date": "2026-11-16"
+      "bytes": 1284144,
+      "sha256": "76d5e8f9b774f0ad5701ef14c8b513c830f8e2bd84b3bd833c802f4e1a928ce5",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-hero-light-pt-BR.png",
@@ -244,9 +205,9 @@
         1600,
         900
       ],
-      "bytes": 1323749,
-      "sha256": "25a8da728d42470bb6014baa46967f852e9d0afffab349eca82f09dbdb5112c4",
-      "date": "2026-11-16"
+      "bytes": 1326348,
+      "sha256": "d838db11535ffcb85d799584a18129e5ebc8b321f00d54ee4d6ccc2a450cce7c",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-screen-result-dark-en.png",
@@ -257,9 +218,9 @@
         2080,
         820
       ],
-      "bytes": 173291,
-      "sha256": "31562563c6ca16c9e9bee264c7c1ef35eafa4f61a4b6fd5d010c7f4a6cd685ba",
-      "date": "2026-11-16"
+      "bytes": 175843,
+      "sha256": "e20824e0b00e390f19066e9062c7ff5677c4d1aaa6c0cd6659ff06239db00604",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-screen-result-dark-pt-BR.png",
@@ -270,9 +231,9 @@
         2080,
         820
       ],
-      "bytes": 186196,
-      "sha256": "2c6f7f7f05a38aed10e6caa7676fa31cd4a3d4d2081bb000d0f0309f0b3ca120",
-      "date": "2026-11-16"
+      "bytes": 188799,
+      "sha256": "f257d78ceb9a6234ed1eb54dad372907f00cad0859f9bd8b0454e51a377ab152",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-screen-result-light-en.png",
@@ -283,9 +244,9 @@
         2080,
         820
       ],
-      "bytes": 175234,
-      "sha256": "b0f0a64d8110d6066e75149d22d6a3e7e4c6f65d7a60bfae6d29dcf5e1992a64",
-      "date": "2026-11-16"
+      "bytes": 177771,
+      "sha256": "9b7c13c4d4974a82a4c470bdebcc3610ee7cae7875ec1bc5af1d9e6361e7b2d3",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-screen-result-light-pt-BR.png",
@@ -296,9 +257,9 @@
         2080,
         820
       ],
-      "bytes": 188397,
-      "sha256": "c143d9b076b12f67e793cc899195276eb61bf46990697889fcff3c19b81ce6dd",
-      "date": "2026-11-16"
+      "bytes": 190939,
+      "sha256": "23d4bb3a24d0dde481e53c7c40df5a2576554fc3a5e07670661783dd3d92cb24",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-screen-advanced-dark-en.png",
@@ -309,9 +270,9 @@
         2080,
         1460
       ],
-      "bytes": 179427,
-      "sha256": "1ebf2cac34b63ae2510ed086d1bca702aaa2b4600a0d93d25b525307839aa032",
-      "date": "2026-11-16"
+      "bytes": 180831,
+      "sha256": "09765a0e72d9f817b92641c1db8d8c6e5011a151ea0de18216da85c68dff4fb8",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-screen-advanced-dark-pt-BR.png",
@@ -322,9 +283,9 @@
         2080,
         1460
       ],
-      "bytes": 196550,
-      "sha256": "2a3aadd5242c98f3007eacc438e4e21ddf5e051ef0fda518c3acc76f92b7fb9c",
-      "date": "2026-11-16"
+      "bytes": 198741,
+      "sha256": "291d1d4f3719493ab351d2de092407fc45c656cec7f5eb4fff2d7f44d18fec80",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-screen-advanced-light-en.png",
@@ -335,9 +296,9 @@
         2080,
         1460
       ],
-      "bytes": 181356,
-      "sha256": "21493b83449ccdc42eacc41a2744c6b2ae9b75210735fc2028699df731085555",
-      "date": "2026-11-16"
+      "bytes": 182728,
+      "sha256": "4af3a0b6661b8b916fdefb02e0fc6f04a1b6c61bf12eab70ddc3e64cff58eb6e",
+      "date": "2026-11-24"
     },
     {
       "file": "assets/readme/orca_organizer-screen-advanced-light-pt-BR.png",
@@ -348,9 +309,9 @@
         2080,
         1460
       ],
-      "bytes": 199870,
-      "sha256": "1d19b1805f14e5059b6b8480d24d8d241a9d64f53383eb5bda1aa56cc87fcdc0",
-      "date": "2026-11-16"
+      "bytes": 202081,
+      "sha256": "fcef755d3ae3969cf3ff459865f793e33d22eb740bfad301d4a4596590bb5624",
+      "date": "2026-11-24"
     }
   ],
   "sources": [
@@ -472,15 +433,6 @@
       "sha256": "dbdeb8189ebf8819a1a0b5b51602749fca70a24468792eaecc1d93f1868f3dd1"
     },
     {
-      "file": "assets/marketing/source/orca_organizer-workshop-main-pt-BR.png",
-      "size": [
-        1672,
-        941
-      ],
-      "bytes": 1696780,
-      "sha256": "98a856baa79836c1a31dda0970e9d47354e1494bbfdde3bdab504d65c56ed032"
-    },
-    {
       "file": "assets/marketing/source/orca_organizer-workshop-main-square-en.png",
       "size": [
         1254,
@@ -490,15 +442,6 @@
       "sha256": "3ac9e16f83998f79b5886cf0997ddb62e8e1fd701203481b87fc7ed3f5345e02"
     },
     {
-      "file": "assets/marketing/source/orca_organizer-workshop-main-square-pt-BR.png",
-      "size": [
-        1254,
-        1254
-      ],
-      "bytes": 1826609,
-      "sha256": "90e633045abf4262f308a5b26eadf980d35383de1c9733d3c6587953b0c97d0a"
-    },
-    {
       "file": "assets/marketing/source/orca_organizer-workshop-social-preview-en.png",
       "size": [
         1774,
@@ -506,15 +449,6 @@
       ],
       "bytes": 1799209,
       "sha256": "a9c84495da4e9340729ee1ea07d60d915abd913614685ddeab8923886a9fdf01"
-    },
-    {
-      "file": "assets/marketing/source/orca_organizer-workshop-social-preview-pt-BR.png",
-      "size": [
-        1774,
-        887
-      ],
-      "bytes": 1772918,
-      "sha256": "2830d9f105c8476baf3552304b58cced99c05f90b76daabe2250f1d61c3b1ecb"
     },
     {
       "file": "assets/marketing/source/orca_organizer-workshop-tile.png",
@@ -531,8 +465,8 @@
         2080,
         1460
       ],
-      "bytes": 176639,
-      "sha256": "078c990f5888db38de60596b05421cc94e8842bf4f8d44e1d3a5ea4558a1d6e9"
+      "bytes": 178470,
+      "sha256": "0d02652e7231dff62d310261662bf447327d12c07623e8fc6cd0bd940937092e"
     },
     {
       "file": "assets/marketing/source/screens/screen-advanced-dark-en.png",
@@ -540,8 +474,8 @@
         1580,
         1522
       ],
-      "bytes": 173272,
-      "sha256": "52293ea4545d50104796d5ec6e8d81bdf0528a1bbbd8312080056d12eaf4415f"
+      "bytes": 174941,
+      "sha256": "980713718b71a7dac595b01dec0d39fa84f08b6851ef2046d18f3452723ac9a8"
     },
     {
       "file": "assets/marketing/source/screens/screen-advanced-dark-pt-BR-wide.png",
@@ -549,8 +483,8 @@
         2080,
         1460
       ],
-      "bytes": 194208,
-      "sha256": "093496ccf831f3ff243401e1f6a353fa239855a26aba76e3c968f788eec9150f"
+      "bytes": 196016,
+      "sha256": "e782e7ff8888fbd32ae0a515b0dbbf9b1a2f455657a86195af46fdd1a14d5c31"
     },
     {
       "file": "assets/marketing/source/screens/screen-advanced-dark-pt-BR.png",
@@ -558,8 +492,8 @@
         1580,
         1522
       ],
-      "bytes": 188976,
-      "sha256": "adb0284ae9bfc6311ba1ae03646713869d4e33b0621fbfb274ca0ea7af34d30f"
+      "bytes": 190847,
+      "sha256": "65f62dc5c6f5fef42a74ea69e915bcf7dcde54fbd2be5a47a78d008e437780d2"
     },
     {
       "file": "assets/marketing/source/screens/screen-advanced-light-en-wide.png",
@@ -567,8 +501,8 @@
         2080,
         1460
       ],
-      "bytes": 178317,
-      "sha256": "64be5b8031ed90a93644b51bb9d4e016dd5ac27658eb4eed42bfe857de7f9fcf"
+      "bytes": 180038,
+      "sha256": "f65666ef8ee61e4ea3bec206c2d6082f20068db1d0d4a8c5fd5a829288c89cde"
     },
     {
       "file": "assets/marketing/source/screens/screen-advanced-light-pt-BR-wide.png",
@@ -576,8 +510,8 @@
         2080,
         1460
       ],
-      "bytes": 196585,
-      "sha256": "f04c625a2530a45fbbf5de619f76bdd600c47a8ec7cf3f8c1d76d297a3ccb269"
+      "bytes": 198345,
+      "sha256": "7cc55c1b0eaf02179d4103c900d3f83012670862536a1e22154c4a2a31b93cf6"
     },
     {
       "file": "assets/marketing/source/screens/screen-arranged-dark-en.png",
@@ -585,8 +519,8 @@
         1400,
         1348
       ],
-      "bytes": 155791,
-      "sha256": "8ead6d937250ee025ab0c79b23569bdb8ecf60dafeb05fd03d8ab9c8f9804d68"
+      "bytes": 158629,
+      "sha256": "b04e6280079d9ecd9ec7c4d9acf8a68ffb09e5eed7b0f20d808855a9a5d424b8"
     },
     {
       "file": "assets/marketing/source/screens/screen-arranged-dark-pt-BR.png",
@@ -594,8 +528,8 @@
         1400,
         1348
       ],
-      "bytes": 168553,
-      "sha256": "6bba13a8d266b0b33ef407895936ece210b378a85d54eda497e74304dd549922"
+      "bytes": 171305,
+      "sha256": "5c3eddebf1ac4d2c3024c58af5b1b71f8abcbda69d128cf02917cf9c7a6d2b2d"
     },
     {
       "file": "assets/marketing/source/screens/screen-filled-dark-en-wide.png",
@@ -603,8 +537,8 @@
         2080,
         820
       ],
-      "bytes": 168047,
-      "sha256": "e400da22f25f6895d422818eebef5a20d14d988729e261ca2ba6fe6b9658d0b5"
+      "bytes": 170476,
+      "sha256": "e0830544e7d9c09a3bc6aeb9dccd65526c9b53704763c52c638f8aded703c493"
     },
     {
       "file": "assets/marketing/source/screens/screen-filled-dark-en.png",
@@ -612,8 +546,8 @@
         1400,
         1348
       ],
-      "bytes": 175244,
-      "sha256": "99a48d299105a65012ffeb5a1cd063459be4df746bc25f70297e9d25f769fa3c"
+      "bytes": 177907,
+      "sha256": "e875fad595bee8f0cc9984d304ca7c4b0355b5dd3214f5f3e60984410c00260d"
     },
     {
       "file": "assets/marketing/source/screens/screen-filled-dark-pt-BR-wide.png",
@@ -621,17 +555,8 @@
         2080,
         820
       ],
-      "bytes": 180550,
-      "sha256": "9a1303e7a4193012da527d9a6b27f531756fbd0e5d0d6d4c4ade6fbb0c7a3e38"
-    },
-    {
-      "file": "assets/marketing/source/screens/screen-filled-dark-pt-BR.png",
-      "size": [
-        1400,
-        1348
-      ],
-      "bytes": 188718,
-      "sha256": "b6072e66b40ac7e4b80b3e06eda80f56f99644927c5b6e5546d1a2f8caa8b15c"
+      "bytes": 183026,
+      "sha256": "3bce504ca405a11f4f2a92c1e89b77a763ea2c93da485280789034ed479a3d84"
     },
     {
       "file": "assets/marketing/source/screens/screen-filled-light-en-wide.png",
@@ -639,8 +564,8 @@
         2080,
         820
       ],
-      "bytes": 169183,
-      "sha256": "f8e6fa791ae0e9580fa6f8403985368983a5ae7114a4841dba4a6f0763da1cfb"
+      "bytes": 171389,
+      "sha256": "d055f4f507079cf8d3b963cbf4dbcba934af0087eade06e02cd538298a69c0da"
     },
     {
       "file": "assets/marketing/source/screens/screen-filled-light-pt-BR-wide.png",
@@ -648,8 +573,8 @@
         2080,
         820
       ],
-      "bytes": 181791,
-      "sha256": "d6c90f7f9aa39180491ff5205e37d0f03826681e1dd783d1dec7b4c11bced8a7"
+      "bytes": 184123,
+      "sha256": "b8b10fb02a375ca617af76072d1be186546b055c43f4fb413d2cf38952ef2a4d"
     },
     {
       "file": "assets/marketing/source/screens/screen-filling-dark-en.png",
@@ -657,8 +582,8 @@
         1400,
         1348
       ],
-      "bytes": 91307,
-      "sha256": "531a817c877d10747844e5355aab6dacfa5042e124f64b819eba703e0a89a154"
+      "bytes": 92856,
+      "sha256": "85ad43728b70f305422dafe6dfb3c0fd8449964f11a10d5f727b3860f0b74646"
     },
     {
       "file": "assets/marketing/source/screens/screen-filling-dark-pt-BR.png",
@@ -666,8 +591,8 @@
         1400,
         1348
       ],
-      "bytes": 103133,
-      "sha256": "db68d0bee2c191a3e001c48e1f257667789dc71e1253576388ce73c800c93215"
+      "bytes": 105025,
+      "sha256": "419183c562dd040ac556dc9805dd5a98397dc2671cc4d4e47d39e64fee4998ff"
     },
     {
       "file": "assets/marketing/source/screens/screen-form-dark-en-medium.png",
@@ -675,8 +600,8 @@
         920,
         886
       ],
-      "bytes": 73245,
-      "sha256": "fc3eb695daab397853b8c69665c45abdfda36c7584ec2e9ce3dd81fc978483c5"
+      "bytes": 75223,
+      "sha256": "f15380ba2d0b8f2440fe5fb048f8ff00d3b477261e704e6e1906e085e6394165"
     },
     {
       "file": "assets/marketing/source/screens/screen-form-dark-en-small.png",
@@ -684,8 +609,8 @@
         840,
         828
       ],
-      "bytes": 73782,
-      "sha256": "5f6849033d53776df583b827c4852ee4e6a0f91f99b28bf01b9a880c0ecbc802"
+      "bytes": 75727,
+      "sha256": "dc042f672035be897299f6099f6d6162f042d603fb84d3fef6f2c5b2bc29e4b7"
     },
     {
       "file": "assets/marketing/source/screens/screen-form-dark-pt-BR-medium.png",
@@ -693,17 +618,8 @@
         920,
         886
       ],
-      "bytes": 81634,
-      "sha256": "8ee2a5e889800fc793f5a2e6a6f795ed59ccd161cf3f5c79d6f0900d54da7742"
-    },
-    {
-      "file": "assets/marketing/source/screens/screen-form-dark-pt-BR-small.png",
-      "size": [
-        840,
-        828
-      ],
-      "bytes": 83086,
-      "sha256": "57d86cc09e31a1c28faa2ffc0efb742440a3e4843914ec4522f3c35d3e4c7955"
+      "bytes": 83024,
+      "sha256": "88a2fe9d59212d868e558359e623d10e18593270896ba2b07763f884a020e468"
     },
     {
       "file": "assets/marketing/source/screens/screen-form-light-en-medium.png",
@@ -711,8 +627,8 @@
         920,
         886
       ],
-      "bytes": 72258,
-      "sha256": "084ffd7caca2b9f3b1dc8cfb8800c9c559e057d1b0a566ed5ef165ede806b641"
+      "bytes": 74222,
+      "sha256": "d55ecc3d32093d26b7e279d341c00ad31c6e43ef0eebd2aac97d8a6614237a85"
     },
     {
       "file": "assets/marketing/source/screens/screen-form-light-pt-BR-medium.png",
@@ -720,8 +636,8 @@
         920,
         886
       ],
-      "bytes": 80277,
-      "sha256": "eb25a156a8692575824bfe9a1317687ee623a52dd7a6083f3c9faaf5524683e5"
+      "bytes": 81604,
+      "sha256": "d4a3e0af3c3c57c99ce0de5298d3eded6e7ba7be36d877cc01efcb8fb6896467"
     },
     {
       "file": "assets/marketing/source/screens/screen-outlines-dark-en.png",
@@ -729,8 +645,8 @@
         1400,
         1348
       ],
-      "bytes": 93285,
-      "sha256": "3febd7cc6f309d6b145c7b756ea8b822764672ff89a7c8265aad4934d67a19dc"
+      "bytes": 94905,
+      "sha256": "2f6493a4c7411d1b6d04f6c3016bad99696d2e9c7c16223e04905a4a2ae851c0"
     },
     {
       "file": "assets/marketing/source/screens/screen-outlines-dark-pt-BR.png",
@@ -738,8 +654,8 @@
         1400,
         1348
       ],
-      "bytes": 104312,
-      "sha256": "84fcc319a00c0a4670517efc7e35a4743a62c1c66ce55f69aa0c4002cee3095f"
+      "bytes": 106189,
+      "sha256": "d0b45c0216969cd36aea1fa86560e3414c6c513dbc5b7e5d158661c1efadef95"
     }
   ]
 }
