@@ -1,6 +1,6 @@
 # Orca Cloud description
 
-The text of the Orca Cloud listing ([Shape-Aware Arrange](https://cloud.orcaslicer.com/p/5bf381fd42d4)). The listing is English only: paste the block below into the description (2590 characters, the limit is 4000). It links to [README.md](../README.md) for the full description. The images load from `main` on GitHub, so they show once the commit that adds them is merged. The listing slots and image files are in [release.md](release.md).
+The text of the Orca Cloud listing ([Organizer](https://cloud.orcaslicer.com/p/5bf381fd42d4)). The listing is English only: paste the block below into the description (2580 characters, the limit is 4000). It links to [README.md](../README.md) for the full description. The images load from `main` on GitHub, so they show once the commit that adds them is merged. The listing slots and image files are in [release.md](release.md).
 
 ```markdown
 Arrange parts by their real outline and fill a plate with more copies.
@@ -23,9 +23,9 @@ Full description: https://github.com/bloodf/orca_organizer/blob/main/README.md
 
 Needs OrcaSlicer 2.5 or later. OrcaSlicer installs numpy and Pillow for you.
 
-1. Open **Plugins**. macOS: **File > Plugins** in the menu bar. Windows and Linux: the small ▾ arrow right of **File** at the top-left of the window, then **Plugins**.
-2. Click **Install plugin**, find *Shape-Aware Arrange* and subscribe.
-3. Tick **Activate** and allow the thread and launch prompts.
+1. Subscribe on this page.
+2. In OrcaSlicer open **Plugins**. macOS: **File > Plugins** in the menu bar. Windows and Linux: the small ▾ arrow right of **File** at the top-left of the window, then **Plugins**.
+3. Tick **Activate** on the Organizer row and allow the thread and launch prompts.
 
 ## How to use
 
