@@ -77,7 +77,7 @@ try {
 
   // ---- made-up data: a plate of brackets, clips and gears
   const name = 'bracket-set';
-  const path = '/Users/maker/OrcaSlicer/plugins/storage/bracket-set-arranged-20261116-101500-3fa2c1.3mf';
+  const path = '/example/user/OrcaSlicer/plugins/storage/bracket-set-arranged-20261116-101500-3fa2c1.3mf';
   const ref = { stem: name, plate: 1 };
   const base = (lang) => ({ sync: true, lang, job: null, busy: false, stale: '', stale_ref: null, context: 'x', ctx: { plate: 1, objects: 14, name, problem: null } });
   const result = { ...ref, code: 'done', limit: false, max: 300, tower: false, clearance: null, keep: false, unplaced: [], open: 'asked' };

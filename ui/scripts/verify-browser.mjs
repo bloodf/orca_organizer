@@ -133,7 +133,7 @@ try {
 
   // ---- scenarios (the host's real protocol, delivered by the driver)
   const longName = 'Benchy-with-a-really-long-project-file-name-to-check-wrapping';
-  const longPath = '/Users/someone/Library/Application Support/OrcaSlicer/plugins/storage/' + longName + '-arranged-20261111-195500-1f3ffe.3mf';
+  const longPath = '/example/user/Library/Application Support/OrcaSlicer/plugins/storage/' + longName + '-arranged-20261111-195500-1f3ffe.3mf';
   const ctx = (extra = {}) => ({ plate: 2, objects: 7, name: longName, problem: null, ...extra });
   const base = (lang) => ({ sync: true, lang, job: null, busy: false, stale: '', stale_ref: null, context: 'x' });
   const ref = { stem: longName, plate: 2 };
