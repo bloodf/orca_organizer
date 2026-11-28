@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.16.4 (2026-11-28)
+
+- Shared Orca UI foundation 5.13.0, with the Vite 8.4.0 and Vitest 5.1.2 build tools. The panel looks and works the same.
+
 ## 0.16.3 (2026-11-22)
 
 - Shared Orca UI foundation 5.10.0. The panel looks and works the same.
