@@ -84,11 +84,12 @@ async function walk(lang: Lang): Promise<string[][]> {
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.resolve() } });
   await sync({ job: 'j9', path: PATH, text: 'EN', ctx: ctx(3), msg: done });
   look(); // the result with every note, the saved copy and New arrangement in the bar
-  panel.q('#copy')!.click();
+  panel.q('[data-test="saved-copy"]')!.click();
   await panel.flush();
   look(); // Path copied.
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('denied')) } });
-  panel.q('#copy')!.click();
+  panel.q('[data-test="saved-copy"]')!.click();
+  await panel.flush();
   await panel.flush();
   await panel.flush();
   look(); // the path is selected instead
@@ -338,9 +339,9 @@ describe.each(Object.entries(WORDING) as [keyof typeof WORDING, Wording][])('the
     expect(lines).toContain(w.unplaced);
     expect(lines.length).toBe(9);
     expect(lines[8]).toBe(w.opened);
-    expect(panel.text('#file')).toBe('P');
-    expect(panel.text('#saved-what')).toBe(w.title);
-    expect(panel.text('#open')).toBe(w.open); // already asked: the button is the second try
+    expect(panel.text('.oui-saved-title')).toBe('P');
+    expect(panel.text('.oui-saved-meta')).toBe(w.title);
+    expect(panel.text('[data-test="saved-open"]')).toBe(w.open); // already asked: the button is the second try
     expect(panel.q('#again')!.getAttribute('aria-label')).toBe(w.again);
     expect(panel.q('#again')!.getAttribute('title')).toBe(w.again);
   });

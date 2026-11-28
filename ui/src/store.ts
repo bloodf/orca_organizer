@@ -1,4 +1,4 @@
-import { computed, nextTick, reactive } from 'vue';
+import { computed, reactive } from 'vue';
 import { showToast } from '@orca-plugins/ui-foundation/src/components/toast';
 import { localeOf, numberFormat, pickLang, strings, type Lang } from './messages';
 import { MAX_COPIES, type Bridge, type Ctx, type HostMessage, type Prefs, type Requirement, type Rotation, type StaleRef } from './protocol';
@@ -42,12 +42,10 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     busy: false,
     cancelling: false,
     path: null as string | null,
-    pathShown: false, // the storage path is on screen: the copy could not be put on the clipboard, so it is selected instead
     resultVisible: false,
     formOpen: false, // the dock shows one thing at a time: true once the user went from a result back to the form
     job: null as string | null, // the job the status is about: the identity of its banners (dismissed per run)
     errorSeq: 0, // errors the plugin sent outside a job (start_failed): each one is news, even the same sentence again
-    clipboard: false,
     spacing: 2 as number | null,
     rotation: 'auto' as Rotation,
     copies: null as number | null, // Fill's copy limit; empty: as many as fit
@@ -176,7 +174,6 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   };
 
   const detectClipboard = () => {
-    state.clipboard = typeof navigator !== 'undefined' && !!navigator.clipboard && typeof navigator.clipboard.writeText === 'function';
   };
 
   function setBusy(busy: boolean) {
@@ -246,7 +243,6 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
       done = m.job ?? null;
       if (state.path !== m.path) {
         state.formOpen = false;
-        state.pathShown = false;
       }
       state.path = m.path;
       state.resultVisible = true;
@@ -304,31 +300,9 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     bridge.postMessage({ action: 'open', job: done });
   }
 
-  /** The WebView may refuse the clipboard: then `select` marks the text for Ctrl/Cmd+C and a toast says so. */
-  function copyText(text: string, copied: string, select: () => void) {
-    const fail = () => {
-      try {
-        select();
-      } catch {
-        /* selection is a courtesy; the toast still tells the user what to do */
-      }
-      showToast({ tone: 'warn', title: s.value.copyFail, key: 'copy' });
-    };
-    try {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast({ tone: 'success', title: copied, key: 'copy' });
-      }, fail);
-    } catch {
-      fail();
-    }
-  }
-
-  /** The storage path is not on screen (a generated name in an internal folder). When it cannot be copied, it is shown and selected. */
-  function copyPath(select: () => void) {
-    copyText(state.path ?? '', s.value.copied, () => {
-      state.pathShown = true;
-      void nextTick(select);
-    });
+  /** After the saved copy's Copy path: a toast says whether the clipboard took it (if not, the card shows the path, selected). */
+  function pathCopied(ok: boolean) {
+    showToast(ok ? { tone: 'success', title: s.value.copied, key: 'copy' } : { tone: 'warn', title: s.value.copyFail, key: 'copy' });
   }
 
   /** From a result back to the form (the dock hides the form while a result is shown). */
@@ -393,7 +367,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
 
   return {
     state, lang, s, t, loading, ctxText, ctxProblem, ctxDetail, goLabel, fillLabel, staleText, missing, blockedText, blockedBy, empty, plateText, projectName, statusView, progress, hasCount, percent, countText, jobView, result,
-    run, setSpacing, setRotation, setCopies, cancel, open, copyText, copyPath, again, recheck, retry, start, stop, onMessage,
+    run, setSpacing, setRotation, setCopies, cancel, open, pathCopied, again, recheck, retry, start, stop, onMessage,
   };
 }
 

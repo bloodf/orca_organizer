@@ -44,7 +44,8 @@ watch(
   async (request) => {
     if (!request) return;
     await nextTick();
-    document.getElementById(request.id)?.focus();
+    // The saved copy's Open button has no id of its own yet (foundation 5.14.1 adds openId).
+    (document.getElementById(request.id) ?? (request.id === 'open' ? document.querySelector<HTMLElement>('[data-test="saved-open"]') : null))?.focus();
   },
 );
 

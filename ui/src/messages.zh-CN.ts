@@ -78,7 +78,7 @@ export function zhCN(num: Num): Strings {
     next: '下一步：',
     detailsLabel: '技术详情',
     detailsCopy: '复制',
-    detailsCopied: '详情已复制。',
+    detailsCopied: '已复制',
     err: {
       bad_number: ['间距必须是不小于 0 mm 的数字。', '请输入 2 之类的数值后重试。'],
       bad_step: ['旋转步长必须是不小于 0° 的数字。', '请使用 15 之类的步长（0 表示保持每个零件的朝向）后重试。'],
@@ -133,7 +133,7 @@ export function zhCN(num: Num): Strings {
     copied: '路径已复制。',
     close: '关闭',
     notifications: '通知',
-    copyFail: '无法自动复制。文本已选中：请按 Ctrl+C（Mac 上按 ⌘C）。',
+    copyFail: '无法自动复制。路径已选中：请按 Ctrl+C（Mac 上按 ⌘C）。',
     req: '依赖项',
     reqBlocked: (a: { names: string }) => '自动摆放和铺满已停用：无法加载 ' + a.names + '。请查看下方的依赖项。',
     reqMissing: '未找到',

@@ -82,7 +82,7 @@ export function de(num: Num, plural: Plural): Strings {
     next: 'Nächster Schritt: ',
     detailsLabel: 'Technische Details',
     detailsCopy: 'Kopieren',
-    detailsCopied: 'Details kopiert.',
+    detailsCopied: 'Kopiert',
     err: {
       bad_number: ['Der Abstand muss eine Zahl von 0 mm oder mehr sein.', 'Geben Sie einen Wert wie 2 ein und versuchen Sie es erneut.'],
       bad_step: [
@@ -159,7 +159,7 @@ export function de(num: Num, plural: Plural): Strings {
     copied: 'Pfad kopiert.',
     close: 'Schließen',
     notifications: 'Benachrichtigungen',
-    copyFail: 'Automatisches Kopieren nicht möglich. Der Text ist markiert: Drücken Sie Strg+C (⌘C auf dem Mac).',
+    copyFail: 'Automatisches Kopieren nicht möglich. Der Pfad ist markiert: Drücken Sie Strg+C (⌘C auf dem Mac).',
     req: 'Voraussetzungen',
     reqBlocked: (a: { names: string }) => 'Anordnen und Füllen sind aus: ' + a.names + ' konnte nicht geladen werden. Siehe Voraussetzungen unten.',
     reqMissing: 'Nicht gefunden',

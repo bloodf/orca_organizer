@@ -3,7 +3,6 @@ import Button from 'primevue/button';
 import { OuiBanner, OuiIcon } from '@orca-plugins/ui-foundation/src/components';
 import { refresh } from '@orca-plugins/ui-foundation/src/icons';
 import { useOrganizer } from '../useOrganizer';
-import TechDetails from './TechDetails.vue';
 
 const { s, state, staleText, ctxProblem, ctxDetail, blockedText, empty, retry } = useOrganizer();
 </script>
@@ -22,9 +21,8 @@ const { s, state, staleText, ctxProblem, ctxDetail, blockedText, empty, retry } 
     </template>
   </OuiBanner>
   <!-- No project to arrange: it interrupts (alert). What the host answered is behind Technical details. -->
-  <OuiBanner :show="!!ctxProblem" id="context-problem" class="context-problem" tone="warn" role="alert" :title="ctxProblem" dismissible :dismiss-key="`ctx-problem:${ctxDetail}`" :close-label="s.close">
-    <TechDetails :text="ctxDetail" />
-  </OuiBanner>
+  <OuiBanner :show="!!ctxProblem" id="context-problem" class="context-problem" tone="warn" role="alert" :title="ctxProblem" dismissible :dismiss-key="`ctx-problem:${ctxDetail}`" :close-label="s.close"
+    :details="ctxDetail" :details-label="s.detailsLabel" :copy-label="s.detailsCopy" :copied-label="s.detailsCopied" />
   <!-- Nothing to arrange: it stays while that is so, as the reason the two buttons are off. -->
   <OuiBanner :show="empty" id="empty" tone="info" :title="s.emptyProject" />
   <!-- Why Arrange and Fill are off (a missing requirement): said once, here; the two buttons point at it. -->
@@ -33,8 +31,6 @@ const { s, state, staleText, ctxProblem, ctxDetail, blockedText, empty, retry } 
 </template>
 
 <style scoped>
-/* foundation-gap: OuiBanner centres its icon; a banner with more than its headline reads from the top, not from the middle. */
-#offline, #context-problem { align-items: flex-start; }
 /* "Tentar novamente" / "Erneut versuchen" at the dock zoomed to 200 % (140 px): the label wraps instead of overflowing. */
 #offline :deep(.oui-banner-actions) { min-width: 0; max-width: 100%; }
 #retry { white-space: normal; }

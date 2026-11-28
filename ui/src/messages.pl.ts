@@ -92,7 +92,7 @@ export function pl(num: Num, _plural: Plural): Strings {
     next: 'Następny krok: ',
     detailsLabel: 'Szczegóły techniczne',
     detailsCopy: 'Kopiuj',
-    detailsCopied: 'Skopiowano szczegóły.',
+    detailsCopied: 'Skopiowano',
     err: {
       bad_number: ['Odstęp musi być liczbą równą 0 mm lub większą.', 'Wpisz wartość, np. 2, i spróbuj ponownie.'],
       bad_step: [
@@ -170,7 +170,7 @@ export function pl(num: Num, _plural: Plural): Strings {
     copied: 'Skopiowano ścieżkę.',
     close: 'Zamknij',
     notifications: 'Powiadomienia',
-    copyFail: 'Nie udało się skopiować automatycznie. Tekst jest zaznaczony: naciśnij Ctrl+C (⌘C na Macu).',
+    copyFail: 'Nie udało się skopiować automatycznie. Ścieżka jest zaznaczona: naciśnij Ctrl+C (⌘C na Macu).',
     req: 'Wymagania',
     reqBlocked: (a: { names: string }) => 'Rozmieść i Wypełnij są wyłączone: nie udało się wczytać ' + a.names + '. Zobacz Wymagania poniżej.',
     reqMissing: 'Nie znaleziono',

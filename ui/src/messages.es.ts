@@ -82,7 +82,7 @@ export function es(num: Num, plural: Plural): Strings {
     next: 'Siguiente paso: ',
     detailsLabel: 'Detalles técnicos',
     detailsCopy: 'Copiar',
-    detailsCopied: 'Detalles copiados.',
+    detailsCopied: 'Copiado',
     err: {
       bad_number: ['La separación debe ser un número de 0 mm o más.', 'Escribe un valor como 2 e inténtalo de nuevo.'],
       bad_step: ['El paso de rotación debe ser un número de 0° o más.', 'Usa un paso como 15, o 0 para mantener la orientación de cada pieza, e inténtalo de nuevo.'],
@@ -153,7 +153,7 @@ export function es(num: Num, plural: Plural): Strings {
     copied: 'Ruta copiada.',
     close: 'Cerrar',
     notifications: 'Notificaciones',
-    copyFail: 'No se pudo copiar automáticamente. El texto está seleccionado: usa Ctrl+C (⌘C en Mac).',
+    copyFail: 'No se pudo copiar automáticamente. La ruta está seleccionada: usa Ctrl+C (⌘C en Mac).',
     req: 'Requisitos',
     reqBlocked: (a: { names: string }) => 'Organizar y Llenar están desactivados: no se pudo cargar ' + a.names + '. Consulta Requisitos más abajo.',
     reqMissing: 'No encontrado',

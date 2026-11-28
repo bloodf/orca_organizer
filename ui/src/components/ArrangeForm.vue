@@ -4,12 +4,11 @@ import InputNumber from 'primevue/inputnumber';
 import Message from 'primevue/message';
 import RadioButton from 'primevue/radiobutton';
 import { computed } from 'vue';
-import { OuiHint, OuiIcon, OuiRequirement } from '@orca-plugins/ui-foundation/src/components';
-import { arrange, chevronRight, fill, refresh, warning } from '@orca-plugins/ui-foundation/src/icons';
+import { OuiDetails, OuiHint, OuiIcon, OuiRequirement, OuiRequirementList } from '@orca-plugins/ui-foundation/src/components';
+import { arrange, chevronRight, fill, warning } from '@orca-plugins/ui-foundation/src/icons';
 import { localeOf } from '../messages';
 import { MAX_COPIES, type Rotation } from '../protocol';
 import { useOrganizer } from '../useOrganizer';
-import TechDetails from './TechDetails.vue';
 
 const { s, lang, state, goLabel, fillLabel, blockedBy, run, recheck, setSpacing, setRotation, setCopies } = useOrganizer();
 
@@ -135,15 +134,14 @@ const missingReqs = computed(() => state.requirements.filter((r) => r.status ===
     <!-- What Arrange and Fill need: on the page only while something is missing (the banner above the form points here). -->
     <section v-if="missingReqs.length" class="reqs" aria-labelledby="req">
       <h2 id="req" class="reqs-title">{{ s.req }}</h2>
-      <div v-for="r in missingReqs" :key="r.id" class="req" :data-req="r.id">
-        <!-- foundation-gap: OuiRequirement has a Check again in every row (hidden below); the section has one. -->
-        <OuiRequirement :name="r.name" :why="s.reqWhy" status="missing" :status-label="s.reqMissing" :check-label="s.reqCheck" />
-        <TechDetails v-if="r.detail" :text="r.detail" />
-      </div>
-      <p class="oui-meta">{{ s.reqFix }}</p>
-      <Button id="recheck" :label="state.rechecking ? s.reqChecking : s.reqCheck" severity="secondary" size="small" :disabled="state.rechecking" @click="recheck()">
-        <template #icon><OuiIcon :icon="refresh" :size="14" /></template>
-      </Button>
+      <!-- One Check again for the list; the import error of each row is behind its closed disclosure. -->
+      <OuiRequirementList :check-label="state.rechecking ? s.reqChecking : s.reqCheck" :checking="state.rechecking" @check="recheck()">
+        <div v-for="r in missingReqs" :key="r.id" class="req" :data-req="r.id">
+          <OuiRequirement :name="r.name" :why="s.reqWhy" status="missing" :status-label="s.reqMissing" />
+          <OuiDetails v-if="r.detail" :label="s.detailsLabel" :text="r.detail" :copy-label="s.detailsCopy" :copied-label="s.detailsCopied" />
+        </div>
+        <p class="oui-meta fix">{{ s.reqFix }}</p>
+      </OuiRequirementList>
     </section>
 
     <!-- Why the controls are off during a run: the job block beside the form shows it; the sentence is their description. -->
@@ -177,11 +175,13 @@ const missingReqs = computed(() => state.requirements.filter((r) => r.status ===
 .labelled { display: flex; align-items: center; gap: var(--oui-s1); min-width: 0; }
 .choice { display: flex; align-items: flex-start; gap: var(--oui-s2); }
 .terms { display: grid; gap: 2px; }
-.reqs { display: grid; gap: var(--oui-s2); justify-items: start; padding-top: var(--oui-s3); border-top: 1px solid var(--oui-border); }
+.reqs { display: grid; grid-template-columns: minmax(0, 1fr); padding-top: var(--oui-s3); border-top: 1px solid var(--oui-border); }
 .reqs-title { font-weight: 650; }
-.req { display: grid; gap: 2px; width: 100%; min-width: 0; }
-.req :deep(.oui-req) { padding: 0; }
-.req :deep(.oui-req-check) { display: none; }
+/* The list is made for a settings panel (16 px inside); in the form its rows start on the form's own edge. */
+.reqs :deep(:is(.oui-req, .oui-reqs-foot)) { padding-inline: 0; }
+.req { display: grid; gap: 2px; min-width: 0; padding-bottom: var(--oui-s2); }
+.req :deep(.oui-req) { padding-bottom: 0; }
+.fix { padding-block: var(--oui-s2); }
 /* Read as a caution, not as fine print: the warning mark, and the text at full strength. */
 .foot { display: flex; align-items: flex-start; gap: 6px; font-size: var(--oui-text-sm); }
 .foot > .oui-icon { flex: none; margin-top: 2px; }

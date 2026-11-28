@@ -15,6 +15,7 @@
 - A result for another project or plate than the one selected now shows one notice instead of three stacked banners; what the run did is read in its card.
 - Rotation options are named **Any angle**, **90° steps only** and **Do not rotate**. The empty copies field says **Until full** and has step buttons. The safety note under the form is one sentence with a warning mark. "How it works" opens with the same chevron as "Advanced".
 - When the plugin does not answer: "Organizer is not answering. Check that it is enabled under Plugins in OrcaSlicer. Retrying automatically."
+- The panel uses the shared saved-copy card, requirement list and technical-details disclosure of the UI foundation 5.14.0, so it looks and behaves like the other Orca plugins.
 - All of the above in English, Brazilian Portuguese, Spanish, German, Simplified Chinese and Polish.
 
 ## 0.16.5 (2026-11-28)
