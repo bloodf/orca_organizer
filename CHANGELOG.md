@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.16.5 (2026-11-28)
+
+- Shared Orca UI foundation 5.13.1, with PrimeVue 5.0.6. The panel looks and works the same.
+
 ## 0.16.4 (2026-11-28)
 
 - Shared Orca UI foundation 5.13.0, with the Vite 8.4.0 and Vitest 5.1.2 build tools. The panel looks and works the same.
