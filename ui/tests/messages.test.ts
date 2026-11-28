@@ -59,7 +59,7 @@ describe('messages', () => {
   });
 
   // What is the same word in both languages, or a name that is not translated.
-  const SAME: Partial<Record<Lang, string[]>> = { de: ['details'] };
+  const SAME: Partial<Record<Lang, string[]>> = {};
   it.each(OTHERS)('%s leaves no entry in English', (lang) => {
     for (const { path, value } of leaves(ENGLISH)) {
       // `sep` and `list` are punctuation: Chinese has its own (checked below), the others share English's.
@@ -138,23 +138,23 @@ describe('messages', () => {
     expect(en.count({ i: 0, n: null, count: 2, subject: '' })).toBe('2 copies added');
     expect(pt.count({ i: 0, n: null, count: 1, subject: '' })).toBe('1 cópia adicionada');
     expect(pt.count({ i: 0, n: null, count: 2, subject: '' })).toBe('2 cópias adicionadas');
-    expect(pt.res.placed({ ref: 'r', placed: 1 })).toBe('r: 1 objeto posicionado.');
-    expect(pt.res.placed({ ref: 'r', placed: 2 })).toBe('r: 2 objetos posicionados.');
+    expect(pt.res.placed({ placed: 1 })).toBe('1 objeto posicionado.');
+    expect(pt.res.placed({ placed: 2 })).toBe('2 objetos posicionados.');
 
-    expect([0, 1, 2].map((n) => es.ctxShort({ plate: 1, objects: n }))).toEqual(['Cama 1 · 0 objetos en el proyecto', 'Cama 1 · 1 objeto en el proyecto', 'Cama 1 · 2 objetos en el proyecto']);
+    expect([0, 1, 2].map((n) => es.ctx({ name: 'P', plate: 1, objects: n }))).toEqual(['P · cama 1 seleccionada · 0 objetos en el proyecto', 'P · cama 1 seleccionada · 1 objeto en el proyecto', 'P · cama 1 seleccionada · 2 objetos en el proyecto']);
     expect([1, 2].map((n) => es.count({ i: 0, n: null, count: n, subject: '' }))).toEqual(['1 copia añadida', '2 copias añadidas']);
-    expect([1, 2].map((n) => es.res.placed({ ref: 'r', placed: n }))).toEqual(['r: 1 objeto colocado.', 'r: 2 objetos colocados.']);
+    expect([1, 2].map((n) => es.res.placed({ placed: n }))).toEqual(['1 objeto colocado.', '2 objetos colocados.']);
     expect([1, 5].map((n) => es.res.added({ added: n, per: '' }))).toEqual(['Se llenó la cama con 1 copia más.', 'Se llenó la cama con 5 copias más.']);
 
-    expect([0, 1, 2].map((n) => de.ctxShort({ plate: 1, objects: n }))).toEqual(['Platte 1 · 0 Objekte im Projekt', 'Platte 1 · 1 Objekt im Projekt', 'Platte 1 · 2 Objekte im Projekt']);
+    expect([0, 1, 2].map((n) => de.ctx({ name: 'P', plate: 1, objects: n }))).toEqual(['P · Platte 1 ausgewählt · 0 Objekte im Projekt', 'P · Platte 1 ausgewählt · 1 Objekt im Projekt', 'P · Platte 1 ausgewählt · 2 Objekte im Projekt']);
     expect([1, 2].map((n) => de.count({ i: 0, n: null, count: n, subject: '' }))).toEqual(['1 Kopie hinzugefügt', '2 Kopien hinzugefügt']);
-    expect([1, 2].map((n) => de.res.placed({ ref: 'r', placed: n }))).toEqual(['r: 1 Objekt platziert.', 'r: 2 Objekte platziert.']);
+    expect([1, 2].map((n) => de.res.placed({ placed: n }))).toEqual(['1 Objekt platziert.', '2 Objekte platziert.']);
     expect([1, 5].map((n) => de.res.added({ added: n, per: 'a ×5' }))).toEqual(['Platte mit 1 zusätzlichen Kopie gefüllt (a ×5).', 'Platte mit 5 zusätzlichen Kopien gefüllt (a ×5).']);
     const gone = (lang: Lang, plates: number) => cause(lang, 'plate_gone', { plate: 9, plates })[0];
     expect([gone('es', 1), gone('es', 2)]).toEqual(['La cama 9 no existe: el proyecto tiene 1 cama.', 'La cama 9 no existe: el proyecto tiene 2 camas.']);
     expect([gone('de', 1), gone('de', 2)]).toEqual(['Platte 9 gibt es nicht: Das Projekt hat 1 Platte.', 'Platte 9 gibt es nicht: Das Projekt hat 2 Platten.']);
 
-    expect([1, 2].map((n) => zh.ctxShort({ plate: 1, objects: n }))).toEqual(['盘 1 · 项目中有 1 个对象', '盘 1 · 项目中有 2 个对象']);
+    expect([1, 2].map((n) => zh.ctx({ name: 'P', plate: 1, objects: n }))).toEqual(['P · 已选择盘 1 · 项目中有 1 个对象', 'P · 已选择盘 1 · 项目中有 2 个对象']);
     expect([1, 2].map((n) => zh.count({ i: 0, n: null, count: n, subject: '' }))).toEqual(['已添加 1 个副本', '已添加 2 个副本']);
     expect(zh.res.added({ added: 5, per: 'a ×2、b ×3' })).toBe('已用 5 个额外副本铺满该盘（a ×2、b ×3）。');
     expect([gone('zh-CN', 1), gone('zh-CN', 2)]).toEqual(['盘 9 不存在：项目共有 1 个盘。', '盘 9 不存在：项目共有 2 个盘。']);
@@ -163,8 +163,8 @@ describe('messages', () => {
   it('pl: one, few and many by the CLDR rule (1, 2, 5, 12, 22)', () => {
     const pl = strings('pl');
     const ns = [1, 2, 5, 12, 22];
-    expect(ns.map((n) => pl.ctxShort({ plate: 1, objects: n }))).toEqual([
-      'Płyta 1 · 1 obiekt w projekcie', 'Płyta 1 · 2 obiekty w projekcie', 'Płyta 1 · 5 obiektów w projekcie', 'Płyta 1 · 12 obiektów w projekcie', 'Płyta 1 · 22 obiekty w projekcie',
+    expect(ns.map((n) => pl.ctx({ name: 'P', plate: 1, objects: n }).split(' · ')[2])).toEqual([
+      '1 obiekt w projekcie', '2 obiekty w projekcie', '5 obiektów w projekcie', '12 obiektów w projekcie', '22 obiekty w projekcie',
     ]);
     expect(ns.map((n) => pl.count({ i: 0, n: null, count: n, subject: '' }))).toEqual([
       'Dodano 1 kopię', 'Dodano 2 kopie', 'Dodano 5 kopii', 'Dodano 12 kopii', 'Dodano 22 kopie',
@@ -173,8 +173,8 @@ describe('messages', () => {
       'Płyta 9 nie istnieje: projekt ma 1 płytę.', 'Płyta 9 nie istnieje: projekt ma 2 płyty.', 'Płyta 9 nie istnieje: projekt ma 5 płyt.',
       'Płyta 9 nie istnieje: projekt ma 12 płyt.', 'Płyta 9 nie istnieje: projekt ma 22 płyty.',
     ]);
-    expect(pl.ctxShort({ plate: 1, objects: 0 })).toBe('Płyta 1 · 0 obiektów w projekcie');
-    expect(pl.res.placed({ ref: 'r', placed: 104 })).toBe('r: rozmieszczono 104 obiekty.');
+    expect(pl.ctx({ name: 'P', plate: 1, objects: 0 })).toContain(' · 0 obiektów w projekcie');
+    expect(pl.res.placed({ placed: 104 })).toBe('Rozmieszczono 104 obiekty.');
     expect(pl.res.added({ added: 113, per: '' })).toBe('Wypełniono płytę: dodano 113 kopii.');
   });
 });

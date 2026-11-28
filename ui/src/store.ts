@@ -1,6 +1,6 @@
 import { computed, reactive } from 'vue';
 import { showToast } from '@orca-plugins/ui-foundation/src/components/toast';
-import { numberFormat, pickLang, strings, type Lang } from './messages';
+import { localeOf, numberFormat, pickLang, strings, type Lang } from './messages';
 import { MAX_COPIES, type Bridge, type Ctx, type HostMessage, type Prefs, type Requirement, type Rotation, type StaleRef } from './protocol';
 import { describe, jobRef, splitLines, translate, type StatusLine, type StatusSource, type StatusView } from './status';
 
@@ -46,7 +46,6 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     formOpen: false, // the dock shows one thing at a time: true once the user went from a result back to the form
     job: null as string | null, // the job the status is about: the identity of its banners (dismissed per run)
     errorSeq: 0, // errors the plugin sent outside a job (start_failed): each one is news, even the same sentence again
-    clipboard: false,
     spacing: 2 as number | null,
     rotation: 'auto' as Rotation,
     copies: null as number | null, // Fill's copy limit; empty: as many as fit
@@ -73,7 +72,9 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   const ref = (m: { stem?: string | null; plate?: number }) => jobRef(lang.value, m);
 
   const loading = computed(() => state.ctx == null && !state.context);
-  const ctxProblem = computed(() => (state.ctx && state.ctx.problem ? s.value.ctxProblem({ problem: state.ctx.problem }) : ''));
+  /** The project could not be read: one sentence in the page language. What the host said is `ctxDetail`, shown on request. */
+  const ctxProblem = computed(() => (state.ctx && state.ctx.problem ? s.value.ctxProblem : ''));
+  const ctxDetail = computed(() => state.ctx?.problem ?? '');
   const ctxText = computed(() => {
     const c = state.ctx;
     if (c && c.plate) return s.value.ctx({ name: c.name || s.value.untitledProject, plate: c.plate, objects: c.objects });
@@ -82,12 +83,26 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   });
   const goLabel = computed(() => (state.ctx && state.ctx.plate ? s.value.go({ plate: state.ctx.plate }) : s.value.goNone));
   const fillLabel = computed(() => (state.ctx && state.ctx.plate ? s.value.fill({ plate: state.ctx.plate }) : s.value.fillNone));
-  const ctxShort = computed(() => (state.ctx && state.ctx.plate ? s.value.ctxShort({ plate: state.ctx.plate, objects: state.ctx.objects }) : ''));
+  const plateText = computed(() => (state.ctx && state.ctx.plate ? s.value.plateLabel({ plate: state.ctx.plate }) : ''));
   const projectName = computed(() => (state.ctx && state.ctx.plate ? state.ctx.name || s.value.untitledProject : ''));
   /** Names of what Arrange and Fill need and could not be loaded: both stay off while any is missing. */
   const missing = computed(() => state.requirements.filter((r) => r.status === 'missing').map((r) => r.name));
   const blockedText = computed(() => (missing.value.length ? s.value.reqBlocked({ names: missing.value.join(s.value.list) }) : ''));
   const staleText = computed(() => (state.staleRef ? s.value.stale({ ref: ref(state.staleRef) }) : state.stale));
+  /** The project has nothing to arrange (the count is the whole project's: the host does not say what is on a plate). */
+  const empty = computed(() => !!state.ctx && !state.ctx.problem && state.ctx.objects === 0);
+  /**
+   * Why Arrange and Fill are off: the id of the element that says so (a banner, the bar's state), or '' when they can run.
+   * The buttons point at it with aria-describedby and `run` refuses the same cases.
+   */
+  const blockedBy = computed(() =>
+    state.busy ? 'busy-hint'
+      : missing.value.length ? 'req-hint'
+        : state.offline ? 'offline'
+          : loading.value ? 'context'
+            : ctxProblem.value ? 'context-problem'
+              : empty.value ? 'empty'
+                : '');
 
   const statusView = computed<StatusView>(() => {
     const line = (text: string, kind: StatusLine['kind'] = 'info') => splitLines('info', kind, text);
@@ -104,12 +119,9 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
         : src.text;
       return { lines: line(text), error: src.error, progress: null };
     }
-    if (state.ctx && state.ctx.objects === 0) return { lines: line(s.value.emptyProject), error: false, progress: null };
-    return { lines: line(s.value.ready), error: false, progress: null };
+    return { lines: [], error: false, progress: null }; // nothing ran yet: the page says nothing
   });
 
-  /** Nothing ran yet and there is something to arrange: the status is the one-line promise under the form. */
-  const ready = computed(() => state.status == null && !(state.ctx && state.ctx.objects === 0));
   const progress = computed(() => statusView.value.progress);
   const hasCount = computed(() => !!progress.value && (progress.value.n != null || progress.value.count != null));
   const percent = computed(() => {
@@ -119,8 +131,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   const countText = computed(() => (progress.value && hasCount.value ? s.value.count(progress.value) : ''));
 
   /** The running job as the job card shows it. The full sentence stays in the status region for screen readers. */
-  /** The app bar shows "Plate N · …" (see PanelHeader: offline, loading and a problem take its place). */
-  const barShowsPlate = (plate: number) => !!ctxShort.value && !state.offline && !loading.value && !ctxProblem.value && state.ctx?.plate === plate;
+  /** The run is for the plate selected now, the one the buttons name. */
+  const selectedPlate = (plate: number) => !state.offline && !loading.value && !ctxProblem.value && state.ctx?.plate === plate;
   const jobView = computed(() => {
     const src = state.status;
     const m = src?.kind === 'job' ? src.msg : null;
@@ -131,9 +143,25 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     return {
       phase: capital(prefix && first.startsWith(prefix) ? first.slice(prefix.length) : first),
       name: m?.stem || state.ctx?.name || s.value.untitledProject,
-      // The app bar already names the selected plate: repeat it only when the run is for another one.
-      detail: [plate != null && !barShowsPlate(plate) ? s.value.plateLabel({ plate }) : '', p ? (p.n != null ? p.subject : countText.value) : ''].filter(Boolean).join(' · '),
+      // The button that started it named the selected plate: say the plate only when the run is for another one.
+      detail: [plate != null && !selectedPlate(plate) ? s.value.plateLabel({ plate }) : '', p ? (p.n != null ? p.subject : countText.value) : ''].filter(Boolean).join(' · '),
       figure: p && p.n != null ? s.value.countShort({ i: p.i, n: p.n }) : p && p.count != null ? '+' + numberFormat(lang.value)(p.count) : '',
+    };
+  });
+
+  /** The saved copy as its card shows it: the project (not the generated file name), what was done and when, and how opening it went. */
+  const result = computed(() => {
+    const src = state.status;
+    const m = src?.kind === 'job' && src.msg?.code === 'done' && src.msg.plate != null ? src.msg : null;
+    const file = (state.path ?? '').split(/[\\/]/).pop() ?? '';
+    // The plugin stamps the copy's name: <project>-arranged-YYYYMMDD-HHMMSS-<id>.3mf
+    const at = /-arranged-(\d{4})(\d\d)(\d\d)-(\d\d)(\d\d)\d\d-/.exec(file)?.slice(1).map(Number);
+    const time = at ? new Intl.DateTimeFormat(localeOf(lang.value), { hour: 'numeric', minute: '2-digit' }).format(new Date(at[0], at[1] - 1, at[2], at[3], at[4])) : '';
+    return {
+      file,
+      name: m ? m.stem || s.value.untitledProject : file,
+      meta: [m ? s.value.resWhat[m.action ?? 'arrange']({ plate: m.plate as number }) : '', time].filter(Boolean).join(' · '),
+      open: m?.open ?? null,
     };
   });
 
@@ -146,7 +174,6 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   };
 
   const detectClipboard = () => {
-    state.clipboard = typeof navigator !== 'undefined' && !!navigator.clipboard && typeof navigator.clipboard.writeText === 'function';
   };
 
   function setBusy(busy: boolean) {
@@ -180,8 +207,11 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     if ('context' in m) state.context = m.context || '';
     if (m.ctx) state.ctx = m.ctx;
     if (m.requirements) {
-      state.requirements = m.requirements;
-      state.rechecking = false;
+      // Check again: the plugin answers "unknown" while it retries. What was missing stays on screen (and Arrange and Fill
+      // stay off) until it knows, so the page does not flash "all fine" in between.
+      const retrying = missing.value.length > 0 && m.requirements.some((r) => r.status === 'unknown');
+      if (!retrying) state.requirements = m.requirements;
+      state.rechecking = retrying;
     }
     if (m.prefs && !prefsApplied && !state.busy) applyPrefs(m.prefs);
     if ('stale' in m) {
@@ -211,7 +241,9 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     }
     if (m.path) {
       done = m.job ?? null;
-      if (state.path !== m.path) state.formOpen = false;
+      if (state.path !== m.path) {
+        state.formOpen = false;
+      }
       state.path = m.path;
       state.resultVisible = true;
     }
@@ -221,7 +253,7 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   }
 
   function run(action: 'arrange' | 'fill') {
-    if (missing.value.length) return;
+    if (blockedBy.value) return;
     prefsApplied = true;
     const v = state.spacing;
     if (v == null || !Number.isFinite(v) || v < 0) {
@@ -268,24 +300,9 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
     bridge.postMessage({ action: 'open', job: done });
   }
 
-  /** The WebView may refuse the clipboard: then `select` marks the path for Ctrl/Cmd+C and a toast says so. */
-  function copyPath(select: () => void) {
-    const text = state.path ?? '';
-    const fail = () => {
-      try {
-        select();
-      } catch {
-        /* selection is a courtesy; the note below still tells the user what to do */
-      }
-      showToast({ tone: 'warn', title: s.value.copyFail, key: 'copy' });
-    };
-    try {
-      navigator.clipboard.writeText(text).then(() => {
-        showToast({ tone: 'success', title: s.value.copied, key: 'copy' });
-      }, fail);
-    } catch {
-      fail();
-    }
+  /** After the saved copy's Copy path: a toast says whether the clipboard took it (if not, the card shows the path, selected). */
+  function pathCopied(ok: boolean) {
+    showToast(ok ? { tone: 'success', title: s.value.copied, key: 'copy' } : { tone: 'warn', title: s.value.copyFail, key: 'copy' });
   }
 
   /** From a result back to the form (the dock hides the form while a result is shown). */
@@ -349,8 +366,8 @@ export function createOrganizer(bridge: Bridge, options: OrganizerOptions = {}) 
   bridge.onMessage(onMessage);
 
   return {
-    state, lang, s, t, loading, ctxText, ctxProblem, goLabel, fillLabel, staleText, missing, blockedText, ctxShort, projectName, statusView, ready, progress, hasCount, percent, countText, jobView,
-    run, setSpacing, setRotation, setCopies, cancel, open, copyPath, again, recheck, retry, start, stop, onMessage,
+    state, lang, s, t, loading, ctxText, ctxProblem, ctxDetail, goLabel, fillLabel, staleText, missing, blockedText, blockedBy, empty, plateText, projectName, statusView, progress, hasCount, percent, countText, jobView, result,
+    run, setSpacing, setRotation, setCopies, cancel, open, pathCopied, again, recheck, retry, start, stop, onMessage,
   };
 }
 

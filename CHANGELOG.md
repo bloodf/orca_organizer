@@ -1,5 +1,23 @@
 # Changelog
 
+## Unreleased
+
+### Changed
+
+- **The result fits the dock.** The saved copy is one short card: the project, "Plate 2 arranged" or "Plate 2 filled" with the time, **Open in OrcaSlicer** and **Copy path**. The storage path is no longer printed (it is a generated file name in an internal folder); it appears only when the copy could not be opened, or could not be put on the clipboard, so you can find the file by hand.
+- **Was the copy opened?** One line under the buttons says so: OrcaSlicer was asked to open it, the open project has unsaved changes, the run finished while the panel was closed, or it could not be opened. When OrcaSlicer was already asked, the button reads **Open again** and is no longer the main action.
+- **Check before printing.** The prime tower estimate and the By-object clearance are a short list under that heading in the result, with a warning mark, not grey fine print. The line "Arranged from the project as it was when you clicked" is gone.
+- **Arrange and Fill are off when they cannot work**, and say why: while the plugin does not answer, while no project can be read, while the project has no objects, and before the first answer from OrcaSlicer. The "Ready." line is gone, so it no longer sits under a "not answering" banner; that the result is a new file and your project is not changed is now part of what Arrange says it does.
+- **Requirements appear only when something is missing.** The page no longer lists numpy and Pillow with their versions on every visit. When one could not be loaded, the section shows what is missing, one instruction (reinstall the plugin from Orca Cloud) and one **Check again**; the link to the package's own install guide is gone.
+- **No raw error text in sentences.** What Python or OrcaSlicer said (an exception, an import error, why the project could not be read, why a copy could not be saved) is behind a closed **Technical details** disclosure with a **Copy** button. The sentences around it are in the page's language only: "Could not read the project. Open a project in OrcaSlicer, then try again."
+- The dock's bar is one line: it shows a state only when something is wrong (no answer, reading, no project). A tab shows the project and the plate; the object count, which is the whole project's, moved to the tooltip.
+- In a tab, notices are as wide as the form and the result under them, not the whole window, and that column is centred on wide windows. The right column keeps its "Result" panel from "nothing yet" through the running job to the saved copy.
+- A result for another project or plate than the one selected now shows one notice instead of three stacked banners; what the run did is read in its card.
+- Rotation options are named **Any angle**, **90° steps only** and **Do not rotate**. The empty copies field says **Until full** and has step buttons. The safety note under the form is one sentence with a warning mark. "How it works" opens with the same chevron as "Advanced".
+- When the plugin does not answer: "Organizer is not answering. Check that it is enabled under Plugins in OrcaSlicer. Retrying automatically."
+- The panel uses the shared saved-copy card, requirement list and technical-details disclosure of the UI foundation 5.14.0, so it looks and behaves like the other Orca plugins.
+- All of the above in English, Brazilian Portuguese, Spanish, German, Simplified Chinese and Polish.
+
 ## 0.16.5 (2026-11-28)
 
 - Shared Orca UI foundation 5.13.1, with PrimeVue 5.0.6. The panel looks and works the same.

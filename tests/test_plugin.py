@@ -191,7 +191,7 @@ def test_arrange_runs_off_ui_thread_and_finishes_on_it():
         pump(pending, panel.done.is_set)
 
         final = log["posts"][-1]
-        assert final["done"] and final["text"].startswith("My Project, plate 2: placed 3"), final
+        assert final["done"] and final["text"].startswith("Placed 3 objects."), final
         assert any("Placing" in m.get("text", "") for m in log["posts"]), "no progress posted"
         assert log["export_thread"] == ui_thread and len(log["exports"]) == 1
         assert opened and opened[0][1] == ui_thread, "launch must happen on the UI thread"
@@ -303,14 +303,14 @@ def test_one_job_at_a_time_with_its_own_files_and_earlier_results_kept():
         assert log["posts"][-1]["sync"] and log["posts"][-1]["busy"]
         release.set()
         pump(pending, lambda: a.state == "done")
-        assert "placed 1 object" in a.summary, a.summary  # A computed its own snapshot
+        assert "Placed 1 object" in a.summary, a.summary  # A computed its own snapshot
         [out_a] = outputs(tmp)
         before = digest(out_a)
 
         panel.on_message({"action": "arrange", "spacing": 1})
         b = sa._session.job
         pump(pending, lambda: b.state == "done")
-        assert "placed 2 object" in b.summary, b.summary
+        assert "Placed 2 object" in b.summary, b.summary
         assert b.src != a.src and b.dst != a.dst and b.dst.name.startswith("My Project-arranged-")
         assert outputs(tmp) == sorted([out_a, b.dst]) and digest(out_a) == before
 
@@ -433,7 +433,7 @@ def test_open_failure_still_shows_the_saved_path():
         final = log["posts"][-1]
         [out] = outputs(tmp)
         assert sa._session.job.state == "done" and final["path"] == str(out), final
-        assert f"Saved as: {out}" in final["text"] and "Could not ask OrcaSlicer to open it" in final["text"]
+        assert f"Saved as: {out}" in final["text"] and "Could not open it automatically" in final["text"]
         assert final["msg"]["open"] == "failed" and "no launcher permission" in final["msg"]["detail"], final
 
 
@@ -459,7 +459,7 @@ def test_result_text_is_honest_about_estimates_and_limits():
         sa, *_ = load(tmp, project)
         report = {"placed": 2, "added": sa.MAX_COPIES, "added_by_object": {"a": 150, "b": 150},
                   "prime_tower": True, "spacing": 20.0, "unplaced": ["c"]}
-        text = sa._summary(report, sa.Params(spacing=2), "P, plate 1")
+        text = sa._summary(report, sa.Params(spacing=2))
         for needle in ("estimated prime tower", "only known after slicing", "XY clearance",
                        "Orca still checks", f"{sa.MAX_COPIES}-copy limit", "a ×150, b ×150", "moved above"):
             assert needle in text, (needle, text)
@@ -1055,7 +1055,7 @@ def test_result_message_is_structured_and_open_wording_is_neutral():
         assert msg["code"] == "done" and msg["open"] == "asked" and msg["placed"] > 0 and msg["added"] == 0
         assert msg["keep"] is False and msg["unplaced"] == [] and msg["tower"] in (True, False)
         low = final["text"].lower()
-        assert "asked orcaslicer to open the copy" in low and "open this copy in orcaslicer" in low
+        assert "orcaslicer was asked to open this copy" in low
         for claim in ("saved your project", "replaces", "new window", "project is saved", "unsaved"):
             assert claim not in low, claim  # what Orca does with its open project is not known
         panel.on_message({"action": "open", "job": sa._session.job.id})
@@ -1063,7 +1063,7 @@ def test_result_message_is_structured_and_open_wording_is_neutral():
         assert again["msg"]["code"] == "done" and again["msg"]["open"] == "asked" and again["path"] == final["path"]
         sa._open_in_orca = lambda p: False
         panel.on_message({"action": "open", "job": sa._session.job.id})
-        assert log["posts"][-1]["msg"]["open"] == "none" and "open the saved copy by hand" in log["posts"][-1]["text"]
+        assert log["posts"][-1]["msg"]["open"] == "none" and "Open the file by hand" in log["posts"][-1]["text"]
         # Unsaved changes in the open project: OrcaSlicer may keep it, and the panel says so instead of "asked".
         sa._open_in_orca = lambda p: True
         log["dirty"] = True

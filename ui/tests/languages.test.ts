@@ -52,7 +52,9 @@ async function walk(lang: Lang): Promise<string[][]> {
     await sync({ ctx: c });
     look();
   }
-  await sync({ ctx: ctx(3) });
+  await sync({ ctx: ctx(3), requirements: [{ id: 'numpy', name: 'numpy', status: 'missing', version: null, detail: 'boom' }] });
+  look(); // a missing requirement: the reason, the section and how to fix it
+  await sync({ ctx: ctx(3), requirements: [] });
   await panel.typeSpacing('');
   panel.q('#go')!.click();
   await panel.flush();
@@ -82,11 +84,12 @@ async function walk(lang: Lang): Promise<string[][]> {
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.resolve() } });
   await sync({ job: 'j9', path: PATH, text: 'EN', ctx: ctx(3), msg: done });
   look(); // the result with every note, the saved copy and New arrangement in the bar
-  panel.q('#copy')!.click();
+  panel.q('[data-test="saved-copy"]')!.click();
   await panel.flush();
   look(); // Path copied.
   Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('denied')) } });
-  panel.q('#copy')!.click();
+  panel.q('[data-test="saved-copy"]')!.click();
+  await panel.flush();
   await panel.flush();
   await panel.flush();
   look(); // the path is selected instead
@@ -106,8 +109,6 @@ async function walk(lang: Lang): Promise<string[][]> {
 const DATA = /\/s\/P-arranged\.3mf|P-arranged\.3mf|no project|no permission|disk full|boom|inch|numpy|Pillow|block|\b[a-dP]\b/g;
 const NAMES = /Shape-Aware Arrange|Organizer|OrcaSlicer|Orca Cloud|Orca|\bmm\b|\bXY\b|\b3D\b|Ctrl\+C|⌘C|\bMac\b/g;
 const hasWords = (text: string) => /\p{L}/u.test(text.replace(DATA, '').replace(NAMES, ''));
-// The same word in both languages.
-const SAME: Partial<Record<Lang, RegExp>> = { de: /^Details: / };
 
 describe('the page in every language', () => {
   let english: string[][];
@@ -117,7 +118,9 @@ describe('the page in every language', () => {
 
   it('walks through every state in English', () => {
     expect(english.length).toBeGreaterThan(90);
-    expect(english.flat().some((t) => t === 'No answer from the plugin.')).toBe(true);
+    expect(english.flat().some((t) => t === 'Organizer is not answering.')).toBe(true);
+    expect(english.flat().some((t) => t === 'Technical details')).toBe(true);
+    expect(english.flat().some((t) => t === 'Requirements')).toBe(true);
     expect(english.flat().some((t) => t.startsWith('Could not copy automatically'))).toBe(true);
   });
 
@@ -125,7 +128,7 @@ describe('the page in every language', () => {
     const translated = await walk(lang);
     expect(translated.length).toBe(english.length);
     translated.forEach((texts, state) => {
-      const left = texts.filter((t) => english[state].includes(t) && hasWords(t.replace(SAME[lang] ?? /$^/, '')));
+      const left = texts.filter((t) => english[state].includes(t) && hasWords(t));
       expect(left, `${lang}, state ${state}`).toEqual([]);
       expect(texts.length, `${lang}, state ${state}: as much to read as in English`).toBe(english[state].length);
     });
@@ -145,7 +148,6 @@ interface Wording {
   fill: string;
   context: string;
   bar: string;
-  ready: string;
   spacingError: string;
   decimal: string;
   phase: string;
@@ -156,6 +158,8 @@ interface Wording {
   added: string;
   unplaced: string;
   open: string;
+  title: string;
+  opened: string;
   again: string;
   failed: string;
   startFailed: string;
@@ -170,23 +174,24 @@ const WORDING: Record<'es' | 'de' | 'zh-CN' | 'pl', Wording> = {
     go: 'Organizar cama 2',
     fill: 'Llenar cama 2',
     context: 'P · cama 2 seleccionada · 3 objetos en el proyecto',
-    bar: 'P · Cama 2 · 3 objetos en el proyecto',
-    ready: 'Listo. El resultado se guarda en un archivo nuevo; tu proyecto no se modifica.',
+    bar: 'P · Cama 2',
     spacingError: 'Escribe una separación de 0 mm o más.',
     decimal: '2,5',
     phase: 'P, cama 2: Colocando las piezas',
     figure: '7 de 14',
     otherPlate: 'Cama 2 · b',
     copies: '5 copias añadidas',
-    placed: 'P, cama 2: 2 objetos colocados.',
+    placed: '2 objetos colocados.',
     added: 'Se llenó la cama con 300 copias más (a ×150, b ×150).',
     unplaced: 'No cupieron (se movieron fuera de la cama): c, d',
-    open: 'Abrir esta copia en OrcaSlicer',
+    open: 'Abrir de nuevo',
+    title: 'Cama 2 llena',
+    opened: 'Se pidió a OrcaSlicer que abriera esta copia.',
     again: 'Nueva organización',
     failed: 'P, cama 2: no se pudo organizar.\nLa cama 2 no tiene objetos imprimibles.\nSiguiente paso: Selecciona otra cama o añade piezas a esta.',
     startFailed: 'No se pudo iniciar: La rotación debe ser automática, solo pasos de 90° o mantener la orientación.\nSiguiente paso: Elige una de las tres opciones.',
     stale: 'La ejecución de abajo es de sin título, cama 2, no de la selección actual.',
-    offline: 'El plugin no responde.',
+    offline: 'Organizer no responde.',
   },
   de: {
     host: ['de', 'de_DE', 'de-AT'],
@@ -194,23 +199,24 @@ const WORDING: Record<'es' | 'de' | 'zh-CN' | 'pl', Wording> = {
     go: 'Platte 2 anordnen',
     fill: 'Platte 2 füllen',
     context: 'P · Platte 2 ausgewählt · 3 Objekte im Projekt',
-    bar: 'P · Platte 2 · 3 Objekte im Projekt',
-    ready: 'Bereit. Das Ergebnis wird als neue Datei gespeichert; Ihr Projekt bleibt unverändert.',
+    bar: 'P · Platte 2',
     spacingError: 'Geben Sie einen Abstand von 0 mm oder mehr ein.',
     decimal: '2,5',
     phase: 'P, Platte 2: Teile werden platziert',
     figure: '7 von 14',
     otherPlate: 'Platte 2 · b',
     copies: '5 Kopien hinzugefügt',
-    placed: 'P, Platte 2: 2 Objekte platziert.',
+    placed: '2 Objekte platziert.',
     added: 'Platte mit 300 zusätzlichen Kopien gefüllt (a ×150, b ×150).',
     unplaced: 'Kein Platz (neben die Platte verschoben): c, d',
-    open: 'Kopie in OrcaSlicer öffnen',
+    open: 'Erneut öffnen',
+    title: 'Platte 2 gefüllt',
+    opened: 'OrcaSlicer wurde gebeten, diese Kopie zu öffnen.',
     again: 'Neue Anordnung',
     failed: 'P, Platte 2: Anordnen ist fehlgeschlagen.\nPlatte 2 enthält keine druckbaren Objekte.\nNächster Schritt: Wählen Sie eine andere Platte oder legen Sie Teile auf diese.',
     startFailed: 'Start nicht möglich: Die Drehung muss „Automatisch“, „Nur 90°-Schritte“ oder „Ausrichtung beibehalten“ sein.\nNächster Schritt: Wählen Sie eine der drei Optionen.',
     stale: 'Der Durchlauf unten gehört zu unbenannt, Platte 2, nicht zur aktuellen Auswahl.',
-    offline: 'Keine Antwort vom Plugin.',
+    offline: 'Organizer antwortet nicht.',
   },
   'zh-CN': {
     host: ['zh_CN', 'zh-CN', 'zh_TW'],
@@ -218,23 +224,24 @@ const WORDING: Record<'es' | 'de' | 'zh-CN' | 'pl', Wording> = {
     go: '自动摆放盘 2',
     fill: '铺满盘 2',
     context: 'P · 已选择盘 2 · 项目中有 3 个对象',
-    bar: 'P · 盘 2 · 项目中有 3 个对象',
-    ready: '就绪。结果会保存为新文件，不会更改您的项目。',
+    bar: 'P · 盘 2',
     spacingError: '请输入不小于 0 mm 的间距。',
     decimal: '2.5',
     phase: 'P，盘 2：正在摆放零件',
     figure: '7 / 14',
     otherPlate: '盘 2 · b',
     copies: '已添加 5 个副本',
-    placed: 'P，盘 2：已摆放 2 个对象。',
+    placed: '已摆放 2 个对象。',
     added: '已用 300 个额外副本铺满该盘（a ×150、b ×150）。',
     unplaced: '放不下（已移到盘外）：c、d',
-    open: '在 OrcaSlicer 中打开此副本',
+    open: '再次打开',
+    title: '盘 2 已铺满',
+    opened: '已请求 OrcaSlicer 打开此副本。',
     again: '重新摆放',
     failed: 'P，盘 2：无法自动摆放。\n盘 2 上没有可打印的对象。\n下一步：请选择其他盘，或向该盘添加零件。',
     startFailed: '无法开始：旋转必须是“自动”“仅 90° 步长”或“保持朝向”。\n下一步：请从三个选项中选择一个。',
     stale: '下方的任务属于“未命名，盘 2”，不属于当前选择。',
-    offline: '插件无响应。',
+    offline: 'Organizer 无响应。',
   },
   pl: {
     host: ['pl_PL', 'pl', 'pl-PL'],
@@ -242,23 +249,24 @@ const WORDING: Record<'es' | 'de' | 'zh-CN' | 'pl', Wording> = {
     go: 'Rozmieść płytę 2',
     fill: 'Wypełnij płytę 2',
     context: 'P · wybrana płyta 2 · 3 obiekty w projekcie',
-    bar: 'P · Płyta 2 · 3 obiekty w projekcie',
-    ready: 'Gotowe. Wynik zostanie zapisany jako nowy plik; twój projekt się nie zmieni.',
+    bar: 'P · Płyta 2',
     spacingError: 'Wpisz odstęp 0 mm lub większy.',
     decimal: '2,5',
     phase: 'P, płyta 2: Rozmieszczanie części',
     figure: '7 z 14',
     otherPlate: 'Płyta 2 · b',
     copies: 'Dodano 5 kopii',
-    placed: 'P, płyta 2: rozmieszczono 2 obiekty.',
+    placed: 'Rozmieszczono 2 obiekty.',
     added: 'Wypełniono płytę: dodano 300 kopii (a ×150, b ×150).',
     unplaced: 'Nie zmieściły się (przeniesione nad płytę): c, d',
-    open: 'Otwórz tę kopię w OrcaSlicer',
+    open: 'Otwórz ponownie',
+    title: 'Płyta 2 wypełniona',
+    opened: 'Poproszono OrcaSlicer o otwarcie tej kopii.',
     again: 'Nowe rozmieszczenie',
     failed: 'P, płyta 2: nie udało się rozmieścić.\nPłyta 2 nie ma obiektów do druku.\nNastępny krok: Wybierz inną płytę albo dodaj na nią części.',
     startFailed: 'Nie można uruchomić: Obrót musi mieć wartość „Automatyczny”, „Tylko co 90°” lub „Zachowaj orientację”.\nNastępny krok: Wybierz jedną z trzech opcji.',
     stale: 'Poniższa operacja dotyczy: bez nazwy, płyta 2, a nie bieżącego wyboru.',
-    offline: 'Brak odpowiedzi od wtyczki.',
+    offline: 'Organizer nie odpowiada.',
   },
 };
 
@@ -288,7 +296,7 @@ describe.each(Object.entries(WORDING) as [keyof typeof WORDING, Wording][])('the
     expect(panel.text('#context .oui-sr')).toBe(w.context);
     expect(panel.q('#context')!.getAttribute('title')).toBe(w.context);
     expect(panel.text('#context [aria-hidden]')).toBe(w.bar);
-    expect(panel.status()).toBe(w.ready);
+    expect(panel.status()).toBe(''); // nothing ran yet: nothing is said
     expect(panel.text('h1')).toBe('Organizer'); // the plugin's name is not translated
     expect(document.title).toBe('Organizer');
   });
@@ -329,8 +337,11 @@ describe.each(Object.entries(WORDING) as [keyof typeof WORDING, Wording][])('the
     expect(lines[0]).toBe(w.placed);
     expect(lines[1]).toBe(w.added);
     expect(lines).toContain(w.unplaced);
-    expect(lines.length).toBe(10);
-    expect(panel.text('#open')).toBe(w.open);
+    expect(lines.length).toBe(9);
+    expect(lines[8]).toBe(w.opened);
+    expect(panel.text('.oui-saved-title')).toBe('P');
+    expect(panel.text('.oui-saved-meta')).toBe(w.title);
+    expect(panel.text('[data-test="saved-open"]')).toBe(w.open); // already asked: the button is the second try
     expect(panel.q('#again')!.getAttribute('aria-label')).toBe(w.again);
     expect(panel.q('#again')!.getAttribute('title')).toBe(w.again);
   });

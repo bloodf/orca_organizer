@@ -1107,7 +1107,7 @@
     "code": "save_failed",
     "detail": "disk full"
    },
-   "text": "P, plate 2: could not save the arranged copy: disk full\nNothing was opened; earlier copies are unchanged.",
+   "text": "P, plate 2: could not save the arranged copy.\nNothing was opened; earlier copies are unchanged.\nDetails: disk full",
    "error": true
   },
   {
@@ -1181,7 +1181,7 @@
     "open": "asked",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "text": "Placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nOrcaSlicer was asked to open this copy.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1209,7 +1209,7 @@
     "open": "dirty",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy, but the project open now has unsaved changes, so OrcaSlicer may keep it instead. Save or discard those changes, then use Open this copy in OrcaSlicer.",
+   "text": "Placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nOrcaSlicer has unsaved changes: save or discard them, then open the copy.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1237,7 +1237,7 @@
     "open": "later",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nArranged from the project as it was when you clicked.\nFinished while the panel was closed. Use Open this copy in OrcaSlicer to load it.",
+   "text": "Placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nFinished while the panel was closed. The copy is not open yet.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1265,7 +1265,7 @@
     "open": "failed",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nArranged from the project as it was when you clicked.\nCould not ask OrcaSlicer to open it (no permission). Use Open this copy in OrcaSlicer or open the file by hand.",
+   "text": "Placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nCould not open it automatically. Open the file by hand.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1293,7 +1293,7 @@
     "open": "none",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
+   "text": "Placed 2 objects.\nFilled the plate with 300 extra copies (a ×150, b ×150).\nStopped at the 300-copy limit.\nKept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.\nPrint sequence is By object: kept 20 mm XY clearance between parts. Orca still checks height and print order.\nRotation was off: every part kept its orientation.\nDid not fit (moved above the plate): c, d\nCould not find OrcaSlicer to open it. Open the file by hand.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1315,7 +1315,7 @@
     "open": "asked",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 1 object.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "text": "Placed 1 object.\nOrcaSlicer was asked to open this copy.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1337,7 +1337,7 @@
     "open": "dirty",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 1 object.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy, but the project open now has unsaved changes, so OrcaSlicer may keep it instead. Save or discard those changes, then use Open this copy in OrcaSlicer.",
+   "text": "Placed 1 object.\nOrcaSlicer has unsaved changes: save or discard them, then open the copy.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1359,7 +1359,7 @@
     "open": "later",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 1 object.\nArranged from the project as it was when you clicked.\nFinished while the panel was closed. Use Open this copy in OrcaSlicer to load it.",
+   "text": "Placed 1 object.\nFinished while the panel was closed. The copy is not open yet.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1381,7 +1381,7 @@
     "open": "failed",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 1 object.\nArranged from the project as it was when you clicked.\nCould not ask OrcaSlicer to open it (no permission). Use Open this copy in OrcaSlicer or open the file by hand.",
+   "text": "Placed 1 object.\nCould not open it automatically. Open the file by hand.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1403,7 +1403,7 @@
     "open": "none",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 1 object.\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
+   "text": "Placed 1 object.\nCould not find OrcaSlicer to open it. Open the file by hand.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1427,7 +1427,7 @@
     "open": "asked",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "text": "Placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nOrcaSlicer was asked to open this copy.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1451,7 +1451,7 @@
     "open": "dirty",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy, but the project open now has unsaved changes, so OrcaSlicer may keep it instead. Save or discard those changes, then use Open this copy in OrcaSlicer.",
+   "text": "Placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nOrcaSlicer has unsaved changes: save or discard them, then open the copy.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1475,7 +1475,7 @@
     "open": "later",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nFinished while the panel was closed. Use Open this copy in OrcaSlicer to load it.",
+   "text": "Placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nFinished while the panel was closed. The copy is not open yet.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1499,7 +1499,7 @@
     "open": "failed",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nCould not ask OrcaSlicer to open it (no permission). Use Open this copy in OrcaSlicer or open the file by hand.",
+   "text": "Placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nCould not open it automatically. Open the file by hand.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1523,7 +1523,7 @@
     "open": "none",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
+   "text": "Placed 5 objects.\nFilled the plate with 1 extra copy (block ×1).\nPrint sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.\nCould not find OrcaSlicer to open it. Open the file by hand.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1545,7 +1545,7 @@
     "open": "asked",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 3 objects.\nRotation was limited to 90° steps.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "text": "Placed 3 objects.\nRotation was limited to 90° steps.\nOrcaSlicer was asked to open this copy.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1567,7 +1567,7 @@
     "open": "dirty",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 3 objects.\nRotation was limited to 90° steps.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy, but the project open now has unsaved changes, so OrcaSlicer may keep it instead. Save or discard those changes, then use Open this copy in OrcaSlicer.",
+   "text": "Placed 3 objects.\nRotation was limited to 90° steps.\nOrcaSlicer has unsaved changes: save or discard them, then open the copy.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1589,7 +1589,7 @@
     "open": "later",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 3 objects.\nRotation was limited to 90° steps.\nArranged from the project as it was when you clicked.\nFinished while the panel was closed. Use Open this copy in OrcaSlicer to load it.",
+   "text": "Placed 3 objects.\nRotation was limited to 90° steps.\nFinished while the panel was closed. The copy is not open yet.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1611,7 +1611,7 @@
     "open": "failed",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 3 objects.\nRotation was limited to 90° steps.\nArranged from the project as it was when you clicked.\nCould not ask OrcaSlicer to open it (no permission). Use Open this copy in OrcaSlicer or open the file by hand.",
+   "text": "Placed 3 objects.\nRotation was limited to 90° steps.\nCould not open it automatically. Open the file by hand.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1633,7 +1633,7 @@
     "open": "none",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 3 objects.\nRotation was limited to 90° steps.\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
+   "text": "Placed 3 objects.\nRotation was limited to 90° steps.\nCould not find OrcaSlicer to open it. Open the file by hand.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1657,7 +1657,7 @@
     "open": "asked",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.",
+   "text": "Placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nOrcaSlicer was asked to open this copy.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1681,7 +1681,7 @@
     "open": "dirty",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nArranged from the project as it was when you clicked.\nAsked OrcaSlicer to open the copy, but the project open now has unsaved changes, so OrcaSlicer may keep it instead. Save or discard those changes, then use Open this copy in OrcaSlicer.",
+   "text": "Placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nOrcaSlicer has unsaved changes: save or discard them, then open the copy.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1705,7 +1705,7 @@
     "open": "later",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nArranged from the project as it was when you clicked.\nFinished while the panel was closed. Use Open this copy in OrcaSlicer to load it.",
+   "text": "Placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nFinished while the panel was closed. The copy is not open yet.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1729,7 +1729,7 @@
     "open": "failed",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nArranged from the project as it was when you clicked.\nCould not ask OrcaSlicer to open it (no permission). Use Open this copy in OrcaSlicer or open the file by hand.",
+   "text": "Placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nCould not open it automatically. Open the file by hand.",
    "path": "/s/P-arranged.3mf"
   },
   {
@@ -1753,7 +1753,7 @@
     "open": "none",
     "detail": "no permission"
    },
-   "text": "P, plate 2: placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nArranged from the project as it was when you clicked.\nNo OrcaSlicer launcher found: open the saved copy by hand.",
+   "text": "Placed 1 object.\nFilled the plate with 12 extra copies (block ×12).\nStopped at the 12-copy limit.\nCould not find OrcaSlicer to open it. Open the file by hand.",
    "path": "/s/P-arranged.3mf"
   }
  ]

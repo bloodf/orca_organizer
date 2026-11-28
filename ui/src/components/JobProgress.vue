@@ -1,30 +1,16 @@
 <script setup lang="ts">
 import Button from 'primevue/button';
-import { ref, watchEffect } from 'vue';
 import { OuiIcon, OuiJob, OuiStatus } from '@orca-plugins/ui-foundation/src/components';
 import { x } from '@orca-plugins/ui-foundation/src/icons';
 import { useOrganizer } from '../useOrganizer';
 
 const { s, state, percent, jobView, countText, cancel } = useOrganizer();
-const root = ref<HTMLElement | null>(null);
-// foundation-gap: OuiJob needs a progressText prop and a title on its detail line. Until then the bar gets its spoken
-// value here ("7 of 14 · part"), as the page had before, instead of only a percentage, and the detail line, cut to one
-// line, gets its full text as a tooltip.
-watchEffect(() => {
-  const detail = root.value?.querySelector('.oui-job-detail');
-  if (detail) detail.setAttribute('title', jobView.value.detail);
-  const bar = root.value?.querySelector('[role=progressbar]');
-  void percent.value; // the bar may be redrawn when it turns determinate
-  if (!bar) return;
-  if (countText.value) bar.setAttribute('aria-valuetext', countText.value);
-  else bar.removeAttribute('aria-valuetext');
-}, { flush: 'post' });
 </script>
 
 <template>
   <!-- The status block while a run is busy: what is being arranged, how far, and Cancel under it. -->
-  <section v-if="state.busy" id="job" ref="root" class="job" :aria-label="s.barLabel">
-    <OuiJob compact :name="jobView.name" :progress="percent" :progress-label="s.barLabel" :count="jobView.figure" :detail="jobView.detail">
+  <section v-if="state.busy" id="job" class="job" :aria-label="s.barLabel">
+    <OuiJob compact :name="jobView.name" :progress="percent" :progress-label="s.barLabel" :count="jobView.figure" :detail="jobView.detail" :progress-text="countText || undefined">
       <template #status><OuiStatus state="busy" :label="jobView.phase" /></template>
       <template #actions>
         <Button id="cancel" :label="state.cancelling ? s.cancelPending : s.cancel" severity="secondary" :aria-disabled="state.cancelling" :aria-busy="state.cancelling" fluid @click="cancel()">
@@ -39,6 +25,6 @@ watchEffect(() => {
 /* One line each: the project and the part being placed can be long. */
 .job :deep(.oui-job-detail) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .job :deep(.p-button) { white-space: normal; }
-/* The job does not pad itself (ui-foundation 5): the card is drawn here, as the reference does. */
-.job { padding: var(--oui-s3); border-radius: var(--oui-radius-lg); background: var(--oui-surface); box-shadow: inset 0 0 0 1px var(--oui-border), var(--oui-shadow-panel); overflow: hidden; }
+/* The card is the Result panel around it (App.vue): the right column keeps its shape from "nothing yet" to the result. */
+.job { min-width: 0; overflow: hidden; }
 </style>

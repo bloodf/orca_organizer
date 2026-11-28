@@ -43,6 +43,12 @@ describe('loading, language and context', () => {
     expect(panel.text('h1')).toBe('Organizer'); // O01: name
     expect(panel.text('#subtitle')).toMatch(/^Shape-Aware Arrange/); // O01: Script name as subtitle
     expect(document.title).toBe('Organizer');
+    for (const id of ['go', 'fill']) { // nothing to arrange yet: the buttons are off and point at the bar's "Reading…"
+      expect(panel.q<HTMLButtonElement>('#' + id)!.disabled, id).toBe(true);
+      expect(panel.q('#' + id)!.getAttribute('aria-describedby')).toBe(id + '-help context');
+    }
+    panel.organizer.run('arrange');
+    expect(panel.takeRequests()).toEqual([]);
   });
 
   it('shows the plate in the buttons, the project in the context and the empty-project hint', async () => {
@@ -52,12 +58,26 @@ describe('loading, language and context', () => {
     expect(panel.text('#fill')).toContain('Fill plate 2');
     expect(panel.text('#context .oui-sr')).toBe('P · plate 2 selected · 0 objects in the project'); // the whole sentence, for screen readers and the tooltip
     expect(panel.q('#context')!.getAttribute('title')).toBe('P · plate 2 selected · 0 objects in the project');
-    expect(panel.text('#context [aria-hidden]')).toBe('P · Plate 2 · 0 objects in the project'); // what the bar shows; the dock drops the name
-    expect(panel.status()).toMatch(/No objects found/);
-    expect(panel.q('#status .oui-banner[data-tone=neutral]')).not.toBeNull();
+    expect(panel.text('#context [aria-hidden]')).toBe('P · Plate 2'); // what a tab's bar shows; the dock shows only a state chip
+    expect(panel.text('#context .context-name')).toBe('P');
+    // Nothing to arrange: a notice that stays, and the two buttons are off and point at it
+    expect(panel.text('#empty')).toMatch(/No objects found/);
+    expect(panel.q('#empty')!.matches('.oui-banner[data-tone=info]')).toBe(true);
+    expect(panel.q('#empty .oui-banner-close')).toBeNull();
+    expect(panel.status()).toBe('');
+    for (const id of ['go', 'fill']) {
+      expect(panel.q<HTMLButtonElement>('#' + id)!.disabled, id).toBe(true);
+      expect(panel.q('#' + id)!.getAttribute('aria-describedby')).toBe(id + '-help empty');
+    }
+    panel.take();
+    panel.organizer.run('fill');
+    expect(panel.takeRequests()).toEqual([]);
     expect(panel.q('#context .oui-status')).toBeNull();
     expect(panel.q('#context [role=progressbar]')).toBeNull(); // loaded: the progress indicator is gone
     expect(panel.q('#context')!.getAttribute('aria-busy')).toBe('false');
+    await panel.deliver(sync({ context: 'x', ctx: CTX, stale: '' }));
+    expect(panel.q('#empty')).toBeNull();
+    expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
   });
 
   it('host language wins, pt_BR and pt-BR both work, unsupported falls back to English (X04)', async () => {
@@ -68,9 +88,10 @@ describe('loading, language and context', () => {
     expect(panel.text('#go')).toContain('Arrumar placa 2');
     expect(panel.text('#fill')).toContain('Preencher placa 2');
     expect(panel.text('#context .oui-sr')).toBe('Projeto sem título · placa 2 selecionada · 1 objeto no projeto');
-    expect(panel.text('#context [aria-hidden]')).toBe('Projeto sem título · Placa 2 · 1 objeto no projeto');
+    expect(panel.text('#context [aria-hidden]')).toBe('Projeto sem título · Placa 2');
     expect(panel.text('h1')).toBe('Organizer');
-    expect(panel.status()).toBe('Pronto. O resultado é salvo em um arquivo novo; o seu projeto não é alterado.');
+    expect(panel.status()).toBe(''); // nothing ran: no "Ready." line; the promise is part of what Arrange says it does
+    expect(panel.text('#go-help')).toMatch(/O resultado é um arquivo novo; o seu projeto não é alterado\.$/);
     expect(document.title).toBe('Organizer');
     await panel.deliver(sync({ lang: 'pt-BR', ctx: ctx(2, 'P') }));
     expect(document.documentElement.lang).toBe('pt-BR');
@@ -92,9 +113,18 @@ describe('loading, language and context', () => {
   it('names an unreadable project and how to recover (recoverable error)', async () => {
     panel = await mountPanel();
     await panel.deliver(sync({ ctx: { plate: null, objects: null, name: null, problem: 'no project' } }));
-    expect(panel.text('.context-problem')).toMatch(/Could not read the project: no project\. Open a project/);
+    expect(panel.text('.context-problem strong')).toBe('Could not read the project. Open a project in OrcaSlicer, then try again.');
+    // what the host said is never part of the sentence: it is behind a closed disclosure
+    expect(panel.q<HTMLDetailsElement>('.context-problem details')!.open).toBe(false);
+    expect(panel.text('.context-problem summary')).toBe('Technical details');
+    expect(panel.text('.context-problem .oui-details-text')).toBe('no project');
     expect(panel.q('.context-problem')!.getAttribute('role')).toBe('alert'); // interrupts, as before
     expect(panel.text('#context .oui-status[data-state=warn]')).toBe('No project'); // the bar carries the page's one state
+    expect(panel.text('#go')).toContain('Arrange current plate');
+    for (const id of ['go', 'fill']) {
+      expect(panel.q<HTMLButtonElement>('#' + id)!.disabled, id).toBe(true);
+      expect(panel.q('#' + id)!.getAttribute('aria-describedby')).toBe(id + '-help context-problem');
+    }
     await panel.deliver(sync({ ctx: CTX }));
     expect(panel.q('.context-problem')).toBeNull();
     await panel.deliver(sync({ ctx: CTX }));
@@ -324,9 +354,9 @@ describe('result', () => {
     return p;
   }
 
-  it('shows the path, Open and Copy, frees the controls and moves focus to Open', async () => {
+  it('names what was arranged, offers Open and Copy path, frees the controls and moves focus to Open', async () => {
     panel = await finished();
-    expect(panel.text('#path')).toBe('/s/P-arranged.3mf'); // O02: the path is visible
+    expect(panel.q('[data-test="saved-path"]')).toBeNull(); // a generated name in an internal folder: Copy path has it, the card does not show it
     expect(panel.q('#result')).not.toBeNull();
     expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
     expect(panel.q('#cancel')).toBeNull();
@@ -334,35 +364,70 @@ describe('result', () => {
     expect(panel.q('[role=progressbar]')).toBeNull();
     expect(panel.q('#status')!.classList.contains('oui-sr')).toBe(false);
     expect(panel.q('#status .oui-banner[data-tone=success]')).not.toBeNull();
-    expect(panel.text('#file')).toBe('P-arranged.3mf'); // the file name leads; the whole path is its tooltip and stays selectable below
-    expect(panel.q('#file')!.getAttribute('title')).toBe('/s/P-arranged.3mf');
-    expect(document.activeElement).toBe(panel.q('#open'));
-    expect(panel.q('#copy')).not.toBeNull();
-    expect(panel.status().split('\n')[0]).toBe('P, plate 2: placed 1 object.');
+    expect(panel.text('.oui-saved-title')).toBe('P'); // the project leads, then what was done; the generated file name is the tooltip
+    expect(panel.q('.oui-saved-title')!.getAttribute('title')).toBe('P-arranged.3mf');
+    expect(panel.text('.oui-saved-meta')).toBe('Plate 2 filled'); // no time in this file name
+        expect(document.activeElement).toBe(panel.q('[data-test="saved-open"]'));
+    expect(panel.q('[data-test="saved-copy"]')).not.toBeNull();
+    expect(panel.status().split('\n')[0]).toBe('Placed 1 object.'); // the card names the project and the plate
     expect(panel.status()).toMatch(/Filled the plate with 1 extra copy \(block ×1\)\./);
-    expect(panel.status()).toMatch(/Asked OrcaSlicer to open the copy\. If nothing appears, use Open this copy in OrcaSlicer\./);
-    expect(panel.status().split('\n').slice(-2).join(' ').replace(/Open this copy/, '')).not.toMatch(/saved|replace|window/i); // neutral wording
-    expect(panel.text('#open')).toBe('Open this copy in OrcaSlicer');
-    panel.q('#open')!.click();
+    // Was it opened? One line under the buttons says the plugin already asked, so the button is the second try.
+    expect(panel.text('#open-status')).toBe('OrcaSlicer was asked to open this copy.');
+    expect(panel.q('#open-status')!.getAttribute('data-state')).toBe('pending'); // asked, not known to be open: never "ok"
+    expect(panel.text('[data-test="saved-open"]')).toBe('Open again');
+    panel.q('[data-test="saved-open"]')!.click();
     expect(panel.takeRequests()).toEqual([{ action: 'open', job: 'j1' }]);
+  });
+
+  it('shows the time the copy was saved, from its file name', async () => {
+    panel = await finished();
+    const path = '/s/P-arranged-20261111-195500-1f3ffe.3mf';
+    await panel.deliver({ job: 'j1', busy: false, path, text: 'x', msg: { ...doneMsg, action: 'arrange' } });
+    expect(panel.text('.oui-saved-meta')).toMatch(/^Plate 2 arranged · 7:55\sPM$/);
+    await panel.deliver({ job: 'j1', busy: false, path, text: 'x', lang: 'de', msg: { ...doneMsg, stem: null } });
+    expect(panel.text('.oui-saved-title')).toBe('Unbenanntes Projekt');
+    expect(panel.text('.oui-saved-meta')).toBe('Platte 2 gefüllt · 19:55');
+  });
+
+  it('makes Open the step to take when the copy was not opened, and shows the path only when it must be found by hand', async () => {
+    panel = await finished();
+    const result = (open: string) => panel.deliver({ job: 'j1', busy: false, path: '/s/P-arranged.3mf', text: 'x', msg: { ...doneMsg, open, detail: 'boom' } as never });
+    await result('later');
+    expect(panel.text('[data-test="saved-open"]')).toBe('Open in OrcaSlicer');
+    expect(panel.q('[data-test="saved-open"]')!.classList.contains('p-button-secondary')).toBe(false);
+    expect(panel.text('#open-status')).toBe('Finished while the panel was closed. The copy is not open yet.');
+    expect(panel.q('[data-test="saved-path"]')).toBeNull();
+    await result('dirty');
+    expect(panel.text('#open-status')).toBe('OrcaSlicer has unsaved changes: save or discard them, then open the copy.');
+    expect(panel.q('#open-status')!.getAttribute('data-state')).toBe('warn');
+    expect(panel.text('[data-test="saved-open"]')).toBe('Open in OrcaSlicer');
+    expect(panel.q('[data-test="saved-path"]')).toBeNull();
+    for (const open of ['failed', 'none']) {
+      await result(open);
+      expect(panel.q('#open-status')!.getAttribute('data-state'), open).toBe('warn');
+      expect(panel.text('#open-status'), open).toMatch(/Open the file by hand\.$/);
+      expect(panel.text('#result'), open).not.toContain('boom'); // the launcher's error is in the OrcaSlicer log, not in a sentence
+      expect(panel.text('[data-test="saved-path"]'), open).toBe('/s/P-arranged.3mf');
+    }
   });
 
   it('says what happened first, warns about parts that did not fit, and keeps the fine print with the saved copy', async () => {
     panel = await finished();
     await panel.deliver({ job: 'j1', busy: false, path: '/s/P-arranged.3mf', text: 'x', msg: { ...doneMsg, placed: 7, added: 12, by_object: { a: 8, b: 4 }, limit: true, tower: true, clearance: 12.5, right: true, unplaced: ['Part A', 'Part B'] } });
     const success = panel.q('#status .oui-banner[data-tone=success]')!;
-    expect(success.querySelector('strong')!.textContent).toBe('P, plate 2: placed 7 objects.');
+    expect(success.querySelector('strong')!.textContent).toBe('Placed 7 objects.');
     expect([...success.querySelectorAll('.line')].map((l) => l.textContent)).toEqual(['Filled the plate with 12 extra copies (a ×8, b ×4).', 'Stopped at the 300-copy limit.']);
     expect(panel.text('#status .oui-banner[data-tone=warn] strong')).toBe('Did not fit (moved above the plate): Part A, Part B');
-    expect([...document.querySelectorAll('#result #notes p')].map((p) => p.textContent)).toEqual([
+    // What changes how the plate must be checked is a short list under its own heading, not grey fine print
+    expect(panel.text('#result .checks-title')).toBe('Check before printing');
+    expect(panel.q('#result .checks ul')!.getAttribute('aria-labelledby')).toBe('checks-title');
+    expect([...document.querySelectorAll('#result .checks li')].map((p) => p.textContent)).toEqual([
       'Kept an estimated prime tower area free, brim included. Its real size is only known after slicing: check it in Orca.',
       'Print sequence is By object: kept 12.5 mm XY clearance between parts. Orca still checks height and print order.',
-      'Rotation was limited to 90° steps.',
-      'Arranged from the project as it was when you clicked.',
-      'Asked OrcaSlicer to open the copy. If nothing appears, use Open this copy in OrcaSlicer.',
     ]);
-    expect(panel.q('#open')!.getAttribute('aria-describedby')).toBe('notes'); // focus lands on Open: the fine print is its description
-    expect(panel.q('#status #notes')).toBeNull(); // the live region announces the outcome, not the fine print
+    expect([...document.querySelectorAll('#result .note')].map((p) => p.textContent)).toEqual(['Rotation was limited to 90° steps.']);
+    expect(panel.text('#result')).not.toMatch(/as it was when you clicked/);
+    expect(panel.q('#status .checks')).toBeNull(); // the live region announces the outcome, not the fine print
     // the banners inside the live region do not announce a second time
     for (const banner of document.querySelectorAll('#status .oui-banner')) expect(banner.getAttribute('role')).toBe('none');
   });
@@ -429,40 +494,48 @@ describe('result', () => {
   it('translates the outcome of opening the copy', async () => {
     panel = await finished();
     await panel.deliver({ job: 'j1', busy: false, path: '/s/P-arranged.3mf', text: 'x', lang: 'pt_BR', msg: { ...doneMsg, placed: 3, added: 0, by_object: {}, open: 'later' } });
-    expect(panel.status().split('\n')[0]).toBe('P, placa 2: 3 objetos posicionados.');
-    expect(panel.status()).toMatch(/Concluído com o painel fechado\. Use Abrir esta cópia no OrcaSlicer/);
-    expect(panel.text('#open')).toBe('Abrir esta cópia no OrcaSlicer');
+    expect(panel.status().split('\n')[0]).toBe('3 objetos posicionados.');
+    expect(panel.text('.oui-saved-meta')).toBe('Placa 2 preenchida');
+    expect(panel.text('#open-status')).toBe('Concluído com o painel fechado. A cópia ainda não foi aberta.');
+    expect(panel.text('[data-test="saved-open"]')).toBe('Abrir no OrcaSlicer');
+    await panel.deliver({ job: 'j1', busy: false, path: '/s/P-arranged.3mf', text: 'x', msg: { ...doneMsg, placed: 1, added: 0, by_object: {}, open: 'asked' } });
+    expect(panel.text('[data-test="saved-open"]')).toBe('Abrir de novo');
     await panel.deliver({ job: 'j1', busy: false, path: '/s/P-arranged.3mf', text: 'x', msg: { ...doneMsg, placed: 1, added: 0, by_object: {}, open: 'failed', detail: 'boom' } });
-    expect(panel.status()).toMatch(/Não foi possível pedir ao OrcaSlicer que abrisse a cópia \(boom\)/);
+    expect(panel.text('#open-status')).toBe('Não foi possível abrir automaticamente. Abra o arquivo manualmente.');
   });
 
-  it('copies the path, falls back to selecting it when the clipboard refuses, and hides Copy without the API', async () => {
+  it('copies the path, shows and selects it when the clipboard refuses, and shows it in place of Copy without the API', async () => {
     panel = await finished();
     let copied: string | null = null;
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: (t: string) => ((copied = t), Promise.resolve()) } });
-    panel.q('#copy')!.click();
+    panel.q('[data-test="saved-copy"]')!.click();
     expect(copied).toBe('/s/P-arranged.3mf');
     await panel.flush();
     expect(panel.text('.oui-toast[data-toast-tone=success] strong')).toBe('Path copied.');
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.reject(new Error('denied')) } });
-    panel.q('#copy')!.click();
+    panel.q('[data-test="saved-copy"]')!.click();
+    await panel.flush();
     await panel.flush();
     await panel.flush();
     expect(panel.text('.oui-toast[data-toast-tone=warn] strong')).toMatch(/The path is selected: press Ctrl\+C/);
     expect(panel.q(`${TOAST}[data-toast-tone=success]`), 'a second copy replaces the first toast').toBeNull();
-    const range = getSelection()!.getRangeAt(0); // the fallback really selected the path element's text
-    expect(range.startContainer).toBe(panel.q('#path'));
-    expect(range.endOffset).toBe(panel.q('#path')!.childNodes.length);
+    expect(panel.text('[data-test="saved-path"]')).toBe('/s/P-arranged.3mf'); // it could not be copied: now it is on screen
+    const range = getSelection()!.getRangeAt(0); // and the fallback really selected the path element's text
+    expect(range.startContainer).toBe(panel.q('[data-test="saved-path"]'));
+    expect(range.endOffset).toBe(panel.q('[data-test="saved-path"]')!.childNodes.length);
+    await panel.deliver(sync({ job: 'j2', busy: false, path: '/s/P-arranged-2.3mf', text: 'x', msg: doneMsg }));
+    expect(panel.q('[data-test="saved-path"]'), 'the next copy starts with the path hidden again').toBeNull();
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: undefined });
-    await panel.deliver({ job: 'j1', busy: false, path: '/s/P-arranged.3mf', text: 'x', msg: doneMsg });
-    expect(panel.q('#copy')).toBeNull(); // no clipboard API: no Copy button
+    await panel.deliver(sync({ job: 'j2', busy: false, path: '/s/P-arranged-2.3mf', text: 'x', msg: doneMsg }));
+    expect(panel.q('[data-test="saved-copy"]')).toBeNull(); // no clipboard API: no Copy button,
+    expect(panel.text('[data-test="saved-path"]')).toBe('/s/P-arranged-2.3mf'); // so the path itself is shown
   });
 
   it('shows the copy toast in the shared host, with a Close button, and leaves after 5 s', async () => {
     panel = await finished();
     Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: () => Promise.resolve() } });
     vi.useFakeTimers();
-    panel.q('#copy')!.click();
+    panel.q('[data-test="saved-copy"]')!.click();
     await panel.flush();
     const host = panel.q('.oui-toasts')!;
     expect(host.getAttribute('aria-label')).toBe('Notifications');
@@ -472,7 +545,7 @@ describe('result', () => {
     expect(panel.q('.oui-toast'), 'a poll does not remove it').not.toBeNull();
     await vi.advanceTimersByTimeAsync(5100);
     expect(panel.q(TOAST)).toBeNull();
-    panel.q('#copy')!.click();
+    panel.q('[data-test="saved-copy"]')!.click();
     await panel.flush();
     const close = panel.q<HTMLButtonElement>('.oui-toast .oui-toast-close')!;
     expect(close.getAttribute('aria-label')).toBe('Close');
@@ -494,10 +567,18 @@ describe('result', () => {
     expect(panel.text('#stale strong')).toBe(stale);
     expect(panel.q('#stale')!.getAttribute('role')).toBe('status'); // informs, does not interrupt
     expect(panel.q('#result')).not.toBeNull();
+    // One banner, not three: the outcome of the other selection's run is read in its card, and stays in the live region for screen readers
+    expect(panel.q('#status')!.classList.contains('oui-sr')).toBe(true);
+    expect([...document.querySelectorAll('#result .outcome > *')].map((e) => e.textContent!.trim())).toEqual(['Placed 1 object.', 'Filled the plate with 1 extra copy (block ×1).']);
+    expect(panel.q('#result .outcome')!.getAttribute('aria-hidden')).toBe('true');
+    await panel.deliver(sync({ ...keep, msg: { ...doneMsg, unplaced: ['Part A'] }, ctx: { plate: 1, objects: 1, name: 'Q', problem: null }, stale, stale_ref: { stem: 'P', plate: 2, action: 'arrange' } }));
+    expect(panel.text('#result .outcome .oui-status[data-state=warn]')).toBe('Did not fit (moved above the plate): Part A');
     await panel.deliver(sync({ ...keep, lang: 'pt_BR', stale: 'x', stale_ref: { stem: null, plate: 2, action: 'arrange' } }));
     expect(panel.text('#stale strong')).toBe('A execução abaixo é de sem título, placa 2, não da seleção atual.');
     await panel.deliver(sync({ ...keep, lang: 'en_US', stale: '', stale_ref: null }));
     expect(panel.q('#stale')).toBeNull();
+    expect(panel.q('#status')!.classList.contains('oui-sr')).toBe(false);
+    expect(panel.q('#result .outcome')).toBeNull();
   });
 
   it('lets the stale note be dismissed until the run it names changes', async () => {
@@ -551,7 +632,7 @@ describe('result', () => {
     await panel.deliver(problem('no plate'));
     expect(panel.q('.context-problem')).toBeNull();
     await panel.deliver(problem('locked'));
-    expect(panel.text('.context-problem')).toMatch(/locked/);
+    expect(panel.text('.context-problem .oui-details-text')).toBe('locked');
   });
 
   it('shows a closed project problem again once it cleared and came back', async () => {
@@ -563,7 +644,7 @@ describe('result', () => {
     await panel.deliver(problem(null)); // solved: the dismissal is forgotten
     expect(panel.q('.context-problem')).toBeNull();
     await panel.deliver(problem('no plate')); // the same problem, later
-    expect(panel.text('.context-problem')).toMatch(/no plate/);
+    expect(panel.text('.context-problem .oui-details-text')).toBe('no plate');
   });
 
   it('shows a closed stale note again once it cleared and came back', async () => {
@@ -624,12 +705,23 @@ describe('errors (O03, B-27)', () => {
     expect(panel.isError()).toBe(true);
     expect(panel.q('#status-error')!.getAttribute('role')).toBe('alert');
     await fail(panel, { code: 'unexpected' }, 'zip is corrupt', 'en_US');
-    expect(panel.status()).toMatch(/^P, plate 2: could not arrange\.\nSomething unexpected went wrong\.\nNext: Try again\..*\nDetails: zip is corrupt$/s);
+    expect(panel.status()).toMatch(/^P, plate 2: could not arrange\.\nSomething unexpected went wrong\.\nNext: Try again\..*\nzip is corrupt$/s);
     expect(panel.status()).not.toMatch(/error:/i); // no machine prefix
-    expect(panel.q('.detail')!.textContent).toBe('Details: zip is corrupt');
+    // What the plugin raised is word for word behind a closed disclosure, with a Copy button: never a line of the banner
+    expect([...document.querySelectorAll('#status-error .line')].map((l) => l.textContent).join(' ')).not.toContain('zip is corrupt');
+    expect(panel.q<HTMLDetailsElement>('#status-error details')!.open).toBe(false);
+    expect(panel.text('#status-error summary')).toBe('Technical details');
+    expect(panel.text('#status-error .oui-details-text')).toBe('zip is corrupt');
+    let copied = '';
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: (t: string) => ((copied = t), Promise.resolve()) } });
+    expect(panel.text('#status-error .oui-details-copy')).toBe('Copy');
+    panel.q('#status-error .oui-details-copy')!.click();
+    await panel.flush();
+    expect(copied).toBe('zip is corrupt');
+    expect(panel.text('#status-error .oui-details-copy')).toBe('Copied');
     await fail(panel, { code: 'plate_gone', plate: 9, plates: 1 }, 'x', 'en_US');
     expect(panel.status()).toMatch(/does not exist: the project has 1 plate\./);
-    expect(panel.status()).not.toMatch(/Details/);
+    expect(panel.q('#status-error details')).toBeNull(); // a known cause explains itself
   });
 
   it('translates failures to start and to save, and shows an older plugin text as it is', async () => {
@@ -637,7 +729,9 @@ describe('errors (O03, B-27)', () => {
     await panel.deliver({ text: 'EN', error: true, busy: false, lang: 'pt_BR', msg: { code: 'start_failed', cause: { code: 'bad_rotation' }, detail: 'd' } });
     expect(panel.status()).toBe('Não foi possível iniciar: A rotação deve ser automática, só passos de 90° ou manter a orientação.\nPróximo passo: Escolha uma das três opções.');
     await panel.deliver(sync({ lang: 'en_US', job: 'j2', error: true, text: 'EN', msg: { stem: 'P', plate: 2, action: 'arrange', code: 'save_failed', detail: 'disk full' } }));
-    expect(panel.status()).toMatch(/could not save the arranged copy: disk full\nNothing was opened/);
+    expect(panel.status()).toBe('P, plate 2: could not save the arranged copy.\nNothing was opened; earlier copies are unchanged.\ndisk full');
+    expect(panel.text('#status-error strong')).toBe('P, plate 2: could not save the arranged copy.'); // the system's error is not part of the sentence
+    expect(panel.text('#status-error .oui-details-text')).toBe('disk full');
     await panel.deliver(sync({ job: 'j2', error: true, text: 'Some message from an older plugin', msg: null }));
     expect(panel.status()).toBe('Some message from an older plugin');
   });
@@ -720,8 +814,14 @@ describe('polling, offline and retry (B-27)', () => {
     panel.setHidden(false);
     await vi.advanceTimersByTimeAsync(11000);
     expect(panel.q('#offline')).not.toBeNull();
-    expect(panel.text('#offline strong')).toBe('No answer from the plugin.');
-    expect(panel.text('#offline-text')).toMatch(/still enabled in the Plugins window/);
+    expect(panel.text('#offline strong')).toBe('Organizer is not answering.');
+    expect(panel.text('#offline-text')).toBe('Check that it is enabled under Plugins in OrcaSlicer. Retrying automatically.');
+    // Nobody is listening: Arrange and Fill are off, point at the banner, and nothing is sent
+    for (const id of ['go', 'fill']) {
+      expect(panel.q<HTMLButtonElement>('#' + id)!.disabled, id).toBe(true);
+      expect(panel.q('#' + id)!.getAttribute('aria-describedby')).toBe(id + '-help offline');
+    }
+    expect(panel.text('.pane-form')).not.toMatch(/Ready/);
     expect(panel.text('#offline')).not.toMatch(/reload/i); // the host offers no reload API
     expect(panel.q('#offline')!.getAttribute('role')).toBe('alert');
     expect(panel.text('#context .oui-status[data-state=offline]')).toBe('No answer'); // the bar says the same, never the opposite
@@ -734,6 +834,7 @@ describe('polling, offline and retry (B-27)', () => {
     expect(document.activeElement).toBe(panel.q('#spacing')); // retry does not steal focus
     await panel.deliver(sync({ lang: 'pt_BR', ctx: { plate: 1, objects: 2, name: 'P', problem: null }, msg: null }));
     expect(panel.q('#offline')).toBeNull();
+    expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
     await panel.deliver(sync({ lang: 'en_US', job: 'j4', busy: true, text: 'running', msg: null }));
     panel.take();
     await vi.advanceTimersByTimeAsync(3000);
@@ -799,11 +900,15 @@ describe('structure and accessibility', () => {
     // the safety note is never folded away: not inside a disclosure, in the form the dock shows
     expect(panel.q('#foot')!.closest('details'), 'foot is not in a disclosure').toBeNull();
     expect(panel.q('#foot')!.closest('.pane-form')).not.toBeNull();
-    expect(panel.text('#go-help')).toBe("Fits the plate's objects. Adds nothing.");
+    expect(panel.text('#go-help')).toBe("Fits the plate's objects and adds nothing. The result is a new file; your project is not changed.");
     expect(panel.q('#go')!.getAttribute('title')).toBe(panel.text('#go-help'));
     expect(panel.text('#fill-help')).toMatch(/up to 300/);
-    expect(panel.text('#foot')).toMatch(/Check the plate in Orca before printing/);
-    expect(panel.status()).toBe('Ready. The result is saved as a new file; your project is not changed.');
+    expect(panel.text('#foot')).toBe('Brims, supports and skirts are not counted. Check the plate before printing.');
+    expect(panel.q('#foot svg')).not.toBeNull(); // a caution with its mark, not grey fine print
+    expect(panel.status()).toBe(''); // nothing ran: the page does not say "Ready."
+    expect(panel.text('.idle .oui-empty-text')).toMatch(/The result is a new file; your project is not changed\.$/);
+    expect(panel.q('#req')).toBeNull(); // nothing is missing: no Requirements section
+    for (const id of ['adv', 'help']) expect(panel.q(`#${id} .sum > svg`), id).not.toBeNull(); // both disclosures turn the same chevron
     expect(panel.q('#go svg')).not.toBeNull(); // the actions carry their icons
     expect(panel.q('.oui-appbar-mark svg')).not.toBeNull();
     expect(panel.q('#status')!.getAttribute('role')).toBe('status');
@@ -821,10 +926,10 @@ describe('structure and accessibility', () => {
     // The explanation is behind the (i) beside the legend, not a paragraph under the radios.
     expect(panel.q('#rotation-help')!.closest('.oui-hint-bubble[role=tooltip]')).not.toBeNull();
     expect(panel.q('fieldset .oui-hint-btn')!.getAttribute('aria-label')).toBe('Rotation');
-    expect(panel.text('#rotation-help')).toMatch(/^Automatic tries every angle/);
+    expect(panel.text('#rotation-help')).toMatch(/^Any angle tries every rotation/);
     expect(panel.text('legend')).toBe('Rotation');
     expect(panel.q<HTMLInputElement>('#rotation-auto')!.checked).toBe(true);
-    expect(document.querySelector('label[for=rotation-keep]')!.textContent).toBe("Keep each part's orientation");
+    expect([...document.querySelectorAll('.choice label')].map((l) => l.textContent)).toEqual(['Any angle', '90° steps only', 'Do not rotate']);
     panel.q('#rotation-keep')!.click();
     await panel.flush();
     expect(panel.q<HTMLInputElement>('#rotation-keep')!.checked).toBe(true);
@@ -840,7 +945,7 @@ describe('structure and accessibility', () => {
     await panel.deliver(sync({ ctx: CTX }));
     panel.q('#adv')!.click();
     await panel.flush();
-    expect(document.querySelector('label[for=rotation-right]')!.textContent).toBe('Only 90° steps');
+    expect(document.querySelector('label[for=rotation-right]')!.textContent).toBe('90° steps only');
     panel.q('#rotation-right')!.click();
     await panel.flush();
     panel.take();
@@ -860,6 +965,8 @@ describe('structure and accessibility', () => {
     expect(panel.q('#copies')!.getAttribute('aria-describedby')).toBe('copies-help');
     expect(panel.q('#copies-help')!.closest('.oui-hint-bubble[role=tooltip]')).not.toBeNull();
     expect(panel.q<HTMLInputElement>('#copies')!.value).toBe('');
+    expect(panel.q('#copies')!.getAttribute('placeholder')).toBe('Until full'); // empty has a meaning: the field says it
+    expect(panel.q('#copies')!.closest('.p-inputnumber')!.querySelector('.p-inputnumber-button-group, .p-inputnumber-button')).not.toBeNull();
     panel.take();
     panel.q('#fill')!.click();
     await panel.flush();
@@ -900,8 +1007,9 @@ describe('structure and accessibility', () => {
     await panel.deliver(sync({ ctx: { plate: 1, objects: 1, name: '<img src=x onerror=alert(1)>', problem: null } }));
     expect(panel.q('#context img')).toBeNull();
     expect(panel.text('#context')).toContain('<img src=x onerror=alert(1)>');
-    await panel.deliver(sync({ job: 'j1', busy: false, path: '/x/<b>y</b>.3mf', text: 't', msg: null }));
-    expect(panel.q('#path b')).toBeNull();
+    await panel.deliver(sync({ job: 'j1', busy: false, path: '/x/<b>y.3mf', text: 't', msg: null }));
+    expect(panel.text('.oui-saved-title')).toBe('<b>y.3mf');
+    expect(panel.q('#result b')).toBeNull();
   });
 });
 
@@ -912,14 +1020,13 @@ describe('requirements', () => {
   ] as const;
   const noPillow = [found[0], { id: 'pillow', name: 'Pillow', status: 'missing', version: null, detail: "ImportError: No module named 'PIL'" }] as const;
 
-  it('lists what Arrange and Fill need, with versions, collapsed while everything is found', async () => {
+  it('says nothing about requirements while everything is found', async () => {
     panel = await mountPanel();
     await panel.deliver(sync({ ctx: CTX, requirements: [...found] }));
     expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
     expect(panel.q('#req-hint')).toBeNull();
-    expect(panel.q<HTMLDetailsElement>('details:has(#req)')!.open).toBe(false);
-    expect(panel.text('#req')).toContain('all found');
-    expect(panel.text('[data-req=numpy] .oui-status[data-state=ok]')).toBe('Found, version 2.5.5');
+    expect(panel.q('#req')).toBeNull();
+    expect(panel.text('.pane-form')).not.toMatch(/numpy|Pillow|2\.5\.5/);
   });
 
   it('turns Arrange and Fill off with a one-line reason and says how to fix it', async () => {
@@ -934,34 +1041,46 @@ describe('requirements', () => {
     expect(panel.text('#req-hint')).toBe('Arrange and Fill are off: Pillow could not be loaded. See Requirements below.');
     expect(panel.q('#req-hint')!.matches('.oui-banner[data-tone=warn]')).toBe(true); // the reason is the page's banner, said once
     expect(panel.q('.pane-form #req-hint')).toBeNull();
-    expect(panel.q<HTMLDetailsElement>('details:has(#req)')!.open).toBe(true);
+    expect(panel.text('#req')).toBe('Requirements');
     expect(panel.text('[data-req=pillow] .oui-status[data-state=warn]')).toBe('Not found');
-    expect(panel.q('[data-req=pillow] a')!.getAttribute('href')).toBe('https://pillow.readthedocs.io/en/stable/installation/');
-    expect(panel.q('[data-req=numpy] a')).toBeNull(); // found: no install line
-    expect(panel.text('[data-req=pillow]')).toContain('Reinstall the plugin from Orca Cloud');
-    expect(panel.text('[data-req=pillow]')).toContain("No module named 'PIL'");
+    expect(panel.text('[data-req=pillow]')).toContain('Needed to measure part outlines.');
+    expect(panel.q('[data-req=numpy]')).toBeNull(); // found: not listed
+    expect(panel.q('.reqs a')).toBeNull(); // one instruction (reinstall the plugin), no link to a package's own install guide
+    expect(panel.text('.reqs')).toContain('Reinstall the plugin from Orca Cloud');
+    // the import error is word for word behind a closed disclosure, not a line of the row
+    expect(panel.q<HTMLDetailsElement>('[data-req=pillow] details')!.open).toBe(false);
+    expect(panel.text('[data-req=pillow] .oui-details-text')).toBe("ImportError: No module named 'PIL'");
     panel.organizer.run('arrange');
     expect(panel.take()).toEqual([]); // nothing is sent while a requirement is missing
 
-    panel.q<HTMLButtonElement>('[data-req=pillow] .oui-req-check')!.click();
+    // one Check again for the list, none in its rows
+    expect(document.querySelectorAll('.reqs .oui-req-check').length).toBe(1);
+    expect(panel.q('[data-req] .oui-req-check')).toBeNull();
+    const recheck = '.reqs [data-test=req-check]';
+    panel.q<HTMLButtonElement>(recheck)!.click();
     await panel.flush();
     expect(panel.takeRequests()).toEqual([{ action: 'recheck' }]);
-    expect(panel.text('[data-req=pillow] .oui-req-check')).toBe('Checking…');
-    expect(panel.q<HTMLButtonElement>('[data-req=pillow] .oui-req-check')!.disabled).toBe(true);
+    expect(panel.text(recheck)).toBe('Checking…');
+    expect(panel.q<HTMLButtonElement>(recheck)!.disabled).toBe(true);
+    // the plugin answers "unknown" while it retries: what was missing stays, and so does the reason
+    await panel.deliver(sync({ ctx: CTX, requirements: found.map((r) => ({ ...r, status: 'unknown', version: null })) }));
+    expect(panel.text(recheck)).toBe('Checking…');
+    expect(panel.q('[data-req=pillow]')).not.toBeNull();
+    expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(true);
+    await panel.deliver(sync({ ctx: CTX, requirements: [...noPillow] })); // still missing
+    expect(panel.text(recheck)).toBe('Check again');
+    expect(panel.q<HTMLButtonElement>(recheck)!.disabled).toBe(false);
     await panel.deliver(sync({ ctx: CTX, requirements: [...found] }));
-    expect(panel.text('[data-req=pillow] .oui-req-check')).toBe('Check again');
+    expect(panel.q('#req')).toBeNull();
     expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
     expect(panel.q('#req-hint')).toBeNull();
   });
 
-  it('says it is still checking while the plugin loads the packages, and leaves Arrange on', async () => {
+  it('leaves Arrange on and says nothing while the plugin is still loading the packages', async () => {
     panel = await mountPanel();
     await panel.deliver(sync({ ctx: CTX, requirements: found.map((r) => ({ ...r, status: 'unknown', version: null })) }));
     expect(panel.q<HTMLButtonElement>('#go')!.disabled).toBe(false);
-    expect(panel.text('#req')).toContain('Checking…');
-    expect(panel.text('[data-req=numpy] .oui-status[data-state=busy]')).toBe('Checking…');
-    await panel.deliver(sync({ ctx: CTX, requirements: [...found] }));
-    expect(panel.text('#req')).toContain('all found');
+    expect(panel.q('#req')).toBeNull();
   });
 
   it('explains the plugin refusing a run for a missing requirement, in the page language', async () => {

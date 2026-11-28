@@ -4,14 +4,13 @@ import InputNumber from 'primevue/inputnumber';
 import Message from 'primevue/message';
 import RadioButton from 'primevue/radiobutton';
 import { computed } from 'vue';
-import { OuiHint, OuiIcon, OuiRequirement } from '@orca-plugins/ui-foundation/src/components';
-import { arrange, chevronRight, fill, info } from '@orca-plugins/ui-foundation/src/icons';
+import { OuiDetails, OuiHint, OuiIcon, OuiRequirement, OuiRequirementList } from '@orca-plugins/ui-foundation/src/components';
+import { arrange, chevronRight, fill, warning } from '@orca-plugins/ui-foundation/src/icons';
 import { localeOf } from '../messages';
 import { MAX_COPIES, type Rotation } from '../protocol';
-import type { Requirement } from '../protocol';
 import { useOrganizer } from '../useOrganizer';
 
-const { s, lang, state, goLabel, fillLabel, statusView, ready, missing, blockedText, run, recheck, setSpacing, setRotation, setCopies } = useOrganizer();
+const { s, lang, state, goLabel, fillLabel, blockedBy, run, recheck, setSpacing, setRotation, setCopies } = useOrganizer();
 
 const locale = computed(() => localeOf(lang.value));
 // PrimeVue takes only the locale's decimal sign and drops '.' where it groups thousands (de, es, pt-BR): "2.5" became 25.
@@ -41,15 +40,12 @@ const rotations = computed<{ value: Rotation; label: string }[]>(() => [
 const spacingPt = computed(() => ({
   pcInputText: { root: { 'aria-describedby': state.validation ? 'spacing-error spacing-help' : 'spacing-help' } },
 }));
-// A disabled action points at the one sentence that says why (busy, or a missing requirement), after its own description.
-const describedBy = (id: string) => [id, state.busy && 'busy-hint', blockedText.value && 'req-hint'].filter(Boolean).join(' ');
-// The rows of the Requirements section (ui-foundation OuiRequirement). "unknown" from the plugin means it is still loading them.
-const GUIDES: Record<string, string> = { numpy: 'https://numpy.org/install/', pillow: 'https://pillow.readthedocs.io/en/stable/installation/' };
-const reqStatus = (r: Requirement) => (r.status === 'ok' ? 'found' : r.status === 'missing' ? 'missing' : 'checking');
-const reqLabel = (r: Requirement) => (r.status === 'ok' ? s.value.reqFound({ version: r.version ?? '' }) : r.status === 'missing' ? s.value.reqMissing : s.value.reqChecking);
-const off = computed(() => state.busy || missing.value.length > 0);
-// Before anything ran, the status is the one-line promise under the form; outcomes are banners (StatusBlock).
-const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.lines : []));
+// A disabled action points at the one sentence that says why (a run in progress, no answer from the plugin, no project,
+// nothing to arrange, a missing requirement: store `blockedBy`), after its own description.
+const describedBy = (id: string) => [id, blockedBy.value].filter(Boolean).join(' ');
+const off = computed(() => !!blockedBy.value);
+// What Arrange and Fill need and could not be loaded. While everything is there the page says nothing about it.
+const missingReqs = computed(() => state.requirements.filter((r) => r.status === 'missing'));
 </script>
 
 <template>
@@ -110,7 +106,8 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
             :use-grouping="false"
             :disabled="state.busy"
             :pt="{ pcInputText: { root: { 'aria-describedby': 'copies-help' } } }"
-            size="small"
+            :placeholder="s.copiesEmpty"
+            show-buttons
             fluid
             @update:model-value="setCopies"
           />
@@ -120,7 +117,7 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 
     <!-- What each control does, once, for those who ask: the controls point here with aria-describedby. -->
     <details class="more">
-      <summary id="help"><span class="sum"><OuiIcon :icon="info" :size="14" />{{ s.help }}</span></summary>
+      <summary id="help"><span class="sum"><OuiIcon :icon="chevronRight" :size="14" />{{ s.help }}</span></summary>
       <div class="more-body">
         <p id="subtitle" class="oui-meta">{{ s.sub }}</p>
         <dl class="terms">
@@ -134,36 +131,23 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
       </div>
     </details>
 
-    <!-- What Arrange and Fill need; opens by itself while something is missing. -->
-    <details v-if="state.requirements.length" class="more" :open="missing.length > 0">
-      <summary id="req"><span class="sum"><OuiIcon :icon="chevronRight" :size="14" />{{ s.req }}<span class="oui-meta">{{ missing.length ? s.reqMissingMeta({ names: missing.join(s.list) }) : state.requirements.some((r) => r.status === 'unknown') ? s.reqChecking : s.reqAllFound }}</span></span></summary>
-      <div class="more-body">
-        <div class="reqs">
-          <OuiRequirement
-            v-for="r in state.requirements"
-            :key="r.id"
-            :data-req="r.id"
-            :name="r.name"
-            :why="s.reqWhy[r.id]"
-            :status="reqStatus(r)"
-            :status-label="reqLabel(r)"
-            :detail="r.status === 'missing' ? (r.detail ?? undefined) : undefined"
-            :install-text="s.reqFix"
-            :install-url="GUIDES[r.id]"
-            :install-label="s.reqGuide"
-            :check-label="state.rechecking ? s.reqChecking : s.reqCheck"
-            :checking="state.rechecking"
-            @check="recheck"
-          />
+    <!-- What Arrange and Fill need: on the page only while something is missing (the banner above the form points here). -->
+    <section v-if="missingReqs.length" class="reqs" aria-labelledby="req">
+      <h2 id="req" class="reqs-title">{{ s.req }}</h2>
+      <!-- One Check again for the list; the import error of each row is behind its closed disclosure. -->
+      <OuiRequirementList :check-label="state.rechecking ? s.reqChecking : s.reqCheck" :checking="state.rechecking" @check="recheck()">
+        <div v-for="r in missingReqs" :key="r.id" class="req" :data-req="r.id">
+          <OuiRequirement :name="r.name" :why="s.reqWhy" status="missing" :status-label="s.reqMissing" />
+          <OuiDetails v-if="r.detail" :label="s.detailsLabel" :text="r.detail" :copy-label="s.detailsCopy" :copied-label="s.detailsCopied" />
         </div>
-      </div>
-    </details>
+        <p class="oui-meta fix">{{ s.reqFix }}</p>
+      </OuiRequirementList>
+    </section>
 
     <!-- Why the controls are off during a run: the job block beside the form shows it; the sentence is their description. -->
     <p v-if="state.busy" id="busy-hint" class="oui-sr">{{ s.busyHint }}</p>
-    <p v-for="(line, index) in idleNote" :key="line.key" class="oui-meta" :data-i="index">{{ line.text }}</p>
     <!-- The safety note is always on screen: what the spacing does not cover, and to check the plate before printing. -->
-    <p id="foot" class="oui-meta">{{ s.foot }}</p>
+    <p id="foot" class="foot"><OuiIcon :icon="warning" :size="14" tone="warn" /><span>{{ s.foot }}</span></p>
   </form>
 </template>
 
@@ -180,7 +164,7 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 .more > summary > .sum { display: flex; align-items: center; gap: 6px; min-height: 28px; min-width: 0; }
 .more > summary::-webkit-details-marker { display: none; }
 .sum > .oui-icon { color: var(--oui-muted); transition: transform var(--oui-fast); }
-.more[open] > :is(#adv, #req) .sum > .oui-icon { transform: rotate(90deg); }
+.more[open] > summary .sum > .oui-icon { transform: rotate(90deg); }
 .sum > .oui-meta { font-weight: 400; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .more + .more { margin-top: calc(-1 * var(--oui-s2)); }
 .more-body { display: grid; gap: var(--oui-s3); padding-top: var(--oui-s2); }
@@ -191,7 +175,16 @@ const idleNote = computed(() => (ready.value && !state.busy ? statusView.value.l
 .labelled { display: flex; align-items: center; gap: var(--oui-s1); min-width: 0; }
 .choice { display: flex; align-items: flex-start; gap: var(--oui-s2); }
 .terms { display: grid; gap: 2px; }
-.reqs { display: grid; margin: 0 calc(-1 * var(--oui-s4)); }
+.reqs { display: grid; grid-template-columns: minmax(0, 1fr); padding-top: var(--oui-s3); border-top: 1px solid var(--oui-border); }
+.reqs-title { font-weight: 650; }
+/* The list is made for a settings panel (16 px inside); in the form its rows start on the form's own edge. */
+.reqs :deep(:is(.oui-req, .oui-reqs-foot)) { padding-inline: 0; }
+.req { display: grid; gap: 2px; min-width: 0; padding-bottom: var(--oui-s2); }
+.req :deep(.oui-req) { padding-bottom: 0; }
+.fix { padding-block: var(--oui-s2); }
+/* Read as a caution, not as fine print: the warning mark, and the text at full strength. */
+.foot { display: flex; align-items: flex-start; gap: 6px; font-size: var(--oui-text-sm); }
+.foot > .oui-icon { flex: none; margin-top: 2px; }
 .terms dt { font-weight: 600; }
 .terms dd + dt { margin-top: var(--oui-s2); }
 </style>
