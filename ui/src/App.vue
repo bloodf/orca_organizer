@@ -2,16 +2,17 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, provide, watch, watchEffect } from 'vue';
 import { usePrimeVue, type PrimeVueLocaleOptions } from 'primevue/config';
 import { primeVueOptions } from '@orca-plugins/ui-foundation/src';
-import { OuiToastHost } from '@orca-plugins/ui-foundation/src/components';
+import { OuiEmpty, OuiPanel, OuiToastHost } from '@orca-plugins/ui-foundation/src/components';
+import { file } from '@orca-plugins/ui-foundation/src/icons';
 import { organizerKey } from './useOrganizer';
 import type { Organizer } from './store';
 import ArrangeForm from './components/ArrangeForm.vue';
-import IdlePanel from './components/IdlePanel.vue';
 import JobProgress from './components/JobProgress.vue';
 import PanelHeader from './components/PanelHeader.vue';
 import PanelNotices from './components/PanelNotices.vue';
 import ResultCard from './components/ResultCard.vue';
 import StatusBlock from './components/StatusBlock.vue';
+import plateArt from './assets/organizer-plate.webp';
 
 const props = defineProps<{ organizer: Organizer }>();
 provide(organizerKey, props.organizer);
@@ -19,6 +20,7 @@ const { s, lang, state, start, stop } = props.organizer;
 
 // The dock shows one thing at a time: the form, the running job or the result. A tab shows the form beside them.
 const view = computed(() => (state.busy ? 'running' : state.resultVisible && !state.formOpen ? 'result' : 'form'));
+const idle = computed(() => !state.busy && !state.resultVisible);
 
 const prime = usePrimeVue();
 const englishLocale = { ...prime.config.locale } as PrimeVueLocaleOptions;
@@ -58,9 +60,13 @@ onBeforeUnmount(stop);
       <ArrangeForm class="pane-form" />
       <div class="pane-side">
         <StatusBlock />
-        <JobProgress />
-        <ResultCard />
-        <IdlePanel />
+        <!-- One panel for what a run gives: what to expect, the running job, then the saved copy. A tab shows its "Result"
+             header throughout, so the column keeps its shape; the dock shows the bare card, and no panel before the first run. -->
+        <OuiPanel class="side" :class="{ idle }" :title="s.result" :icon="file" tone="neutral">
+          <JobProgress />
+          <ResultCard />
+          <OuiEmpty v-if="idle" :image="plateArt" :title="s.nothingYet" :text="s.nothingYetText" />
+        </OuiPanel>
       </div>
     </div>
   </main>
@@ -78,7 +84,11 @@ onBeforeUnmount(stop);
 }
 :root:lang(zh) { --oui-font: 'OuiCJKPunct', 'Manrope', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
 .panel { padding: var(--oui-s3); }
-.panel > * { min-width: 0; }
+/* One column: the notices are as wide as the form and the result under them (360 + 16 + 560), never the whole window. */
+.panel > * { min-width: 0; width: 100%; max-width: 936px; }
+@container oui-page (min-width: 1200px) {
+  .panel > * { margin-inline: auto; }
+}
 .grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--oui-s3); align-items: start; min-width: 0; }
 .pane-side { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--oui-s2); align-content: start; min-width: 0; }
 .pane-side:not(:has(> :not(.oui-sr, :empty))) { display: none; }
@@ -89,6 +99,8 @@ onBeforeUnmount(stop);
   .pane-side:not(:has(> :not(.oui-sr, :empty, .idle))) { display: none; }
   /* Room for the outcome's close buttons: Open stays above the fold of the 360 px dock. */
   .pane-side { gap: var(--oui-s1); }
+  .side > .oui-panel-head { display: none; }
+  .side > .oui-panel-body { padding: var(--oui-s2); }
 }
 /* Tab: the form in its own card on the left, the job, the result or what to expect on the right. */
 @container oui-page (min-width: 621px) {

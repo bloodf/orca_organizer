@@ -186,7 +186,7 @@ try {
     await S[state](state === 'loading' ? undefined : hostLang);
     await delay(reducedMotionWait); // let enter transitions (Message) settle before measuring
     const expected = { offline: '#offline', error: '#status-error', errorUnknown: '#status-error', validation: '#spacing-error', stale: '#stale',
-      unreadable: '.context-problem', toast: '.oui-toast .oui-toast-close', running: '#cancel', runningFill: '#cancel', done: '#result', loading: '#context .oui-status[data-state=connecting] ~ [role=progressbar]', empty: '#status .oui-banner' };
+      unreadable: '.context-problem', toast: '.oui-toast .oui-toast-close', running: '#cancel', runningFill: '#cancel', done: '#result', loading: '#context .oui-status[data-state=connecting] ~ [role=progressbar]', empty: '#empty' };
     if (expected[state]) assert(await evaluate(`!!document.querySelector(${JSON.stringify(expected[state])})`), `${state}: ${expected[state]} is not on screen`);
     const m = await evaluate(MEASURE);
     assert.equal(m.lang, langTag, `${state}: the page is in ${m.lang}, not ${langTag}`);
@@ -311,7 +311,7 @@ try {
   await click('#help'); await delay(200);
   assert.equal(await evaluate('document.querySelector("#help").parentElement.open'), false, 'How it works closes again');
   await evaluate('document.querySelector("#rotation-auto").focus()');
-  for (let i = 0; i < 2; i++) { // Automatic, Only 90° steps, Keep orientation
+  for (let i = 0; i < 2; i++) { // Any angle, 90° steps only, Do not rotate
     for (const type of ['keyDown', 'keyUp']) await call('Input.dispatchKeyEvent', { type, key: 'ArrowDown', code: 'ArrowDown', windowsVirtualKeyCode: 40 });
     await delay(250);
   }
@@ -336,7 +336,7 @@ try {
   await call('DOM.enable'); await call('CSS.enable');
   const { root: domRoot } = await call('DOM.getDocument');
   interaction.chineseFonts = {};
-  for (const sel of ['#context', '#saved-label', '#open .p-button-label', '#status .oui-banner-text', '#notes']) {
+  for (const sel of ['#context', '#saved-what', '#open .p-button-label', '#status .oui-banner-text strong', '#result .checks li']) {
     const { nodeId } = await call('DOM.querySelector', { nodeId: domRoot.nodeId, selector: sel });
     const { fonts } = await call('CSS.getPlatformFontsForNode', { nodeId });
     interaction.chineseFonts[sel] = fonts.map((f) => `${f.familyName} (${f.glyphCount})`);
@@ -344,7 +344,7 @@ try {
     assert(fonts.some((f) => f.familyName !== 'Manrope'), `${sel}: no system font was used for Chinese: ${JSON.stringify(fonts)}`);
   }
   // Chinese quotes and ellipsis are drawn full width by the Chinese font, not as Manrope's narrow Latin marks
-  await evaluate('(() => { const s = document.createElement("span"); s.id = "cjk-punct"; s.textContent = "“”‘’…"; document.querySelector("#notes").append(s); return s.offsetWidth; })()'); // laid out before its fonts are asked for
+  await evaluate('(() => { const s = document.createElement("span"); s.id = "cjk-punct"; s.textContent = "“”‘’…"; document.querySelector("#result .checks li").append(s); return s.offsetWidth; })()'); // laid out before its fonts are asked for
   const { nodeId: punctNode } = await call('DOM.querySelector', { nodeId: (await call('DOM.getDocument')).root.nodeId, selector: '#cjk-punct' });
   const punctFonts = (await call('CSS.getPlatformFontsForNode', { nodeId: punctNode })).fonts;
   interaction.chineseFonts['#cjk-punct'] = punctFonts.map((f) => `${f.familyName} (${f.glyphCount})`);

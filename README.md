@@ -96,20 +96,20 @@ From a file:
 ## 🛠️ How to use
 
 1. Select the plate you want to arrange in OrcaSlicer.
-2. Click the **Organizer** tab in the main window. It shows the project, the selected plate and its object count, and follows your selection.
+2. Click the **Organizer** tab in the main window. It shows the project and the selected plate, and follows your selection.
 3. Set **Spacing between parts** and click **Arrange plate N**. To add copies as well, click **Fill plate N** instead.
 4. Allow the launch prompt the first time. This is how the plugin opens the arranged copy.
-5. Read the result. It says how many parts were placed, lists any that did not fit (they are moved into a row above the plate) and shows where the copy was saved, with **Open this copy in OrcaSlicer** and **Copy path**.
+5. Read the result. It says how many parts were placed, lists any that did not fit (they are moved into a row above the plate) and says whether OrcaSlicer was asked to open the copy. **Open in OrcaSlicer** loads it, and **Copy path** gives you where it was saved.
 6. Slice and check the plate in OrcaSlicer before printing.
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/readme/orca_organizer-screen-advanced-dark-en.png">
-    <img alt="The Organizer tab with Advanced open: Automatic (1° steps), Only 90° steps, Keep each part's orientation, and Most copies to add when filling" src="assets/readme/orca_organizer-screen-advanced-light-en.png" width="100%">
+    <img alt="The Organizer tab with Advanced open: Any angle, 90° steps only, Do not rotate, and Most copies to add when filling" src="assets/readme/orca_organizer-screen-advanced-light-en.png" width="100%">
   </picture>
 </p>
 
-Under **Advanced**, *Only 90° steps* turns parts only by quarter turns, so parts that are square to the bed stay square to it. *Keep each part's orientation* turns rotation off and only moves parts. Both fit fewer parts than *Automatic (1° steps)*.
+Under **Advanced**, *90° steps only* turns parts only by quarter turns, so parts that are square to the bed stay square to it. *Do not rotate* turns rotation off and only moves parts. Both fit fewer parts than *Any angle*.
 
 Where OrcaSlicer has no plugin tabs, click **Run** on *Shape-Aware Arrange* in the **Plugins** window (see [Install](#-install)). It opens the same controls in a panel docked on the right, and both entries share one run.
 

@@ -98,20 +98,20 @@ Os nomes de menu acima são os do OrcaSlicer em inglês.
 ## 🛠️ Como usar
 
 1. Selecione no OrcaSlicer a mesa que você quer arrumar.
-2. Clique na aba **Organizer** da janela principal. Ela mostra o projeto, a mesa selecionada e a contagem de objetos, e acompanha a sua seleção.
+2. Clique na aba **Organizer** da janela principal. Ela mostra o projeto e a mesa selecionada, e acompanha a sua seleção.
 3. Ajuste o **Espaçamento entre peças** e clique em **Arrumar placa N**. Para também adicionar cópias, clique em **Preencher placa N**.
 4. Aceite o pedido de permissão para abrir programas na primeira vez. É assim que o plugin abre a cópia arrumada.
-5. Leia o resultado. Ele diz quantas peças foram posicionadas, lista as que não couberam (elas vão para uma fileira acima da mesa) e mostra onde a cópia foi salva, com **Abrir esta cópia no OrcaSlicer** e **Copiar caminho**.
+5. Leia o resultado. Ele diz quantas peças foram posicionadas, lista as que não couberam (elas vão para uma fileira acima da mesa) e diz se o OrcaSlicer recebeu o pedido para abrir a cópia. **Abrir no OrcaSlicer** carrega a cópia, e **Copiar caminho** informa onde ela foi salva.
 6. Fatie e confira a mesa no OrcaSlicer antes de imprimir.
 
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/readme/orca_organizer-screen-advanced-dark-pt-BR.png">
-    <img alt="A aba Organizer com Avançado aberto: Automática (passos de 1°), Só passos de 90°, Manter a orientação de cada peça e Máximo de cópias ao preencher" src="assets/readme/orca_organizer-screen-advanced-light-pt-BR.png" width="100%">
+    <img alt="A aba Organizer com Avançado aberto: Qualquer ângulo, Só passos de 90°, Não girar e Máximo de cópias ao preencher" src="assets/readme/orca_organizer-screen-advanced-light-pt-BR.png" width="100%">
   </picture>
 </p>
 
-Em **Avançado**, *Só passos de 90°* gira as peças só em quartos de volta, então peças que estão no esquadro da mesa continuam no esquadro. *Manter a orientação de cada peça* desliga a rotação e só move as peças. Nos dois casos cabem menos peças do que com *Automática (passos de 1°)*.
+Em **Avançado**, *Só passos de 90°* gira as peças só em quartos de volta, então peças que estão no esquadro da mesa continuam no esquadro. *Não girar* desliga a rotação e só move as peças. Nos dois casos cabem menos peças do que com *Qualquer ângulo*.
 
 Onde o OrcaSlicer não tem abas de plugin, clique em **Run** no *Shape-Aware Arrange* na janela **Plugins** (veja [Instalação](#-instalação)). Ele abre os mesmos controles em um painel encaixado à direita, e as duas entradas compartilham uma só execução.
 

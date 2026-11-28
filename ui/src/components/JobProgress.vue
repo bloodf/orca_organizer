@@ -39,6 +39,6 @@ watchEffect(() => {
 /* One line each: the project and the part being placed can be long. */
 .job :deep(.oui-job-detail) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .job :deep(.p-button) { white-space: normal; }
-/* The job does not pad itself (ui-foundation 5): the card is drawn here, as the reference does. */
-.job { padding: var(--oui-s3); border-radius: var(--oui-radius-lg); background: var(--oui-surface); box-shadow: inset 0 0 0 1px var(--oui-border), var(--oui-shadow-panel); overflow: hidden; }
+/* The card is the Result panel around it (App.vue): the right column keeps its shape from "nothing yet" to the result. */
+.job { min-width: 0; overflow: hidden; }
 </style>

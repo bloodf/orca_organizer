@@ -4,7 +4,7 @@ import { OuiAppBar, OuiIcon, OuiStatus } from '@orca-plugins/ui-foundation/src/c
 import { arrange } from '@orca-plugins/ui-foundation/src/icons';
 import { useOrganizer } from '../useOrganizer';
 
-const { s, state, ctxText, ctxShort, ctxProblem, projectName, loading, again } = useOrganizer();
+const { s, state, ctxText, ctxProblem, plateText, projectName, loading, again } = useOrganizer();
 </script>
 
 <template>
@@ -14,7 +14,9 @@ const { s, state, ctxText, ctxShort, ctxProblem, projectName, loading, again } =
       <svg viewBox="0 0 24 24" fill="currentColor"><path fill-rule="evenodd" d="M5.5 2.2h13a3.3 3.3 0 0 1 3.3 3.3v13a3.3 3.3 0 0 1-3.3 3.3h-13a3.3 3.3 0 0 1-3.3-3.3v-13a3.3 3.3 0 0 1 3.3-3.3zm0 1.5a1.8 1.8 0 0 0-1.8 1.8v13a1.8 1.8 0 0 0 1.8 1.8h13a1.8 1.8 0 0 0 1.8-1.8v-13a1.8 1.8 0 0 0-1.8-1.8z"/><rect x="4.7" y="4.7" width="9.3" height="9.5"/><rect x="14.8" y="4.7" width="4.5" height="9.5"/><rect x="4.7" y="15" width="4.5" height="4.3"/><rect x="10" y="15" width="9.3" height="4.3"/></svg>
     </template>
     <template #status>
-      <!-- One state for the page: no answer, reading, unreadable project, or the plate the buttons act on. -->
+      <!-- One state for the page: no answer, reading or an unreadable project as a chip; else the project and the plate the
+           buttons act on. The dock shows only the chip: its buttons name the plate, and the bar stays one line. The object
+           count is the whole project's (the host does not say what is on a plate), so it is in the tooltip, not beside the plate. -->
       <span id="context" class="context oui-truncate" :title="loading ? s.loadingLabel : ctxText" :aria-busy="loading">
         <OuiStatus v-if="state.offline" state="offline" :label="s.statusOffline" />
         <template v-else-if="loading">
@@ -23,9 +25,9 @@ const { s, state, ctxText, ctxShort, ctxProblem, projectName, loading, again } =
           <span id="loading" class="oui-sr" role="progressbar" :aria-label="s.loadingLabel" />
         </template>
         <OuiStatus v-else-if="ctxProblem" state="warn" :label="s.statusProblem" />
-        <template v-else-if="ctxShort">
+        <template v-else-if="plateText">
           <span class="oui-sr">{{ ctxText }}</span>
-          <span aria-hidden="true"><span class="context-name">{{ projectName }} · </span>{{ ctxShort }}</span>
+          <span class="context-where" aria-hidden="true"><strong class="context-name">{{ projectName }}</strong> · {{ plateText }}</span>
         </template>
         <template v-else>{{ ctxText }}</template>
       </span>
@@ -43,9 +45,9 @@ const { s, state, ctxText, ctxShort, ctxProblem, projectName, loading, again } =
 <style>
 .context { display: block; }
 .context > .oui-status { vertical-align: middle; }
-/* The dock has room for the plate and the count; the project name joins them in a tab. */
+.context-name { font-weight: 650; color: var(--oui-text); }
 @container oui-appbar (max-width: 520px) {
-  .context-name { display: none; }
+  .context-where { display: none; }
 }
 /* Icon only: the name is its aria-label and tooltip. */
 #again .p-button-label { display: none; }

@@ -69,7 +69,7 @@ def english_fixtures() -> list[dict]:
             tail = sa.OPEN_EN[how].format(detail="no permission")
             msg = {**ref, "action": "fill", "code": "done", **sa.result_msg(report, p), "open": how,
                    "detail": "no permission"}
-            text = sa._summary(report, p, label) + "\nSaved as: /s/P-arranged.3mf\n" + tail
+            text = sa._summary(report, p) + "\nSaved as: /s/P-arranged.3mf\n" + tail
             out.append({"msg": msg, "text": "\n".join(line for line in text.split("\n") if not line.startswith("Saved as: ")),
                         "path": "/s/P-arranged.3mf"})
     return out
@@ -112,9 +112,8 @@ def test_embedded_page_is_offline_and_needs_no_unsafe_eval():
     assert not re.search(r"\beval\(|new Function|\bFunction\(", html), "needs unsafe-eval: templates must be compiled ahead of time"
     assert not re.search(r"\bfetch\(|XMLHttpRequest|WebSocket|sendBeacon|importScripts", html), "the page only talks to the host bridge"
     urls = set(re.findall(r"https?://[^\s\"'`)<>]+", html))
-    # XML namespaces and a Vue error-doc string, never loaded; the install guides of the requirements, opened only on a click
-    allowed = ("http://www.w3.org/", "https://vuejs.org/error-reference", "https://numpy.org/install/",
-               "https://pillow.readthedocs.io/en/stable/installation/")
+    # XML namespaces and a Vue error-doc string, never loaded
+    allowed = ("http://www.w3.org/", "https://vuejs.org/error-reference")
     assert all(u.startswith(allowed) for u in urls), urls
     assert "bootstrap" not in html.lower() and "cdn." not in html.lower()
 

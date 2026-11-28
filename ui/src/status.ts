@@ -1,8 +1,9 @@
 import { ENGLISH, strings, type Lang, type Num, numberFormat } from './messages';
 import type { Cause, JobMsg } from './protocol';
 
-/** `warn`: parts that did not fit. `note`: the fine print of a finished run, shown under the saved copy. */
-export type LineKind = 'main' | 'cause' | 'next' | 'detail' | 'info' | 'warn' | 'note';
+/** `warn`: parts that did not fit. With the saved copy: `check` (what to look at before printing), `note` (fine print)
+ *  and `open` (what happened when OrcaSlicer was asked to open it). `detail`: the raw error, behind a disclosure. */
+export type LineKind = 'main' | 'cause' | 'next' | 'detail' | 'info' | 'warn' | 'note' | 'check' | 'open';
 
 export interface StatusLine {
   key: string;
@@ -47,7 +48,7 @@ function split(prefix: string, kind: LineKind, text: string): StatusLine[] {
 function explain(lang: Lang, cause: Cause | undefined, detail: string | undefined) {
   const known = !!cause && cause.code !== 'unexpected' && cause.code in ENGLISH.err;
   const [why, next] = causeTable(lang, known ? cause.code : 'unexpected', cause);
-  const extra = known || !detail ? [] : split('detail', 'detail', strings(lang).details + detail);
+  const extra = known || !detail ? [] : [{ key: 'detail', kind: 'detail' as const, text: detail }];
   return { why, lines: [...split('next', 'next', strings(lang).next + next), ...extra] };
 }
 
@@ -97,15 +98,17 @@ export function describe(lang: Lang, ref: (m: JobMsg) => string, m: JobMsg): Des
       };
     }
     case 'save_failed': {
-      const [first, ...rest] = t.saveFailed({ ref: r, detail: m.detail ?? '' }).split('\n');
-      return { lines: [...split('main', 'main', first), ...split('info', 'info', rest.join('\n'))], progress: null };
+      const [first, ...rest] = t.saveFailed({ ref: r }).split('\n');
+      const detail: StatusLine[] = m.detail ? [{ key: 'detail', kind: 'detail', text: m.detail }] : [];
+      return { lines: [...split('main', 'main', first), ...split('info', 'info', rest.join('\n')), ...detail], progress: null };
     }
     case 'start_failed': {
       const why = explain(lang, m.cause, m.detail);
       return { lines: [...split('main', 'main', t.startFailed({ why: why.why })), ...why.lines], progress: null };
     }
     case 'done': {
-      const out: [LineKind, string][] = [['main', t.res.placed({ ref: r, placed: m.placed ?? 0 })]];
+      // The saved copy names the project and the plate (ResultCard): the outcome only says what was done.
+      const out: [LineKind, string][] = [['main', t.res.placed({ placed: m.placed ?? 0 })]];
       if (m.added) {
         const per = Object.entries(m.by_object ?? {})
           .map(([name, count]) => name + ' ×' + num(count))
@@ -113,16 +116,12 @@ export function describe(lang: Lang, ref: (m: JobMsg) => string, m: JobMsg): Des
         out.push(['info', t.res.added({ added: m.added, per })]);
         if (m.limit) out.push(['info', t.res.limit({ max: m.max ?? 0 })]);
       }
-      if (m.tower) out.push(['note', t.res.tower]);
-      if (m.clearance != null) out.push(['note', t.res.clearance({ clearance: m.clearance })]);
+      if (m.tower) out.push(['check', t.res.tower]);
+      if (m.clearance != null) out.push(['check', t.res.clearance({ clearance: m.clearance })]);
       if (m.keep) out.push(['note', t.res.keep]);
       if (m.right) out.push(['note', t.res.right]);
       if (m.unplaced && m.unplaced.length) out.push(['warn', t.res.unplaced({ names: m.unplaced.join(t.list) })]);
-      out.push(['note', t.res.foot]);
-      if (m.open) {
-        const open = t.open_[m.open];
-        out.push([m.open === 'dirty' ? 'warn' : 'note', typeof open === 'function' ? open({ detail: m.detail ?? '' }) : open]);
-      }
+      if (m.open && t.open_[m.open]) out.push(['open', t.open_[m.open]]);
       return { lines: out.map(([kind, text], index) => ({ key: `res-${index}`, kind, text })), progress: null };
     }
   }

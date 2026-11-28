@@ -79,16 +79,18 @@ settings and other plates are kept.
    **Advanced**; empty fills the plate.
 4. Allow the launch prompt the first time; this is how the plugin opens the
    arranged copy. The panel shows how many parts were placed, lists any
-   that did not fit (moved into a row above the plate) and always shows
-   where the copy was saved, with an **Open this copy in OrcaSlicer** button.
+   that did not fit (moved into a row above the plate) and says whether
+   OrcaSlicer was asked to open the copy. **Open in OrcaSlicer** loads it;
+   **Copy path** gives you where it was saved. The path itself is shown only
+   when the copy could not be opened or copied.
 
 The spacing is the gap kept between parts' top-down outlines. It is never
 undercut; because positions sit on a 0.5 mm grid, the real gap is typically
 about 1 mm larger, up to about 2 mm along slanted edges. Under
-**Advanced**, *Only 90° steps* turns parts only by quarter turns, so parts that
+**Advanced**, *90° steps only* turns parts only by quarter turns, so parts that
 are square to the bed stay square to it (each part may also keep its current
-angle), and *Keep each part's orientation* turns rotation off: parts only
-move. Both fit fewer parts than automatic rotation.
+angle), and *Do not rotate* turns rotation off: parts only
+move. Both fit fewer parts than *Any angle*.
 
 The panel remembers the spacing, rotation and copy limit of the last run you
 started, also after OrcaSlicer restarts (`settings.json` in the plugin's
@@ -107,7 +109,7 @@ Organizer tab and the Script's panel share one run, so a second click
 shows the running one instead of starting another. If you switch tabs,
 close the panel or reload the page during a run, the run continues; come
 back to see its progress. A run that finished while nobody was watching is
-saved when you return, and **Open this copy in OrcaSlicer** asks Orca to load it. The tab marks a
+saved when you return, and **Open in OrcaSlicer** asks Orca to load it. The tab marks a
 result that belongs to another project or plate than the one selected now.
 
 A plate whose parts all fit takes a few seconds. A crowded plate that
@@ -131,8 +133,9 @@ Orca's Host API) and falls back to the browser's language when the host does
 not offer it. Any other language shows English. Part and file names, paths and
 the technical details of an unexpected error are shown as they are. A failure
 says what went wrong and what to try next, in the panel's language; the raw
-error stays as *Details* only when the cause is not one the plugin knows.
-"Open this copy in OrcaSlicer" only asks Orca to open the saved file: what Orca
+error is never part of a sentence: it is behind a closed *Technical details*
+disclosure, with a Copy button, when the cause is not one the plugin knows.
+"Open in OrcaSlicer" only asks Orca to open the saved file: what Orca
 does with its current project or windows was not tested, so the panel does not
 say. When the plugin does not answer, the tab says so and offers **Try again**,
 which asks the plugin for its state again (the host has no API to reload a tab).
